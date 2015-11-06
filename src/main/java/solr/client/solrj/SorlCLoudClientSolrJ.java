@@ -16,8 +16,8 @@ import java.io.IOException;
  */
 public class SorlCLoudClientSolrJ {
    //121.199.42.48
-   static String zkHostString = "121.199.42.48:9983";
-    static String queryString = "http://121.199.42.48:8983/solr/gettingstarted/select?q=sku:mwl*+original:mwl*^10+text:mwl&q.op=or&start=1&rows=20&wt=json";
+   static String zkHostString = "xxxx:xx";
+    static String queryString = "http://xxx:xxx/solr/gettingstarted/select?q=sku:mwl*+original:mwl*^10+text:mwl&q.op=or&start=1&rows=20&wt=json";
 
     public static void main(String[] args) {
         search();

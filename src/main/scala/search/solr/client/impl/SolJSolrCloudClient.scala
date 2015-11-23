@@ -1,0 +1,170 @@
+package search.solr.client.impl
+
+import org.apache.solr.client.solrj.SolrQuery
+import org.apache.solr.client.solrj.impl.{BinaryRequestWriter, CloudSolrClient}
+import org.apache.solr.client.solrj.response.QueryResponse
+import org.apache.solr.common.SolrInputDocument
+import search.solr.client.util.Logging
+import search.solr.client.{SolrClient, SolrClientConf}
+
+import scala.collection.JavaConversions._
+import scala.reflect.ClassTag
+
+/**
+  * Created by soledede on 2015/11/16.
+  */
+private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends SolrClient with Logging {
+  val server: CloudSolrClient = SolJSolrCloudClient.singleCloudInstance(conf)
+
+  override def searchByQuery[T: ClassTag](query: T, collection: String = "searchcloud"): AnyRef = {
+    if (server == null) server.connect()
+    var response: QueryResponse = null
+    try {
+      response = server.query(collection, query.asInstanceOf[SolrQuery])
+    } catch {
+      case e: Exception =>
+        e.printStackTrace()
+        server.close()
+      //TODO Log
+    }
+    response
+  }
+
+  override def addIndices[D: ClassTag](zeus: D, collection: String = "searchcloud"): Unit = {
+    try {
+      if (zeus.isInstanceOf[java.util.List[java.util.Map[java.lang.String, Object]]]) {
+        val zList = zeus.asInstanceOf[java.util.List[java.util.Map[java.lang.String, Object]]]
+        if (zList.size() > 0) {
+          val docList = new java.util.ArrayList[SolrInputDocument]()
+          zList.foreach { doc =>
+            val docSingle: SolrInputDocument = new SolrInputDocument
+            doc.foreach { field =>
+              val fieldName = field._1
+              val fieldVal = field._2
+              if (fieldVal.isInstanceOf[Array[Object]]) {
+                //have boost
+                val addBoost = fieldVal.asInstanceOf[Array[Object]]
+                //set->300->9.6
+                docSingle.addField(fieldName,addBoost(0),addBoost(1).asInstanceOf[java.lang.Float])
+              } else
+                docSingle.addField(fieldName, fieldVal)
+            }
+            docList.add(docSingle)
+          }
+          server.add(collection, docList)
+          server.commit()
+        } else {
+          return new Exception("请传入文档")
+        }
+      }
+    } catch {
+      case e: Exception => throw new Exception(s"添加索引失败,${e.getMessage}", e.getCause)
+    }
+  }
+
+  override def updateIndices[D: ClassTag](zeus: D, collection: String = "searchcloud"): Unit = {
+    try {
+      if (zeus.isInstanceOf[SolrInputDocument]) {
+        server.add(collection, zeus.asInstanceOf[SolrInputDocument])
+        server.optimize()
+        server.commit()
+      } else if (zeus.isInstanceOf[java.util.List[java.util.Map[java.lang.String, Object]]]) {
+        //  eg:List(Map("docId1"->32343,"time"->Map("set"->"2015")))
+        //eg:List(Map("docId1"->32343,"time"->Map("set"->Array("2015",9.8))))
+
+        val zList = zeus.asInstanceOf[java.util.List[java.util.Map[java.lang.String, Object]]]
+        if (zList.size() > 0) {
+          val docList = new java.util.ArrayList[SolrInputDocument]()
+          zList.foreach { doc =>
+            val docSingle: SolrInputDocument = new SolrInputDocument
+            doc.foreach { field =>
+              val fieldName = field._1
+              val fieldVal = field._2
+
+              if (fieldVal.isInstanceOf[java.util.Map[java.lang.String, Object]]) {
+                val fieldValMap = fieldVal.asInstanceOf[java.util.Map[java.lang.String, Object]]
+                docSingle.addField(fieldName, fieldValMap)
+              } else if (fieldVal.isInstanceOf[Array[Object]]) {
+                //have boost
+                val updateBoost = fieldVal.asInstanceOf[Array[Object]]
+                //set->300->9.6
+                val uMap = new java.util.LinkedHashMap[String, Object]()
+                uMap.put(updateBoost(0).toString, updateBoost(1))
+                docSingle.addField(fieldName, uMap, updateBoost(2).asInstanceOf[java.lang.Float])
+              } else {
+                //uniqueKey
+                docSingle.setField(fieldName, fieldVal)
+              }
+            }
+            docList.add(docSingle)
+          }
+          server.add(collection, docList)
+          server.commit()
+        } else {
+          return new Exception("请传入文档")
+        }
+      }
+    } catch {
+      case e: Exception =>
+        e.printStackTrace()
+        throw new Exception(s"原子更新索引失败${e.getMessage}", e.getCause)
+    }
+
+  }
+
+  override def close(): Unit = {
+    SolJSolrCloudClient.close()
+  }
+
+}
+
+
+object SolJSolrCloudClient {
+
+  val lockSearch = new Object
+  val lockKwSearch = new Object
+
+  var solrJClient: SolJSolrCloudClient = null
+
+  def apply(conf: SolrClientConf): SolrClient = {
+    if (solrJClient == null) solrJClient = new SolJSolrCloudClient(conf)
+    solrJClient
+  }
+
+  var server: CloudSolrClient = null
+  var kwServer: CloudSolrClient = null
+
+  def singleCloudInstance(conf: SolrClientConf): CloudSolrClient = {
+    if (server == null) {
+      lockSearch.synchronized {
+        if (server == null) {
+          val zkHostString: String = conf.get("solrj.zk", "solr1:3213,solr2:3213,solr3:3213/solr")
+          server = new CloudSolrClient(zkHostString)
+          server.setDefaultCollection(conf.get("solrj.collection", "searchcloud"))
+          server.setZkConnectTimeout(conf.getInt("solrj.zkConnectTimeout", 60000))
+          server.setZkClientTimeout(conf.getInt("solrj.zkClientTimeout", 60000))
+          server.setRequestWriter(new BinaryRequestWriter())
+          val doc = new SolrInputDocument
+        }
+      }
+    }
+    server
+  }
+
+
+  def connect() = {
+    lockSearch.synchronized {
+      if (server == null) {
+        server.connect
+      }
+    }
+  }
+
+  def close() = {
+    lockSearch.synchronized {
+      if (server != null)
+        server.close
+    }
+  }
+
+}

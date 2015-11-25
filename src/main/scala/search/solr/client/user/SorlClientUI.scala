@@ -108,10 +108,10 @@ private[search] class SorlClientUI {
   def asynUpdateIndicesByMapSet(mapSet: java.util.List[java.util.Map[String, Object]], future: FutureCallback[IndexResult], collection: String = "searchcloud"): Unit = {
     val execTask = executor.submit(new IndexTask[IndexResult, java.util.List[java.util.Map[String, Object]]](mapSet))
     Futures.addCallback(execTask, future, Executors.newSingleThreadExecutor())
-    //executor.shutdown
-    /* while (!executor.isTerminated()) {
+    executor.shutdown
+     while (!executor.isTerminated()) {
        executor.awaitTermination(java.lang.Long.MAX_VALUE, TimeUnit.NANOSECONDS)
-   }*/
+   }
   }
 
 

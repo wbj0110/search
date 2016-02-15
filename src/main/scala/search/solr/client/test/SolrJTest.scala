@@ -58,6 +58,5 @@ object SolrJTest {
     val r =client.searchByQuery(query).asInstanceOf[QueryResponse]
     client.close()
     r.getResults.foreach(println)
-    val solr = new SolrInputDocument
   }
 }

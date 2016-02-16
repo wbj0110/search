@@ -1,5 +1,7 @@
 package search.solr.client.impl
 
+import java.util
+
 import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.impl.{BinaryRequestWriter, CloudSolrClient}
 import org.apache.solr.client.solrj.response.QueryResponse
@@ -45,7 +47,7 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
                 //have boost
                 val addBoost = fieldVal.asInstanceOf[Array[Object]]
                 //set->300->9.6
-                docSingle.addField(fieldName,addBoost(0),addBoost(1).asInstanceOf[java.lang.Float])
+                docSingle.addField(fieldName, addBoost(0), addBoost(1).asInstanceOf[java.lang.Float])
               } else
                 docSingle.addField(fieldName, fieldVal)
             }
@@ -54,11 +56,14 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
           server.add(collection, docList)
           server.commit()
         } else {
+          logError("not input document")
           return new Exception("请传入文档")
         }
       }
     } catch {
-      case e: Exception => throw new Exception(s"添加索引失败,${e.getMessage}", e.getCause)
+      case e: Exception =>
+        logError("add index faield!", e)
+        throw new Exception(s"添加索引失败,${e.getMessage}", e.getCause)
     }
   }
 
@@ -101,15 +106,30 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
           server.add(collection, docList)
           server.commit()
         } else {
+          logError("not input document")
           return new Exception("请传入文档")
         }
       }
     } catch {
       case e: Exception =>
         e.printStackTrace()
+        logError("automic update faield!", e)
         throw new Exception(s"原子更新索引失败${e.getMessage}", e.getCause)
     }
 
+  }
+
+
+  override def delete(list: util.ArrayList[String],collection: String = "searchcloud"): Boolean = {
+    try {
+      server.deleteById(collection,list)
+      server.commit()
+      true
+    } catch {
+      case e: Exception =>
+        logError("deleteById index faield", e)
+        false
+    }
   }
 
   override def close(): Unit = {
@@ -144,7 +164,6 @@ object SolJSolrCloudClient {
           server.setZkConnectTimeout(conf.getInt("solrj.zkConnectTimeout", 60000))
           server.setZkClientTimeout(conf.getInt("solrj.zkClientTimeout", 60000))
           server.setRequestWriter(new BinaryRequestWriter())
-          val doc = new SolrInputDocument
         }
       }
     }

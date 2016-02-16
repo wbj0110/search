@@ -14,6 +14,8 @@ import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.HttpEntity
 import org.apache.http.util.EntityUtils
 import org.apache.http.HttpResponse
+import org.codehaus.jackson.JsonNode
+import org.codehaus.jackson.map.ObjectMapper
 import search.solr.client.entity.enumeration.HttpRequestMethodType
 import search.solr.client.util.Logging
 
@@ -69,24 +71,45 @@ object TestHttpClientUtil {
   def testHttp = {
     var start: Long = -1
     var end: Long = -1
-    val request = HttpRequstUtil.createRequest(HttpRequestMethodType.GET, "http://wbj0110.iteye.com/blog/2054380")
+    val request = HttpRequstUtil.createRequest(HttpRequestMethodType.GET, "http://121.40.241.26/recommend/0/5")
     def callback(context:HttpContext, httpResp: HttpResponse) = {
       try {
         println(Thread.currentThread().getName)
         println(httpResp)
-        println(EntityUtils.toString(httpResp.getEntity))
+        val sResponse = EntityUtils.toString(httpResp.getEntity)
+        println()
         end = System.currentTimeMillis()
         printf("start %15d, end %15d, cost %15d \n", start, end, end-start)
         start = System.currentTimeMillis()
+        val om = new ObjectMapper()
+      val  obj = om.readTree(sResponse)
+        val rootJsonNode = obj.asInstanceOf[JsonNode]
+        if(rootJsonNode.isArray){
+            val node = rootJsonNode.iterator()
+          while(node.hasNext){
+            val obj = node.next()
+            println(obj)
+           val jnode = obj.getFields
+            while(jnode.hasNext){
+              val it = jnode.next()
+              val key =  it.getKey
+              val value = it.getValue
+              println("key:"+key+"\n"+"value:"+value)
+            }
+
+          }
+
+        }
+        println(obj)
       } finally {
         HttpClientUtils.closeQuietly(httpResp)      
       }
     }
     start = System.currentTimeMillis()
     
-    for(i <- 1 to 10){
-      HttpClientUtil.getInstance().execute(request, callback)
-    }
+    //for(i <- 1 to 10){
+     HttpClientUtil.getInstance().execute(request, callback)
+   // }
     HttpClientUtil.closeHttpClient
   }
   

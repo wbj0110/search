@@ -25,7 +25,6 @@ private[search] class Indexer private(conf: SolrClientConf) {
 
 private[search] object Indexer {
   var indexer: Indexer = null
-
   def apply[D: ClassTag](conf: SolrClientConf): Indexer = {
     if (indexer == null) indexer = new Indexer(conf)
     indexer

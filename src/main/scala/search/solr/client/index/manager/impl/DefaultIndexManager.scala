@@ -48,6 +48,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
         //add or update index
         if (msgArray.length == 3) { //first represent collection ,mergeCloud-234343211-34
           //have minimum update time
+          val collection = msgArray(0)
           val minUpdateTime = msgArray(1)
           val totalNum = msgArray(2)
           logInfo(s"recieveMessage-minUpdateTime:$minUpdateTime-totalNum:$totalNum")
@@ -65,6 +66,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
 
         } else if (msgArray.length == 4) { //first represent collection ,mergeCloud-2343433212-234343211-34
           //it's time quantum
+          val collection = msgArray(0)
           val startUpdateTime = msgArray(1)
           val endUpdataTime = msgArray(2)
           val totalNum = msgArray(3)

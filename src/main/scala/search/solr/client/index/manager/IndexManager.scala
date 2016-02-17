@@ -12,9 +12,9 @@ trait IndexManager extends Logging {
 
   def geneXml(data: AnyRef): AnyRef
 
-  def indexData(data: AnyRef): Boolean
+  def indexData(data: AnyRef,collection: String): Boolean
 
-  def delete(ids: java.util.ArrayList[java.lang.String]): Boolean
+  def delete(ids: java.util.ArrayList[java.lang.String],collection: String): Boolean
 
 }
 

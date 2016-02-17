@@ -39,17 +39,17 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
     if (message != null && !message.trim.equalsIgnoreCase("")) {
       logInfo(s"recieve$message")
       val msgArray = message.split(Producter.separator)
-      if (msgArray.length <= 1) logError("input format not right,should '1423454543243-456  or 23545421334-34534534-5643'")
-      else if (msgArray(0).trim.equals(Producter.DELETE)) {
+      if (msgArray.length <= 2) logError("input format not right,should 'mergeCloud-1423454543243-456  or mergeCloud-23545421334-34534534-5643 or mergeCloud-delete-324234-4343423'")
+      else if (msgArray(1).trim.equals(Producter.DELETE)) {
         //command delete index
         logInfo(s"recieveDeleteMessage-$message")
         obj = msgArray
       } else {
         //add or update index
-        if (msgArray.length == 2) {
+        if (msgArray.length == 3) { //first represent collection ,mergeCloud-234343211-34
           //have minimum update time
-          val minUpdateTime = msgArray(0)
-          val totalNum = msgArray(1)
+          val minUpdateTime = msgArray(1)
+          val totalNum = msgArray(2)
           logInfo(s"recieveMessage-minUpdateTime:$minUpdateTime-totalNum:$totalNum")
 
 
@@ -63,11 +63,11 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
           }
 
 
-        } else if (msgArray.length == 3) {
+        } else if (msgArray.length == 4) { //first represent collection ,mergeCloud-2343433212-234343211-34
           //it's time quantum
-          val startUpdateTime = msgArray(0)
-          val endUpdataTime = msgArray(1)
-          val totalNum = msgArray(2)
+          val startUpdateTime = msgArray(1)
+          val endUpdataTime = msgArray(2)
+          val totalNum = msgArray(3)
           logInfo(s"sendMessage-startTime:$startUpdateTime-endTime:$endUpdataTime-totalNum:$totalNum")
           try {
             val request = HttpRequstUtil.createRequest(HttpRequestMethodType.GET, "http://121.40.241.26/recommend/0/5")
@@ -129,14 +129,14 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
         fileNamePreffix = DELETE_XML
         val deleteArray = data.asInstanceOf[Array[String]]
         // deleteArray.
-        if (deleteArray.length > 0) {
-          writeToFileCnt = deleteArray.length -1
+        if (deleteArray.length > 2) {
+          writeToFileCnt = deleteArray.length - 2
           xml.append("<?xml version='1.0' encoding='UTF-8'?>")
           xml.append("\n")
           xml.append("<delete>")
           xml.append("\n")
           delList = new java.util.ArrayList[java.lang.String]()
-          for (i <- 1 to deleteArray.length - 1) {
+          for (i <- 2 to deleteArray.length - 1) {
             //index 0 reoresent command DELETE
             xml.append("<id>")
             xml.append(deleteArray(i).trim)
@@ -212,7 +212,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
     xml.append("\n")
   }
 
-  override def indexData(data: AnyRef): Boolean = {
+  override def indexData(data: AnyRef, collection: String): Boolean = {
     try {
       solrClient.addIndices(data, collection)
       true
@@ -227,7 +227,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
     * @param ids
     * @return
     */
-  override def delete(ids: java.util.ArrayList[java.lang.String]): Boolean = {
+  override def delete(ids: java.util.ArrayList[java.lang.String], collection: String): Boolean = {
     solrClient.delete(ids, collection)
   }
 

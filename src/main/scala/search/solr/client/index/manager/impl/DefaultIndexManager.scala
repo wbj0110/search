@@ -26,10 +26,16 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
   val C_OR_UPDATE_XML = "_c_u.xml"
   val DELETE_XML = "_d.xml"
 
+
+  val MERGECLOUD_URL: String = "http://192.168.51.54:8088/mergecloud"
+  val SCREEN_URL: String = ""
+
+  val needSenseCharcter = Array("|")
+
   var arrayObj: Array[String] = null
 
   if (multiValuedString != null && !multiValuedString.trim.equalsIgnoreCase("")) {
-    arrayObj = multiValuedString.split(",")
+    arrayObj = multiValuedString.split("&")
   }
 
   val solrClient = SolrClient(new SolrClientConf())
@@ -46,17 +52,23 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
         obj = msgArray
       } else {
         //add or update index
-        if (msgArray.length == 3) { //first represent collection ,mergeCloud-234343211-34
+        if (msgArray.length == 3) {
+          //first represent collection ,mergeCloud-234343211-34
           //have minimum update time
           val collection = msgArray(0)
           val minUpdateTime = msgArray(1)
           val totalNum = msgArray(2)
           logInfo(s"recieveMessage-minUpdateTime:$minUpdateTime-totalNum:$totalNum")
 
+          var url = MERGECLOUD_URL
+          collection match {
+            case "screen" => url = SCREEN_URL
+            case "mergecloud" => url = MERGECLOUD_URL
+            case _ =>
+          }
 
           try {
-            val request = HttpRequstUtil.createRequest(HttpRequestMethodType.GET, "http://121.40.241.26/recommend/0/5")
-            HttpClientUtil.getInstance().execute(request, callback)
+            requestHttp(url, callback)
           } catch {
             case e: Exception =>
               logError("request faield!", e)
@@ -64,16 +76,24 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
           }
 
 
-        } else if (msgArray.length == 4) { //first represent collection ,mergeCloud-2343433212-234343211-34
+        } else if (msgArray.length == 4) {
+          //first represent collection ,mergeCloud-2343433212-234343211-34
           //it's time quantum
-          val collection = msgArray(0)
-          val startUpdateTime = msgArray(1)
-          val endUpdataTime = msgArray(2)
-          val totalNum = msgArray(3)
+          val collection = msgArray(0).trim
+          val startUpdateTime = msgArray(1).trim
+          val endUpdataTime = msgArray(2).trim
+          val totalNum = msgArray(3).trim
           logInfo(s"sendMessage-startTime:$startUpdateTime-endTime:$endUpdataTime-totalNum:$totalNum")
+
+          var url = MERGECLOUD_URL
+          collection match {
+            case "screen" => url = SCREEN_URL
+            case "mergecloud" => url = MERGECLOUD_URL
+            case _ =>
+          }
+
           try {
-            val request = HttpRequstUtil.createRequest(HttpRequestMethodType.GET, "http://121.40.241.26/recommend/0/5")
-            HttpClientUtil.getInstance().execute(request, callback)
+            requestHttp(url, callback)
           } catch {
             case e: Exception =>
               logError("request faield!", e)
@@ -94,6 +114,11 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
   }
 
 
+  def requestHttp(url: String, callback: (HttpContext, HttpResponse) => Unit): Unit = {
+    val request = HttpRequstUtil.createRequest(HttpRequestMethodType.GET, url)
+    HttpClientUtil.getInstance().execute(request, callback)
+  }
+
   override def geneXml(data: AnyRef): AnyRef = {
     var listMap: java.util.List[java.util.Map[java.lang.String, Object]] = new java.util.ArrayList[java.util.Map[java.lang.String, Object]]()
     var delList: java.util.List[java.lang.String] = null
@@ -105,8 +130,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
       if (data.isInstanceOf[JsonNode]) {
         //generate add index xml
         val rootJsonNode = data.asInstanceOf[JsonNode]
-        if (rootJsonNode.size() > 0) {
-          writeToFileCnt = rootJsonNode.size()
+        if (!rootJsonNode.isNull && rootJsonNode.size() > 0) {
           xml.append("<?xml version='1.0' encoding='UTF-8'?>")
           xml.append("\n")
 
@@ -114,11 +138,15 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
           xml.append("\n")
 
           if (rootJsonNode.isArray) {
+            writeToFileCnt = rootJsonNode.size()
             val arrayIt = rootJsonNode.iterator()
             while (arrayIt.hasNext) {
               val objNode = arrayIt.next()
               geneAddXml(objNode, xml, listMap)
             }
+          } else {
+            writeToFileCnt = 1
+            geneAddXml(rootJsonNode, xml, listMap) //single document
           }
 
           xml.append("</add>")
@@ -169,21 +197,44 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
 
     val objMap: java.util.Map[java.lang.String, AnyRef] = new java.util.HashMap[java.lang.String, AnyRef]() //for add index
 
-    val fields = obj.getFields
+    val fields = obj.getFields //get all fields
     while (fields.hasNext()) {
       val it = fields.next()
       val key = it.getKey
-      val value = it.getValue
+      var value = it.getValue.toString
+
       if (key != null && value != null) {
         var isMultiValued = false
         if (arrayObj != null && arrayObj.length > 0) {
+          //arrayObj represent have mutivalued field config
           breakable {
             for (i <- 0 to arrayObj.length - 1) {
               if (arrayObj(i).contains(key.trim)) {
                 val multiValuedKeySeparator = arrayObj(i).split("=>")
-                val vals = value.toString.split(multiValuedKeySeparator(1).trim) //multiValued Array
-                vals.foreach(fieldAdd(xml, key, _))
-                objMap.put(key, vals)
+                val separator = multiValuedKeySeparator(1).trim
+                var needSense = false
+                breakable {
+                  //judge whether need sense
+                  for (i <- 0 to needSenseCharcter.length - 1) {
+                    if (needSenseCharcter(i).trim.equalsIgnoreCase(separator)) {
+                      needSense = true
+                      break
+                    }
+                  }
+                }
+                var vals: Array[String] = null
+                if (needSense)
+                  vals = value.split(s"\\$separator") //multiValued Array
+                else vals = value.split(s"$separator") //multiValued Array
+                val listMutivalued = new util.ArrayList[java.lang.String]()
+                vals.foreach { f =>
+                  var fV: String = f.replaceAll("\"(\\S+)\"", "$1")
+                  fV = fV.replaceAll("\"(\\S+)", "$1")
+                  fV = fV.replaceAll("(\\S+)\"", "$1")
+                  listMutivalued.add(fV)
+                  fieldAdd(xml, key, fV)
+                }
+                objMap.put(key, listMutivalued)
                 isMultiValued = true
                 break
               }
@@ -192,6 +243,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
         }
         if (!isMultiValued) {
           //if not multivalued,need save singleValue to xml
+          value = value.replaceAll("\"(\\S+)\"", "$1")
           fieldAdd(xml, key, value)
           objMap.put(key, value)
         }
@@ -216,7 +268,9 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
 
   override def indexData(data: AnyRef, collection: String): Boolean = {
     try {
-      solrClient.addIndices(data, collection)
+      val r = solrClient.addIndices(data, collection)
+      solrClient.close()
+      r
       true
     } catch {
       case e: Exception => false
@@ -230,7 +284,9 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
     * @return
     */
   override def delete(ids: java.util.ArrayList[java.lang.String], collection: String): Boolean = {
-    solrClient.delete(ids, collection)
+    val r = solrClient.delete(ids, collection)
+    solrClient.close()
+    r
   }
 
   private def writeToDisk(xml: String, filePath: String) = {

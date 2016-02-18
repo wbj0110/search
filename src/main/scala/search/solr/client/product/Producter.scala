@@ -36,7 +36,7 @@ object Producter extends Logging with Configuration {
     * @param startUpdateTime
     * @param endUpdataTime
     * @param totalNum
-    * eg: mergeCloud-2343433212-234343211-34
+    * eg: mergecloud-2343433212-234343211-34
     * @return
     */
   def send(collection: String, startUpdateTime: Long, endUpdataTime: Long, totalNum: Int): Boolean = {
@@ -49,7 +49,7 @@ object Producter extends Logging with Configuration {
     * @param collection
     * @param minUpdateTime
     * @param totalNum
-    * eg:mergeCloud-234343211-34
+    * eg:mergecloud-234343211-34
     * @return
     */
   def send(collection: String, minUpdateTime: Long, totalNum: Int) = {
@@ -63,7 +63,7 @@ object Producter extends Logging with Configuration {
     * @param collection
     * @param id
     * delete single id
-    * eg: mergeCloud-delete-124343455
+    * eg: mergecloud-delete-124343455
     */
   def delete(collection: String, id: String) = {
     logInfo(s"deleteMessage-collection:$collection-id:$id")
@@ -75,7 +75,7 @@ object Producter extends Logging with Configuration {
     * @param collection
     * @param ids
     * delete multiple ids
-    * eg:mergeCloud-delete-132423-3465453-235345
+    * eg:mergecloud-delete-132423-3465453-235345
     */
   def delete(collection: String, ids: java.util.List[String]) = {
     val idMsg = new StringBuilder()

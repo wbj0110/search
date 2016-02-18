@@ -17,23 +17,34 @@ public class SorlTestJava {
     static SorlClientUI client = SorlClientUI.singleInstanceUI();
 
     public static void main(String[] args) {
-        testAsynUpdateIndicesByMapSet();
-        client.close();
+       // testAsynUpdateIndicesByMapSet();
+       // client.close();
+        //noQuto();
+        addIndices();
     }
+
+
+    public static void noQuto(){
+        String json = "\"value\"";
+        String t = json.replaceAll("\"(\\w+)\"", "$1");
+        System.out.println(t);
+    }
+
 
     public static void addIndices() {
         //no boost
         List<Map<String, Object>> l = new ArrayList<java.util.Map<java.lang.String, Object>>();
         Map<String, Object> tzar = new HashMap<java.lang.String, Object>();
-        tzar.put("id", "test3234");
+        tzar.put("id", "test1");
+        //tzar.put("location","40.715,-74.007");
 
         //have boost
-        Object[] objs = new Object[]{"添加索引boost测试中...unknown brand...", 10f};
-        tzar.put("brand", objs);
+       // Object[] objs = new Object[]{"添加索引boost测试中...unknown brand...", 10f};
+        //tzar.put("brand", objs);
 
         l.add(tzar);
 
-        client.addIndices(l);
+        client.addIndices(l,"mergecloud");
         client.close();
     }
 

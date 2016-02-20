@@ -10,7 +10,7 @@ trait IndexManager extends Logging {
 
   def requestData(message: String): AnyRef
 
-  def geneXml(data: AnyRef): AnyRef
+  def geneXml(data: AnyRef,collection: String): AnyRef
 
   def indexData(data: AnyRef,collection: String): Boolean
 

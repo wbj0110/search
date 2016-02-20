@@ -53,8 +53,10 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
             }
             docList.add(docSingle)
           }
-          server.add(collection, docList)
-          server.commit()
+         val response = server.add(collection, docList)
+          server.commit(collection)
+          logInfo("index status:"+response.getStatus)
+
         } else {
           logError("not input document")
           return new Exception("请传入文档")
@@ -71,8 +73,8 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
     try {
       if (zeus.isInstanceOf[SolrInputDocument]) {
         server.add(collection, zeus.asInstanceOf[SolrInputDocument])
-        server.optimize()
-        server.commit()
+       // server.optimize()
+        server.commit(collection)
       } else if (zeus.isInstanceOf[java.util.List[java.util.Map[java.lang.String, Object]]]) {
         //  eg:List(Map("docId1"->32343,"time"->Map("set"->"2015")))
         //eg:List(Map("docId1"->32343,"time"->Map("set"->Array("2015",9.8))))
@@ -104,7 +106,7 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
             docList.add(docSingle)
           }
           server.add(collection, docList)
-          server.commit()
+          server.commit(collection)
         } else {
           logError("not input document")
           return new Exception("请传入文档")
@@ -123,7 +125,7 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
   override def delete(list: util.ArrayList[String],collection: String = "searchcloud"): Boolean = {
     try {
       server.deleteById(collection,list)
-      server.commit()
+      server.commit(collection)
       true
     } catch {
       case e: Exception =>

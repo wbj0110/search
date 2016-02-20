@@ -26,9 +26,9 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
   val C_OR_UPDATE_XML = "_c_u.xml"
   val DELETE_XML = "_d.xml"
 
-
-  val MERGECLOUD_URL: String = "http://192.168.51.54:8088/mergecloud"
-  val SCREEN_URL: String = ""
+  // "http://192.168.51.54:8088/mergecloud"
+  val MERGECLOUD_URL: String = mergesCloudsUrl
+  val SCREEN_URL: String = screenCloudsUrl
 
   val needSenseCharcter = Array("|")
 
@@ -45,7 +45,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
     if (message != null && !message.trim.equalsIgnoreCase("")) {
       logInfo(s"recieve$message")
       val msgArray = message.split(Producter.separator)
-      if (msgArray.length <= 2) logError("input format not right,should 'mergeCloud-1423454543243-456  or mergeCloud-23545421334-34534534-5643 or mergeCloud-delete-324234-4343423'")
+      if (msgArray.length <= 2) logError("input format not right,should 'mergescloud-1423454543243-456  or mergescloud-23545421334-34534534-5643 or mergescloud-delete-324234-4343423'")
       else if (msgArray(1).trim.equals(Producter.DELETE)) {
         //command delete index
         logInfo(s"recieveDeleteMessage-$message")
@@ -53,7 +53,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
       } else {
         //add or update index
         if (msgArray.length == 3) {
-          //first represent collection ,mergeCloud-234343211-34
+          //first represent collection ,mergescloud-234343211-34
           //have minimum update time
           val collection = msgArray(0)
           val minUpdateTime = msgArray(1)
@@ -62,8 +62,8 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
 
           var url = MERGECLOUD_URL
           collection match {
-            case "screen" => url = SCREEN_URL
-            case "mergecloud" => url = MERGECLOUD_URL
+            case "screencloud" => url = SCREEN_URL
+            case "mergescloud" => url = MERGECLOUD_URL
             case _ =>
           }
 
@@ -77,7 +77,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
 
 
         } else if (msgArray.length == 4) {
-          //first represent collection ,mergeCloud-2343433212-234343211-34
+          //first represent collection ,mergescloud-2343433212-234343211-34
           //it's time quantum
           val collection = msgArray(0).trim
           val startUpdateTime = msgArray(1).trim
@@ -87,8 +87,8 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
 
           var url = MERGECLOUD_URL
           collection match {
-            case "screen" => url = SCREEN_URL
-            case "mergecloud" => url = MERGECLOUD_URL
+            case "screencloud" => url = SCREEN_URL
+            case "mergescloud" => url = MERGECLOUD_URL
             case _ =>
           }
 
@@ -119,7 +119,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
     HttpClientUtil.getInstance().execute(request, callback)
   }
 
-  override def geneXml(data: AnyRef): AnyRef = {
+  override def geneXml(data: AnyRef, collection: String): AnyRef = {
     var listMap: java.util.List[java.util.Map[java.lang.String, Object]] = new java.util.ArrayList[java.util.Map[java.lang.String, Object]]()
     var delList: java.util.List[java.lang.String] = null
     var writeToFileCnt = 0 //for loginfo
@@ -179,9 +179,10 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
         }
       }
       if (!xml.isEmpty) {
-        val fileName = System.currentTimeMillis() + fileNamePreffix
-        val filePath = fileDir + fileName
-        writeToDisk(xml.toString(), fileDir + fileName)
+        val fileName = collection + "_" + System.currentTimeMillis() + fileNamePreffix
+        var filePath = filedirMergeCloud + fileName
+        if (collection.equalsIgnoreCase("screencloud")) filePath = filedirScreenCloud + fileName
+        writeToDisk(xml.toString(), filePath)
         logInfo(s"write file $filePath success,Total ${writeToFileCnt} documents！")
       }
 
@@ -269,7 +270,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
   override def indexData(data: AnyRef, collection: String): Boolean = {
     try {
       val r = solrClient.addIndices(data, collection)
-      solrClient.close()
+      //solrClient.close()
       r
       true
     } catch {
@@ -285,7 +286,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
     */
   override def delete(ids: java.util.ArrayList[java.lang.String], collection: String): Boolean = {
     val r = solrClient.delete(ids, collection)
-    solrClient.close()
+    //solrClient.close()
     r
   }
 

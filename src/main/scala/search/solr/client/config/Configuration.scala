@@ -28,12 +28,19 @@ trait Configuration {
     * generate xml
     */
   lazy val multiValuedString = Try(config.getString("field.multivalued")).getOrElse("")
-  lazy val fileDir = Try(config.getString("fileDir")).getOrElse("")
+  lazy val filedirMergeCloud = Try(config.getString("filedir.mergeclouds")).getOrElse("")
+  lazy val filedirScreenCloud = Try(config.getString("filedir.screenclouds")).getOrElse("")
 
   /**
     * solr
     */
 
   lazy val collection = Try(config.getString("collection")).getOrElse("")
+
+  /**
+    * remote http url
+    */
+  lazy val mergesCloudsUrl = Try(config.getString("url.mergeclouds")).getOrElse("http://localhost:8088/mergeclouds")
+  lazy val screenCloudsUrl = Try(config.getString("url.screenclouds")).getOrElse("http://localhost:8088/screenclouds")
 
 }

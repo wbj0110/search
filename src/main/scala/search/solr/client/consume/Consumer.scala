@@ -28,7 +28,7 @@ object Consumer extends Logging {
           val collection = message.split(Producter.separator)(0)
           val data = indexer.requestData(message)
           //generate xml for data
-          val xmlBool = indexer.geneXml(data)
+          val xmlBool = indexer.geneXml(data,collection)
           if (xmlBool != null) {
             indexData(collection, xmlBool)
             /* if (xmlBool.isInstanceOf[java.util.ArrayList[java.lang.String]]) {
@@ -51,7 +51,7 @@ object Consumer extends Logging {
     * @param xmlBool
     */
   def deleteIndexData(collection: String, xmlBool: AnyRef): Unit = {
-    val delData = xmlBool.asInstanceOf[util.ArrayList[String]]
+    val delData = xmlBool.asInstanceOf[util.ArrayList[java.lang.String]]
     if (indexer.delete(delData, collection)) {
       logInfo("delete index success!")
     } else {
@@ -67,7 +67,8 @@ object Consumer extends Logging {
     */
   def indexData(collection: String, xmlBool: AnyRef): Unit = {
     try {
-      val indexData = xmlBool.asInstanceOf[util.ArrayList[util.Map[String, Object]]]
+      val indexData = xmlBool.asInstanceOf[java.util.ArrayList[java.util.Map[java.lang.String, Object]]]
+         indexData(0).asInstanceOf[java.util.Map[java.lang.String, Object]]
       if (indexer.indexData(indexData, collection)) logInfo(" index success!")
       else {
         logError("index faield!Ids:")
@@ -76,8 +77,9 @@ object Consumer extends Logging {
         }
       }
     } catch {
-      case castEx: java.lang.ClassCastException => deleteIndexData(collection, xmlBool)
-      case e: Exception => logError("index faield", e)
+      case castEx: java.lang.ClassCastException =>
+        deleteIndexData(collection, xmlBool)
+     // case e: Exception => logError("index faield", e)
     }
 
   }

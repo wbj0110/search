@@ -35,7 +35,7 @@ public class SorlTestJava {
         //no boost
         List<Map<String, Object>> l = new ArrayList<java.util.Map<java.lang.String, Object>>();
         Map<String, Object> tzar = new HashMap<java.lang.String, Object>();
-        tzar.put("id", "test1");
+        tzar.put("id", "t343455");
         //tzar.put("location","40.715,-74.007");
 
         //have boost

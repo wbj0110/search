@@ -23,7 +23,28 @@ public class SorlCLoudClientSolrJ {
 
     public static void main(String[] args) {
 
-        search();
+        //search();
+        searchMergeCloud();
+    }
+
+    public static void searchMergeCloud(){
+        server = new CloudSolrClient(zkHostString);
+        server.setDefaultCollection("searchcloud");
+        server.setZkConnectTimeout(60000);
+        server.setZkClientTimeout(60000);
+        server.connect();
+        // server.setParser(new XMLResponseParser());
+        SolrQuery query = new SolrQuery();
+        query.set("qt", "/select");
+        query.setQuery("(original:d^50) OR (sku:d^50) OR (brand_ps:BDS/百得^30) OR (sku:*d*^11) OR (original:*d*^10) OR (text:d^2) OR (pinyin:d^0.002)");
+        try {
+            QueryResponse response = server.query(query);
+            System.out.println(response);
+        } catch (SolrServerException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 

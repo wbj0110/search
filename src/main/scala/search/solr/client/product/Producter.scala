@@ -65,7 +65,7 @@ object Producter extends Logging with Configuration {
     * @param id
     * delete single id
     * eg: mergescloud-delete-100429
-    *     screencloud-delete-1001739_t89_s
+    *     screencloud-delete-1003484_t87_s
     */
   def delete(collection: String, id: String) = {
     logInfo(s"deleteMessage-collection:$collection-id:$id")
@@ -78,6 +78,7 @@ object Producter extends Logging with Configuration {
     * @param ids
     * delete multiple ids
     * eg:mergescloud-delete-109432-1003435-2562234
+    * screencloud-delete-109432-1003435-2562234
     */
   def delete(collection: String, ids: java.util.List[String]) = {
     val idMsg = new StringBuilder()

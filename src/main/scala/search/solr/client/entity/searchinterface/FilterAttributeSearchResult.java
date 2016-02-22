@@ -8,7 +8,7 @@ import java.util.List;
  */
 public class FilterAttributeSearchResult implements Serializable {
 
-    private List<FilterAttribute> filterAttributes; //all filteer attributes
+    private List<FilterAttribute> filterAttributes; //all filter attributes
     private SearchResult searchResult; //the searchResult
 
     public FilterAttributeSearchResult() {

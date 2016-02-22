@@ -2,6 +2,7 @@ package search.solr.client.entity.searchinterface;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by soledede on 2016/2/20.
@@ -9,14 +10,14 @@ import java.util.List;
 public class FilterAttribute implements Serializable {
 
     private String attrId;
-    private String attrName;
-    private List<String> attrValues;
-    private Boolean isRangeValue;
+    private String attrName;  //eg: 品牌
+    private List<Map<String,Integer>> attrValues; //eg:List(Map(soledede->1) ,Map(百事达->2))
+    private Boolean isRangeValue;  //if is range value eg:
 
     public FilterAttribute() {
     }
 
-    public FilterAttribute(String attrId, String attrName, List<String> attrValues, Boolean isRangeValue) {
+    public FilterAttribute(String attrId, String attrName, List<Map<String,Integer>> attrValues, Boolean isRangeValue) {
         this.attrId = attrId;
         this.attrName = attrName;
         this.attrValues = attrValues;
@@ -39,11 +40,11 @@ public class FilterAttribute implements Serializable {
         this.attrName = attrName;
     }
 
-    public List<String> getAttrValues() {
+    public List<Map<String, Integer>> getAttrValues() {
         return attrValues;
     }
 
-    public void setAttrValues(List<String> attrValues) {
+    public void setAttrValues(List<Map<String, Integer>> attrValues) {
         this.attrValues = attrValues;
     }
 

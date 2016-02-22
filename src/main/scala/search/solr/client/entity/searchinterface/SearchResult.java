@@ -9,14 +9,14 @@ import java.util.Map;
  */
 public class SearchResult implements Serializable {
     private List<Map<String, Object>> result; // goods list   eg:List(Map(sku->"sdsd))
-    private Map<String, Map<String, Object>> highlighting; //highlighting list eg:Map(1->Map(title->"<span class='red_searched_txt'>防护口罩</span>))
-    private Map<String, Object> spellChecks;  //misspellingsAndCorrections  eg:Map("防护口罩"->"防尘口罩")
-    private Msg msg;
+    private Map<String, Map<String, List<String>>> highlighting; //highlighting list eg:Map(1->Map(title->List("<span class='red_searched_txt'>防护口罩</span>")))
+    private Map<String, List<String>> spellChecks;  //misspellingsAndCorrections  eg:Map("防护口罩"->List("防尘口罩"))
+    private Msg msg; //eg:
 
     public SearchResult() {
     }
 
-    public SearchResult(List<Map<String, Object>> result, Map<String, Map<String, Object>> highlighting, Map<String, Object> spellChecks, Msg msg) {
+    public SearchResult(List<Map<String, Object>> result, Map<String, Map<String, List<String>>> highlighting, Map<String, List<String>> spellChecks, Msg msg) {
         this.result = result;
         this.highlighting = highlighting;
         this.spellChecks = spellChecks;
@@ -31,19 +31,19 @@ public class SearchResult implements Serializable {
         this.result = result;
     }
 
-    public Map<String, Map<String, Object>> getHighlighting() {
+    public Map<String, Map<String, List<String>>> getHighlighting() {
         return highlighting;
     }
 
-    public void setHighlighting(Map<String, Map<String, Object>> highlighting) {
+    public void setHighlighting(Map<String, Map<String, List<String>>> highlighting) {
         this.highlighting = highlighting;
     }
 
-    public Map<String, Object> getSpellChecks() {
+    public Map<String, List<String>> getSpellChecks() {
         return spellChecks;
     }
 
-    public void setSpellChecks(Map<String, Object> spellChecks) {
+    public void setSpellChecks(Map<String, List<String>> spellChecks) {
         this.spellChecks = spellChecks;
     }
 

@@ -17,7 +17,7 @@ import scala.collection.JavaConversions._
   */
 object SearchInterface extends Logging {
 
-  val spellcheckSeparator = "$__$"
+  val spellcheckSeparator = "_____"
 
 
   val solrClient = SolrClient(new SolrClientConf())

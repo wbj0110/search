@@ -12,15 +12,17 @@ public class SearchResult implements Serializable {
     private Map<String, Map<String, List<String>>> highlighting; //highlighting list eg:Map(1->Map(title->List("<span class='red_searched_txt'>防护口罩</span>")))
     private Map<String, List<String>> spellChecks;  //misspellingsAndCorrections  eg:Map("防护口罩"->List("防尘口罩"))
     private Msg msg; //eg:
+    private Integer total;
 
     public SearchResult() {
     }
 
-    public SearchResult(List<Map<String, Object>> result, Map<String, Map<String, List<String>>> highlighting, Map<String, List<String>> spellChecks, Msg msg) {
+    public SearchResult(List<Map<String, Object>> result, Map<String, Map<String, List<String>>> highlighting, Map<String, List<String>> spellChecks, Msg msg, Integer total) {
         this.result = result;
         this.highlighting = highlighting;
         this.spellChecks = spellChecks;
         this.msg = msg;
+        this.total = total;
     }
 
     public List<Map<String, Object>> getResult() {
@@ -53,5 +55,13 @@ public class SearchResult implements Serializable {
 
     public void setMsg(Msg msg) {
         this.msg = msg;
+    }
+
+    public Integer getTotal() {
+        return total;
+    }
+
+    public void setTotal(Integer total) {
+        this.total = total;
     }
 }

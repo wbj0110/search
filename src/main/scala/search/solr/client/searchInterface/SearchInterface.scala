@@ -6,11 +6,10 @@ import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.SolrQuery.ORDER
 import org.apache.solr.client.solrj.response.QueryResponse
 import search.solr.client.entity.searchinterface._
+import search.solr.client.log.SearchLog
 import search.solr.client.util.{Util, Logging}
 import search.solr.client.{SolrClientConf, SolrClient}
-import scala.StringBuilder
 import scala.collection.JavaConversions._
-import scala.collection.mutable.ListBuffer
 
 
 /**
@@ -22,6 +21,8 @@ object SearchInterface extends Logging {
 
 
   val solrClient = SolrClient(new SolrClientConf())
+
+  val mongoSearchLog = SearchLog("mongo")
 
 
   /**
@@ -35,6 +36,7 @@ object SearchInterface extends Logging {
     * @return SearchResult
     */
   def searchByKeywords(keyWords: java.lang.String, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer): SearchResult = {
+    logInfo(s"search by keywords:$keyWords")
     val msg = new Msg()
     val searchResult = new SearchResult()
     if (keyWords == null && cityId == null) {
@@ -96,7 +98,8 @@ object SearchInterface extends Logging {
     var result: QueryResponse = null
     if (r != null) result = r.asInstanceOf[QueryResponse]
 
-    getSearchResultByResponse(msg, searchResult, result)
+    val resultSearch = getSearchResult(result, searchResult) //get response result
+    if (resultSearch != null && resultSearch.size > 0) searchResult.setResult(resultSearch) //set response resut
     searchResult
   }
 
@@ -108,7 +111,7 @@ object SearchInterface extends Logging {
     * @param result
     */
   private def getSearchResultByResponse(msg: Msg, searchResult: SearchResult, result: QueryResponse): Unit = {
-    val resultSearch = getSearchResult(result) //get response result
+    val resultSearch = getSearchResult(result, searchResult) //get response result
     if (resultSearch != null && resultSearch.size > 0) searchResult.setResult(resultSearch) //set response resut
 
     //  highlighting
@@ -194,35 +197,48 @@ object SearchInterface extends Logging {
     * @param result
     * @return
     */
-  private def getSearchResult(result: QueryResponse): java.util.List[util.Map[java.lang.String, Object]] = {
+  private def getSearchResult(result: QueryResponse, searchResult: SearchResult): java.util.List[util.Map[java.lang.String, Object]] = {
     val resultList: java.util.List[util.Map[java.lang.String, Object]] = new java.util.ArrayList[util.Map[java.lang.String, Object]]() //search result
     //get Result
     if (result != null) {
       val response = result.getResults
-      response.foreach { doc =>
-        val resultMap: java.util.Map[java.lang.String, Object] = new java.util.HashMap[java.lang.String, Object]()
-        val fields = doc.getFieldNames
-        fields.foreach { fieldName =>
-          resultMap.put(fieldName, doc.getFieldValue(fieldName))
+      if (response != null) {
+        if (searchResult != null) {
+          val totalNum = response.getNumFound
+          searchResult.setTotal(totalNum.toInt)
         }
-        if (!resultMap.isEmpty)
-          resultList.add(resultMap)
+        response.foreach { doc =>
+          val resultMap: java.util.Map[java.lang.String, Object] = new java.util.HashMap[java.lang.String, Object]()
+          val fields = doc.getFieldNames
+          fields.foreach { fieldName =>
+            resultMap.put(fieldName, doc.getFieldValue(fieldName))
+          }
+          if (!resultMap.isEmpty)
+            resultList.add(resultMap)
+        }
       }
     }
     resultList
   }
 
+
   /**
     *
+    * search keywords log record
     * who where when what
     * @param keyWords
+    * @param appKey
     * @param clientIp
     * @param userAgent
     * @param sourceType
+    * @param cookies
     * @param userId
+    *
     */
-  def recordSearchLog(keyWords: java.lang.String, clientIp: java.lang.String, userAgent: java.lang.String, sourceType: java.lang.String, userId: java.lang.String): Unit = {
-    val currentTime = null
+  def recordSearchLog(keyWords: java.lang.String, appKey: java.lang.String, clientIp: java.lang.String, userAgent: java.lang.String, sourceType: java.lang.String, cookies: java.lang.String, userId: java.lang.String): Unit = {
+    val currentTime = System.currentTimeMillis()
+    logInfo(s"record search log:keyWords:$keyWords-appKey:$appKey-clientIp:$clientIp-userAgent:$userAgent-sourceType:$sourceType-cookies:-$cookies-userId:$userId-currentTime:$currentTime")
+    mongoSearchLog.write(keyWords, appKey, clientIp, userAgent, sourceType, cookies, userId, Util.timestampToDate(currentTime))
   }
 
   /**
@@ -250,7 +266,7 @@ object SearchInterface extends Logging {
       val r = solrClient.searchByQuery(query, "screencloud")
       var result: QueryResponse = null
       if (r != null) result = r.asInstanceOf[QueryResponse]
-      val resultSearch = getSearchResult(result) //get response result
+      val resultSearch = getSearchResult(result, null) //get response result
 
       var filterAttributeSearchResult: FilterAttributeSearchResult = null
 
@@ -423,107 +439,280 @@ object SearchInterface extends Logging {
       filterAttributeSearchResult.setSearchResult(searchResult) //set searchResult
 
 
-      if (result != null) {
-        val filterAttributes = new java.util.ArrayList[FilterAttribute]()
+      getFacetFieldAndFacetQueryToFilterAttributes(filterAttributeSearchResult, result)
+      filterAttributeSearchResult
+    } else null
+  }
 
-        val facetFields = result.getFacetFields
-        if (facetFields != null && facetFields.size() > 0) {
-          //facet.field
-          facetFields.foreach { facetField =>
-            val filterAttribute = new FilterAttribute()
+  private def getFacetFieldAndFacetQueryToFilterAttributes(filterAttributeSearchResult: FilterAttributeSearchResult, result: QueryResponse): Unit = {
+    if (result != null) {
+      val filterAttributes = new util.ArrayList[FilterAttribute]()
 
-            val facetFieldName = facetField.getName
-            val facetFieldValues = facetField.getValues
-            filterAttribute.setAttrId(facetFieldName)
-            filterAttribute.setAttrName(getAttributeNameById(facetFieldName))
+      val facetFields = result.getFacetFields
+      if (facetFields != null && facetFields.size() > 0) {
+        //facet.field
+        facetFields.foreach { facetField =>
+          val filterAttribute = new FilterAttribute()
 
-            if (facetFieldValues != null && facetFieldValues.size() > 0) {
-              val attributeCountMap = new util.HashMap[java.lang.String, java.lang.Integer]()
-              facetFieldValues.foreach { facetcount =>
-                val attributeValue = facetcount.getName
-                val count = facetcount.getCount.toInt
-                attributeCountMap.put(attributeValue, count)
-              }
-              filterAttribute.setAttrValues(attributeCountMap)
-              filterAttribute.setRangeValue(false)
-              filterAttributes.add(filterAttribute)
+          val facetFieldName = facetField.getName
+          val facetFieldValues = facetField.getValues
+          filterAttribute.setAttrId(facetFieldName)
+          filterAttribute.setAttrName(getAttributeNameById(facetFieldName))
+
+          if (facetFieldValues != null && facetFieldValues.size() > 0) {
+            val attributeCountMap = new util.HashMap[String, Integer]()
+            facetFieldValues.foreach { facetcount =>
+              val attributeValue = facetcount.getName
+              val count = facetcount.getCount.toInt
+              attributeCountMap.put(attributeValue, count)
             }
+            filterAttribute.setAttrValues(attributeCountMap)
+            filterAttribute.setRangeValue(false)
+            filterAttributes.add(filterAttribute)
           }
         }
+      }
 
+      //facet.query
+      val facetQuerys = result.getFacetQuery
+
+      if (facetQuerys != null && !facetQuerys.isEmpty) {
         //facet.query
-        val facetQuerys = result.getFacetQuery
-
-        if (facetQuerys != null && !facetQuerys.isEmpty) {
-          //facet.query
-          /**
-            * "t87_tf:[* TO 0}":0,
+        /**
+          * "t87_tf:[* TO 0}":0,
               "t87_tf:[0 TO 10}":0,
               "t87_tf:[10 TO 20}":1,
               "t87_tf:[20 TO 30}":2,
               "t87_tf:[30 TO *}":4},
-            */
-          val facetQueryCountMap = new util.HashMap[java.lang.String, java.util.Map[java.lang.String, java.lang.Integer]]()
+          */
+        val facetQueryCountMap = new util.HashMap[String, util.Map[String, Integer]]()
 
-          facetQuerys.foreach { facetQuery =>
-            val query = facetQuery._1
-            val count = facetQuery._2
-            if (count > 0) {
-              val queryFields = query.split(":")
-              val field = queryFields(0)
-              val attrValue = queryFields(1)
-              if (!facetQueryCountMap.contains(field.trim)) {
-                val countMap = new java.util.HashMap[java.lang.String, java.lang.Integer]()
-                countMap.put(attrValue, count)
-                facetQueryCountMap.put(field.trim, countMap)
-              } else {
-                facetQueryCountMap.get(field.trim).put(attrValue, count)
-              }
+        facetQuerys.foreach { facetQuery =>
+          val query = facetQuery._1
+          val count = facetQuery._2
+          if (count > 0) {
+            val queryFields = query.split(":")
+            val field = queryFields(0)
+            val attrValue = queryFields(1)
+            if (!facetQueryCountMap.contains(field.trim)) {
+              val countMap = new util.HashMap[String, Integer]()
+              countMap.put(attrValue, count)
+              facetQueryCountMap.put(field.trim, countMap)
+            } else {
+              facetQueryCountMap.get(field.trim).put(attrValue, count)
             }
-
           }
-          if (!facetQueryCountMap.isEmpty) {
-            facetQueryCountMap.foreach { facetQuery =>
-              val attributeId = facetQuery._1
-              val attributeName = getAttributeNameById(attributeId)
-              val attributeValues = facetQuery._2
-              val isRangeValue = true
-              val filterAttribute = new FilterAttribute(attributeId, attributeName, attributeValues, isRangeValue)
-              filterAttributes.add(filterAttribute)
-            }
 
+        }
+        if (!facetQueryCountMap.isEmpty) {
+          facetQueryCountMap.foreach { facetQuery =>
+            val attributeId = facetQuery._1
+            val attributeName = getAttributeNameById(attributeId)
+            val attributeValues = facetQuery._2
+            val isRangeValue = true
+            val filterAttribute = new FilterAttribute(attributeId, attributeName, attributeValues, isRangeValue)
+            filterAttributes.add(filterAttribute)
           }
 
         }
 
-
-        if (filterAttributes.size() != 0) filterAttributeSearchResult.setFilterAttributes(filterAttributes)
       }
-      filterAttributeSearchResult
-    } else null
+
+
+      if (filterAttributes.size() != 0) filterAttributeSearchResult.setFilterAttributes(filterAttributes)
+    }
+  }
+
+
+  /**
+    *
+    * get all brands by catoryId
+    * @param catagoryId
+    * @param cityId
+    * @return
+    */
+  def searchBrandsByCatoryId(catagoryId: java.lang.Integer, cityId: java.lang.Integer): java.util.List[Brand] = {
+    searchBrandsByCatoryId(catagoryId, cityId, null, 0, java.lang.Integer.MAX_VALUE)
   }
 
   /**
     *
     * @param catagoryId
+    * @param cityId
     * @param sorts   eg:Map(price->desc,sales->desc,score->desc)
     * @param start eg:0
     * @param rows eg:10
     * @return java.util.List[Brand]
     */
-  def searchBrandsByCatoryId(catagoryId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer): java.util.List[Brand] = {
-    null
+  def searchBrandsByCatoryId(catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer): java.util.List[Brand] = {
+
+    if (catagoryId != null) {
+      //page
+      var sStart: Int = 0
+      var sRows: Int = 10
+
+      if (start != null && start > 0) sStart = start
+      if (rows != null && rows > 0) sRows = rows
+
+
+      val keyWordsModel = "*:*"
+
+      val fqGeneral = s"(deliveryTime:0 OR cityId:$cityId)"
+      val fq = s"(categoryId1:$catagoryId OR categoryId2:$catagoryId OR categoryId3:$catagoryId OR categoryId4:$catagoryId)"
+
+      val fl = "brandId,brandEn,brandZh"
+
+      val query: SolrQuery = new SolrQuery
+      query.set("qt", "/select")
+      query.setQuery(keyWordsModel)
+      query.addFilterQuery(fqGeneral)
+      query.addFilterQuery(fq)
+      query.setFields(fl)
+
+      //sort
+      if (sorts != null && sorts.size() > 0) {
+        // eg:  query.addSort("price", SolrQuery.ORDER.desc)
+        sorts.foreach { sortOrder =>
+          val field = sortOrder._1
+          val orderString = sortOrder._2.trim
+          var order: ORDER = null
+          orderString match {
+            case "desc" => order = SolrQuery.ORDER.desc
+            case "asc" => order = SolrQuery.ORDER.asc
+            case _ => SolrQuery.ORDER.desc
+          }
+          query.addSort(field, order)
+        }
+      }
+
+      //page
+      query.setStart(sStart)
+      query.setRows(sRows)
+
+      val r = solrClient.searchByQuery(query, "mergescloud")
+      var result: QueryResponse = null
+      if (r != null) result = r.asInstanceOf[QueryResponse]
+      val brandIdToBrandMap = getBrandsSearchResultUniqueById(result)
+
+      if (brandIdToBrandMap != null) {
+        val brandList = new java.util.ArrayList[Brand]()
+        brandIdToBrandMap.foreach { idToBrand =>
+          brandList.add(idToBrand._2)
+        }
+        if (brandList.size() > 0) brandList
+        else null
+      } else null
+    } else null
   }
 
+  /**
+    *
+    * get brands    Map(brandId->Brand)
+    * @param result
+    * @return
+    */
+  private def getBrandsSearchResultUniqueById(result: QueryResponse): java.util.Map[java.lang.Integer, Brand] = {
+
+    //get Result
+    if (result != null) {
+      val resultBrandIdMap: java.util.Map[java.lang.Integer, Brand] = new java.util.HashMap[java.lang.Integer, Brand]() //brand result Map(brandId->Brand)
+      val response = result.getResults
+      if (response != null) {
+        response.foreach { doc =>
+          val brandId = doc.getFieldValue("brandId").toString.toInt
+          if (!resultBrandIdMap.contains(brandId)) {
+            val brandEn = doc.getFieldValue("brandEn").toString
+            val brandZh = doc.getFieldValue("brandZh").toString
+            val brand = new Brand(brandId, brandZh, brandEn)
+            resultBrandIdMap.put(brandId, brand)
+          }
+        }
+      }
+      if (!resultBrandIdMap.isEmpty) resultBrandIdMap
+      else null
+    }
+    else null
+  }
+
+  def countKeywordInDocs(keyword: Object, query: SolrQuery, cityId: java.lang.Integer): Int = {
+    if (keyword != null) {
+      val keyWord = keyword.toString.trim.toLowerCase
+      val keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh_ps$keyWord^30) OR (brandEn_ps:$keyWord^30) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
+
+      val fq = s"deliveryTime:0 OR cityId:$cityId"
+
+
+      query.set("qt", "/select")
+      query.setQuery(keyWordsModel)
+      if (cityId != null) {
+        query.setFilterQueries(fq)
+      }
+      query.setQuery(keyWordsModel)
+      query.setRows(1)
+      val r = solrClient.searchByQuery(query, "mergescloud")
+      var result: QueryResponse = null
+      if (r != null) result = r.asInstanceOf[QueryResponse]
+      if (result != null) {
+        val resultDocs = result.getResults
+        if (resultDocs != null && resultDocs.size() > 0) {
+          val numfound = resultDocs.getNumFound
+          numfound.toInt
+        }
+        else 0
+      } else 0
+    } else 0
+  }
 
   /**
     *
     * this for autoSuggest in search
     * @param keyWords search keyword
+    * @param cityId
     * @return  java.util.Map[java.lang.String,java.lang.Integer]   eg:Map("soledede"=>10004)  represent counts of document  the keywords  side in
     */
-  def suggestByKeyWords(keyWords: java.lang.String): java.util.Map[java.lang.String, java.lang.Integer] = {
-    null
+  def suggestByKeyWords(keyWords: java.lang.String, cityId: java.lang.Integer): java.util.Map[java.lang.String, java.lang.Integer] = {
+
+
+    if (keyWords != null && !keyWords.trim.equalsIgnoreCase("")) {
+
+
+      val keyWordsPro = keyWords.trim.toLowerCase
+      val keyWordsModel = s"(kw_ik:${keyWordsPro}* OR pinyin:${keyWordsPro}* OR py:${keyWordsPro}*)"
+
+      val fl = "kw"
+
+
+      val query: SolrQuery = new SolrQuery
+      // query.set("qt", "/select")
+      query.setQuery(keyWordsModel)
+
+      query.setFields(fl)
+
+      //sort
+      query.addSort("weight", SolrQuery.ORDER.desc)
+
+      query.setStart(0)
+      query.setRows(20)
+
+      val r = solrClient.searchByQuery(query, "kwsuggest")
+      var result: QueryResponse = null
+      if (r != null) result = r.asInstanceOf[QueryResponse]
+      val docs = getSearchResult(result, null)
+
+      if (docs != null) {
+        val keyWordsMap = new java.util.HashMap[java.lang.String, java.lang.Integer]()
+        val query: SolrQuery = new SolrQuery
+        docs.foreach { doc =>
+          val keyword = doc.get("kw").toString.trim
+          val count: Int = countKeywordInDocs(keyword, query, cityId)
+          if (count > 0) keyWordsMap.put(keyword, count)
+        }
+        if (!keyWordsMap.isEmpty) keyWordsMap
+        else null
+      } else null
+
+    }
+    else null
 
   }
 
@@ -563,21 +752,32 @@ object SearchInterface extends Logging {
 
 object testSearchInterface {
   def main(args: Array[String]) {
-    // searchByKeywords
+    //searchByKeywords
 
 
-    //testRegex
-    testSearchFilterAttributeByCatagoryId
-    testAttributeFilterSearch
+    // testSearchFilterAttributeByCatagoryId
+    //testAttributeFilterSearch
+
+    //testSearchBrandsByCatoryId
+
+    //testSuggestByKeyWords
+
+    testRecordSearchLog
+
+    //testCountKeywordInDocs
+
 
     //testSplit
+    //testRegex
+    // testMaxInt
   }
 
   def searchByKeywords = {
     val sorts = new java.util.HashMap[java.lang.String, java.lang.String]
     sorts.put("price", "asc")
     sorts.put("score", "desc")
-    SearchInterface.searchByKeywords("防护口罩", 456, sorts, 0, 10)
+    val result = SearchInterface.searchByKeywords("防护口罩", 456, sorts, 0, 10)
+    println(result)
   }
 
   def testSearchFilterAttributeByCatagoryId() = {
@@ -606,8 +806,31 @@ object testSearchInterface {
     filterFieldsValues.put("t87_tf", rangeList)
     //SearchInterface.attributeFilterSearch(null, 1001739, 456, sorts, null, filterFieldsValues, 0, 10)
     // val result = SearchInterface.attributeFilterSearch(null, 1001739, 456, sorts, filters, filterFieldsValues, 0, 10)
-    val result = SearchInterface.attributeFilterSearch("防护口罩", 1001739, 456, sorts, filters, filterFieldsValues, 0, 10)
+    val result = SearchInterface.attributeFilterSearch("3M", 1001739, 456, sorts, filters, filterFieldsValues, 0, 10)
     println(result)
+  }
+
+  def testSearchBrandsByCatoryId() = {
+    val result = SearchInterface.searchBrandsByCatoryId(1003437, 456)
+    println(result)
+  }
+
+  def testSuggestByKeyWords() = {
+    val result = SearchInterface.suggestByKeyWords("dai", 456)
+    println(result)
+  }
+
+  def testRecordSearchLog() = {
+    /**
+      * @param keyWords
+      * @param appKey
+      * @param clientIp
+      * @param userAgent
+      * @param sourceType
+      * @param cookies
+      * @param userId
+      */
+     SearchInterface.recordSearchLog("防护口罩","swe2323",null,"Useragent","android",null,"undn3")
   }
 
   def testSplit() = {
@@ -627,6 +850,15 @@ object testSearchInterface {
       val v2 = value.charAt(0).toLower + value.substring(1)
       println(v1 + "=" + v2)
     }
-
   }
+
+  def testCountKeywordInDocs() = {
+    SearchInterface.countKeywordInDocs("3m", new SolrQuery(), 456)
+  }
+
+  def testMaxInt() = {
+    val v = java.lang.Integer.MAX_VALUE
+    println(v)
+  }
+
 }

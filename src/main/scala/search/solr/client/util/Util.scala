@@ -15,6 +15,13 @@ object Util {
     format.format(date)
   }
 
+  def timestampToDate(timestamp: Long): java.util.Date = {
+    val format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    val d = format.format(timestamp)
+    val date = format.parse(d)
+    date
+  }
+
   def regex(input: String, regex: String): Boolean = {
     if (regex == null || input == null) {
       return false

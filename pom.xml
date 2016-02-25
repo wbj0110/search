@@ -6,7 +6,7 @@
 
     <groupId>com.ehsy.search</groupId>
     <artifactId>seachclient</artifactId>
-    <version>0.1.2</version>
+    <version>0.1.3</version>
 
     <properties>
         <java.version>1.7</java.version>
@@ -447,7 +447,7 @@
         </repository>-->
 
 
-      <!--  <repository>
+        <repository>
             <id>releases</id>
             <url>http://192.168.0.249:8099/nexus/content/repositories/releases/</url>
         </repository>
@@ -455,15 +455,14 @@
             <id>snapshots</id>
             <url>http://192.168.0.249:8099/nexus/content/repositories/snapshots/</url>
         </snapshotRepository>
--->
-        <repository>
+      <!--  <repository>
             <id>releases</id>
             <url>http://112.124.32.129:8099/nexus/content/repositories/releases/</url>
         </repository>
         <snapshotRepository>
             <id>snapshots</id>
             <url>http://112.124.32.129:8099/nexus/content/repositories/snapshots/</url>
-        </snapshotRepository>
+        </snapshotRepository>-->
     </distributionManagement>
 
 </project>

@@ -64,7 +64,7 @@ object SearchInterface extends Logging {
 
 
     val keyWord = keyWords.trim.toLowerCase
-    val keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh_ps$keyWord^30) OR (brandEn_ps:$keyWord^30) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
+    val keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh:$keyWord^200) OR (brandEn:$keyWord^200) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
 
     val fq = s"deliveryTime:0 OR cityId:$cityId"
 
@@ -357,7 +357,7 @@ object SearchInterface extends Logging {
         keyWord = keyWords.trim.toLowerCase
       var keyWordsModel = "*:*"
       if (keyWord != null)
-        keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh_ps$keyWord^30) OR (brandEn_ps:$keyWord^30) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
+        keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh:$keyWord^200) OR (brandEn:$keyWord^200) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
 
       val fqGeneral = s"(deliveryTime:0 OR cityId:$cityId)"
       val fqCataId = s"(categoryId3:$catagoryId OR categoryId4:$catagoryId)"
@@ -637,7 +637,7 @@ object SearchInterface extends Logging {
   def countKeywordInDocs(keyword: Object, query: SolrQuery, cityId: java.lang.Integer): Int = {
     if (keyword != null) {
       val keyWord = keyword.toString.trim.toLowerCase
-      val keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh_ps$keyWord^30) OR (brandEn_ps:$keyWord^30) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
+      val keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh:$keyWord^200) OR (brandEn:$keyWord^200) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
 
       val fq = s"deliveryTime:0 OR cityId:$cityId"
 
@@ -752,7 +752,7 @@ object SearchInterface extends Logging {
 
 object testSearchInterface {
   def main(args: Array[String]) {
-    //searchByKeywords
+    searchByKeywords
 
 
     // testSearchFilterAttributeByCatagoryId
@@ -762,7 +762,7 @@ object testSearchInterface {
 
     //testSuggestByKeyWords
 
-    testRecordSearchLog
+    //testRecordSearchLog
 
     //testCountKeywordInDocs
 

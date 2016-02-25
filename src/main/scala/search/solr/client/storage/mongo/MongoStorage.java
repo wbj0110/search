@@ -77,41 +77,78 @@ public class MongoStorage {
         return false;
     }
 
+    private static MongoClient createMongoDBClient(String type, String user, String dbname, String passwd, String seed, String replSetName, List<ServerAddress> serverAddresses) {
+
+        if (type == null || type.equalsIgnoreCase("sdk")) {
+            List<MongoCredential> mongoCredentials = new ArrayList<>();
+            mongoCredentials.add(MongoCredential.createMongoCRCredential(user, dbname, passwd.toCharArray()));
+            // MongoClient client = new MongoClient(host, port);
+            /*List<ServerAddress> serverAddresses = new ArrayList<ServerAddress>();
+            serverAddresses.add(new ServerAddress("192.168.0.249", 27017));
+            serverAddresses.add(new ServerAddress("192.168.0.249", 27018));
+            serverAddresses.add(new ServerAddress("192.168.0.249", 27019));*/
+            MongoClientOptions options = MongoClientOptions.builder().requiredReplicaSetName("ksr").build();
+            //requiredReplicaSetName="ksr"
+            // new ServerAddress(host, port)
+            MongoClient client = new MongoClient(serverAddresses, mongoCredentials, options);
+            return client;
+        } else if (type.equalsIgnoreCase("url")) {
+         /*   String seed1 = "192.168.0.249:27017";
+            String seed2 = "192.168.0.249:27018";
+            String seed3 = "192.168.0.249:27019";
+            String replSetName = "ksr";*/
+            //另一种通过URI初始化
+            //mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][/[database][?options]]
+           /* MongoClientURI connectionString = new MongoClientURI("mongodb://" + user + ":" + passwd + "@" +
+                    seed1 + "," + seed2 + "," + seed3 + "/" +
+                    dbname +
+                    "?replicaSet=" + replSetName);*/
+            MongoClientURI connectionString = new MongoClientURI("mongodb://" + user + ":" + passwd + "@" +
+                    seed + "/" +
+                    dbname +
+                    "?replicaSet=" + replSetName);
+            return new MongoClient(connectionString);
+        } else return null;
+    }
+
     private static void init() {
 
         Properties properties = new Properties();
         InputStream is = MongoStorage.class.getResourceAsStream("/mongodb.properties");
         String host = "";
+        List<ServerAddress> serverAddresses = null;
+
         int port = 0;
         String dbname = "";
         String user = "";
         String passwd = "";
+        String seed = "";
+        String replSetName = "";
         try {
             properties.load(is);
             String hosts = properties.getProperty("host");
-            String hostsArray[] = hosts.split(",");
+            if (hosts != null) {
+                serverAddresses = new ArrayList<ServerAddress>();
+                String hostsArray[] = hosts.split(",");
+                for (int i = 0; i < hostsArray.length - 1; i++) {
+                    String hostPort = hostsArray[i];
+                    String hostPortArray[] = hostPort.split(":");
+                    serverAddresses.add(new ServerAddress(hostPortArray[0], Integer.valueOf(hostPortArray[1])));
+                }
+            }
             //  port = Integer.valueOf(properties.getProperty("port"));
             user = properties.getProperty("user");
             passwd = properties.getProperty("passwd");
             dbname = properties.getProperty("dbname");
+            seed = properties.getProperty("seed");
+            replSetName = properties.getProperty("replSetName");
             is.close();
         } catch (IOException e) {
             // TODO: Log
             e.printStackTrace();
         }
-        List<MongoCredential> mongoCredentials = new ArrayList<>();
-        mongoCredentials.add(MongoCredential.createMongoCRCredential(user, dbname, passwd.toCharArray()));
-        // MongoClient client = new MongoClient(host, port);
-        List<ServerAddress> serverAddresses = new ArrayList<ServerAddress>();
-        serverAddresses.add(new ServerAddress("192.168.0.249", 27017));
-        serverAddresses.add(new ServerAddress("192.168.0.249", 27018));
-        serverAddresses.add(new ServerAddress("192.168.0.249", 27019));
-        MongoClientOptions.Builder builder = new MongoClientOptions.Builder();
-        builder.requiredReplicaSetName("ksr");
-        MongoClientOptions options = new MongoClientOptions(builder);
-        //requiredReplicaSetName="ksr"
-        // new ServerAddress(host, port)
-        MongoClient client = new MongoClient(serverAddresses, mongoCredentials);
+
+        MongoClient client = createMongoDBClient("url", user, dbname, passwd, seed, replSetName, serverAddresses);
         Morphia morphia = new Morphia();
 
         datastore = morphia.createDatastore(client, dbname);

@@ -10,7 +10,7 @@ import search.solr.client.log.SearchLog
 import search.solr.client.util.{Util, Logging}
 import search.solr.client.{SolrClientConf, SolrClient}
 import scala.collection.JavaConversions._
-
+import scala.util.control.Breaks._
 
 /**
   * Created by soledede on 2016/2/20.
@@ -23,6 +23,8 @@ object SearchInterface extends Logging {
   val solrClient = SolrClient(new SolrClientConf())
 
   val mongoSearchLog = SearchLog("mongo")
+
+  val filterSplitArray = Array("<->", "OR", "or", "->")
 
 
   /**
@@ -374,14 +376,48 @@ object SearchInterface extends Logging {
         filters.foreach { fV =>
           val field = fV._1
           val value = fV._2
-          //fq=t89_s:(memmert OR Memmert)
-          if (Util.regex(value, "^[A-Za-z]+$")) {
-            val v1 = value.charAt(0).toUpper + value.substring(1)
-            val v2 = value.charAt(0).toLower + value.substring(1)
-            val fq = s"$field:($v1 OR $v2)"
-            query.addFilterQuery(fq)
-          } else {
-            query.addFilterQuery(s"$field:$value")
+          if (value != null && !value.equalsIgnoreCase("")) {
+            var valuesArray: Array[String] = null
+            breakable {
+              for (i <- 0 to filterSplitArray.length - 1) {
+                valuesArray = value.split(filterSplitArray(i).trim)
+                if (valuesArray.length > 1) break
+              }
+            }
+
+            if (valuesArray != null && valuesArray.length > 1) {
+              val fqString = new StringBuilder()
+              fqString.append("(")
+              //t89_s:(memmert+OR+Memmert+OR+honeywell+OR+Honeywell)
+              valuesArray.foreach { filterValue =>
+                val value = filterValue.trim
+                //fq=t89_s:(memmert OR Memmert OR honeywell OR Honeywell)
+                if (Util.regex(value, "^[A-Za-z]+$")) {
+                  val v1 = value.charAt(0).toUpper + value.substring(1)
+                  val v2 = value.charAt(0).toLower + value.substring(1)
+                  fqString.append(s"$v1 OR $v2 OR ")
+                  // val fq = s"$field:($v1 OR $v2)"
+                  //query.addFilterQuery(fq)
+                } else {
+                  fqString.append(s"$value OR ")
+                  // query.addFilterQuery(s"$field:$value")
+                }
+              }
+              val fq = fqString.substring(0, fqString.lastIndexOf("OR") - 1) + ")"
+              query.addFilterQuery(s"$field:$fq")
+            } else {
+              //fq=t89_s:(memmert OR Memmert OR honeywell OR Honeywell)
+              if (Util.regex(value, "^[A-Za-z]+$")) {
+                val v1 = value.charAt(0).toUpper + value.substring(1)
+                val v2 = value.charAt(0).toLower + value.substring(1)
+                val fq = s"$field:($v1 OR $v2)"
+                query.addFilterQuery(fq)
+              } else {
+                query.addFilterQuery(s"$field:$value")
+              }
+            }
+
+
           }
         }
       }
@@ -752,11 +788,11 @@ object SearchInterface extends Logging {
 
 object testSearchInterface {
   def main(args: Array[String]) {
-    searchByKeywords
+    // searchByKeywords
 
 
-    // testSearchFilterAttributeByCatagoryId
-    //testAttributeFilterSearch
+    testSearchFilterAttributeByCatagoryId
+    testAttributeFilterSearch
 
     //testSearchBrandsByCatoryId
 
@@ -767,9 +803,10 @@ object testSearchInterface {
     //testCountKeywordInDocs
 
 
-    //testSplit
+    // testSplit
     //testRegex
     // testMaxInt
+    //testSubString
   }
 
   def searchByKeywords = {
@@ -792,7 +829,8 @@ object testSearchInterface {
     sorts.put("score", "desc")
 
     val filters = new java.util.HashMap[java.lang.String, java.lang.String]()
-    filters.put("t89_s", "Memmert")
+    //filters.put("t89_s", "Memmert")
+    filters.put("t89_s", "Memmert <-> honeywell")
     filters.put("t87_tf", "[0 TO *}")
 
     val filterFieldsValues = new util.HashMap[java.lang.String, util.List[java.lang.String]]()
@@ -805,8 +843,8 @@ object testSearchInterface {
     rangeList.add("[30 TO *}")
     filterFieldsValues.put("t87_tf", rangeList)
     //SearchInterface.attributeFilterSearch(null, 1001739, 456, sorts, null, filterFieldsValues, 0, 10)
-    // val result = SearchInterface.attributeFilterSearch(null, 1001739, 456, sorts, filters, filterFieldsValues, 0, 10)
-    val result = SearchInterface.attributeFilterSearch("3M", 1001739, 456, sorts, filters, filterFieldsValues, 0, 10)
+       val result = SearchInterface.attributeFilterSearch(null, 1001739, 456, sorts, filters, filterFieldsValues, 0, 10)
+    // val result = SearchInterface.attributeFilterSearch("3M", 1001739, 456, sorts, filters, filterFieldsValues, 0, 10)
     println(result)
   }
 
@@ -830,13 +868,23 @@ object testSearchInterface {
       * @param cookies
       * @param userId
       */
-     SearchInterface.recordSearchLog("防护口罩","swe2323",null,"Useragent","android",null,"undn3")
+    SearchInterface.recordSearchLog("防护口罩", "swe2323", null, "Useragent", "android", null, "undn3")
   }
 
   def testSplit() = {
-    val testString = "t87_tf:[* TO 0}"
-    val array = testString.split(":")
-    println(array)
+    //  val testString = "t87_tf:[* TO 0}"
+    //  val array = testString.split(":")
+    //  println(array)
+
+    val test = "memmert<->Honeywell"
+    val tesArray = test.split("<->")
+    println(tesArray.toString)
+
+    val testOrString = "memmert OR Honeywell"
+    val testOrStringArray = testOrString.split("OR")
+    println(testOrStringArray)
+
+
   }
 
   def testRegex() = {
@@ -860,5 +908,14 @@ object testSearchInterface {
     val v = java.lang.Integer.MAX_VALUE
     println(v)
   }
+
+  def testSubString() = {
+    val s = new StringBuilder("(memmert OR Memmert OR honeywell OR Honeywell OR ")
+    val sS = s.substring(0, s.lastIndexOf("OR") - 1)
+    val laS = sS + ")"
+    println(laS)
+
+  }
+
 
 }

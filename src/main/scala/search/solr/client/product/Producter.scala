@@ -38,7 +38,9 @@ object Producter extends Logging with Configuration {
     * @param totalNum
     * eg: mergescloud-2343433212-234343211-34
     *     mergescloud-1456329600-1456477928-1
-    *     mergescloud-null-null-10
+    *     mergescloud-null-null-740670
+    *     screencloud-null-null-25468
+    *     screencloud-null-null-40
     * @return
     */
   def send(collection: String, startUpdateTime: Long, endUpdataTime: Long, totalNum: Int): Boolean = {

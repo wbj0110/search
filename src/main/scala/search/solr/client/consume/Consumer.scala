@@ -28,7 +28,7 @@ object Consumer extends Logging {
           val collection = message.split(Producter.separator)(0)
           val data = indexer.requestData(message)
           //generate xml for data
-          val xmlBool = indexer.geneXml(data,collection)
+        /*  val xmlBool = indexer.geneXml(data,collection)
           if (xmlBool != null) {
             indexData(collection, xmlBool)
             /* if (xmlBool.isInstanceOf[java.util.ArrayList[java.lang.String]]) {
@@ -37,7 +37,7 @@ object Consumer extends Logging {
              else {
                indexData(collection, xmlBool)
              }*/
-          }
+          }*/
         }
       } catch {
         case e: Exception => logError("manager index faield!", e)

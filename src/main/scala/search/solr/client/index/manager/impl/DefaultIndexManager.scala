@@ -3,14 +3,17 @@ package search.solr.client.index.manager.impl
 import java.io.PrintWriter
 import java.util
 
+
 import org.apache.http.HttpResponse
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.HttpEntityEnclosingRequestBase
+import org.apache.http.client.protocol.HttpClientContext
 import org.apache.http.message.BasicNameValuePair
-import org.apache.http.protocol.HttpContext
+import org.apache.http.protocol.{BasicHttpContext, HttpContext}
 import org.apache.http.util.EntityUtils
 import org.codehaus.jackson.JsonNode
 import org.codehaus.jackson.map.ObjectMapper
+import search.solr.client.consume.Consumer._
 import search.solr.client.{SolrClientConf, SolrClient}
 import search.solr.client.config.Configuration
 import search.solr.client.entity.enumeration.HttpRequestMethodType
@@ -20,6 +23,7 @@ import search.solr.client.product.Producter
 import search.solr.client.util.Logging
 import scala.collection.mutable
 import scala.util.control.Breaks._
+import scala.collection.JavaConversions._
 
 import scala.StringBuilder
 
@@ -120,26 +124,71 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
           paremeters("endUpdateTime") = endUpdataTime
         paremeters("start") = (i * pageSize).toString
         paremeters("rows") = pageSize.toString
-        requestHttp(url, HttpRequestMethodType.POST, paremeters, callback)
+        requestHttp(collection, url, HttpRequestMethodType.POST, paremeters, callback)
       }
 
     }
 
     //have get data
     def callback(context: HttpContext, httpResp: HttpResponse) = {
+      val collection = context.getAttribute("collection").toString
       val responseData = EntityUtils.toString(httpResp.getEntity)
+
       if (responseData != null && !responseData.equalsIgnoreCase("")) {
         val om = new ObjectMapper()
         obj = om.readTree(responseData)
+
+        indexOrDelteData
+
+      }
+
+
+      def indexOrDelteData: Unit = {
+        val xmlBool = geneXml(obj, collection)
+        if (xmlBool != null) {
+          indexData(collection, xmlBool)
+          /*if (xmlBool.isInstanceOf[util.ArrayList[String]]) {
+            deleteIndexData(collection, xmlBool)
+          }
+          else {
+            indexData(collection, xmlBool)
+          }*/
+        }
+      }
+      /**
+        * index data
+        * @param collection
+        * @param xmlBool
+        */
+      def indexData(collection: java.lang.String, xmlBool: AnyRef): Unit = {
+        try {
+          val indexData = xmlBool.asInstanceOf[java.util.ArrayList[java.util.Map[java.lang.String, Object]]]
+          indexData(0).asInstanceOf[java.util.Map[java.lang.String, Object]]
+          if (indexer.indexData(indexData, collection)) logInfo(" index success!")
+          else {
+            logError("index faield!Ids:")
+            indexData.foreach { doc =>
+              logInfo(s"index faield id:\t${doc.get("id")}")
+            }
+          }
+        } catch {
+          case castEx: java.lang.ClassCastException =>
+            deleteIndexData(collection, xmlBool)
+          // case e: Exception => logError("index faield", e)
+        }
+
       }
     }
 
-    obj
+    //  obj
+    null
   }
 
 
-  def requestHttp(url: String, requestType: HttpRequestMethodType.Type, paremeters: mutable.Map[String, String], callback: (HttpContext, HttpResponse) => Unit): Unit = {
+  def requestHttp(collection: String, url: String, requestType: HttpRequestMethodType.Type, paremeters: mutable.Map[String, String], callback: (HttpContext, HttpResponse) => Unit): Unit = {
     val request = HttpRequstUtil.createRequest(requestType, url)
+    val context: HttpClientContext = HttpClientContext.adapt(new BasicHttpContext)
+    context.setAttribute("collection", collection)
     if (paremeters != null && !paremeters.isEmpty) {
       val formparams: java.util.List[BasicNameValuePair] = new java.util.ArrayList[BasicNameValuePair]()
       paremeters.foreach { p =>
@@ -148,7 +197,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
       val entity: UrlEncodedFormEntity = new UrlEncodedFormEntity(formparams, "utf-8");
       request.asInstanceOf[HttpEntityEnclosingRequestBase].setEntity(entity)
     }
-    HttpClientUtil.getInstance().execute(request, callback)
+    HttpClientUtil.getInstance().execute(request, context, callback)
   }
 
 

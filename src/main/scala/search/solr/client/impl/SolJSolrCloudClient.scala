@@ -53,9 +53,9 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
             }
             docList.add(docSingle)
           }
-         val response = server.add(collection, docList)
+          val response = server.add(collection, docList)
           server.commit(collection)
-          logInfo("index status:"+response.getStatus)
+          logInfo("index status:" + response.getStatus)
 
         } else {
           logError("not input document")
@@ -73,7 +73,7 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
     try {
       if (zeus.isInstanceOf[SolrInputDocument]) {
         server.add(collection, zeus.asInstanceOf[SolrInputDocument])
-       // server.optimize()
+        // server.optimize()
         server.commit(collection)
       } else if (zeus.isInstanceOf[java.util.List[java.util.Map[java.lang.String, Object]]]) {
         //  eg:List(Map("docId1"->32343,"time"->Map("set"->"2015")))
@@ -122,9 +122,9 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
   }
 
 
-  override def delete(list: util.ArrayList[String],collection: String = "searchcloud"): Boolean = {
+  override def delete(list: util.ArrayList[String], collection: String = "searchcloud"): Boolean = {
     try {
-      server.deleteById(collection,list)
+      server.deleteById(collection, list)
       server.commit(collection)
       true
     } catch {

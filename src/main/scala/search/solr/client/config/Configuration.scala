@@ -43,4 +43,7 @@ trait Configuration {
   lazy val mergesCloudsUrl = Try(config.getString("url.mergeclouds")).getOrElse("http://localhost:8088/mergeclouds")
   lazy val screenCloudsUrl = Try(config.getString("url.screenclouds")).getOrElse("http://localhost:8088/screenclouds")
 
+  //page
+  lazy val pageSize = Try(config.getInt("pageSize")).getOrElse(10)
+
 }

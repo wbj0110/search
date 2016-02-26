@@ -4,6 +4,9 @@ import java.io.PrintWriter
 import java.util
 
 import org.apache.http.HttpResponse
+import org.apache.http.client.entity.UrlEncodedFormEntity
+import org.apache.http.client.methods.HttpEntityEnclosingRequestBase
+import org.apache.http.message.BasicNameValuePair
 import org.apache.http.protocol.HttpContext
 import org.apache.http.util.EntityUtils
 import org.codehaus.jackson.JsonNode
@@ -15,6 +18,7 @@ import search.solr.client.http.{HttpClientUtil, HttpRequstUtil}
 import search.solr.client.index.manager.IndexManager
 import search.solr.client.product.Producter
 import search.solr.client.util.Logging
+import scala.collection.mutable
 import scala.util.control.Breaks._
 
 import scala.StringBuilder
@@ -26,11 +30,12 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
   val C_OR_UPDATE_XML = "_c_u.xml"
   val DELETE_XML = "_d.xml"
 
+
   // "http://192.168.51.54:8088/mergecloud"
   val MERGECLOUD_URL: String = mergesCloudsUrl
   val SCREEN_URL: String = screenCloudsUrl
 
-  val needSenseCharcter = Array("|")  //if you need use new sense charcter in application.conf ,you need add it to array
+  val needSenseCharcter = Array("|") //if you need use new sense charcter in application.conf ,you need add it to array
 
   var arrayObj: Array[String] = null
 
@@ -60,22 +65,13 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
           val totalNum = msgArray(2)
           logInfo(s"recieveMessage-minUpdateTime:$minUpdateTime-totalNum:$totalNum")
 
-          var url = MERGECLOUD_URL
-          collection match {
-            case "screencloud" => url = SCREEN_URL
-            case "mergescloud" => url = MERGECLOUD_URL
-            case _ =>
-          }
-
           try {
-            requestHttp(url, callback)
+            requestUrl(collection, totalNum, minUpdateTime, null)
           } catch {
             case e: Exception =>
               logError("request faield!", e)
               logInfo(s"faieldMessage-minUpdateTime:$minUpdateTime-totalNum:$totalNum")
           }
-
-
         } else if (msgArray.length == 4) {
           //first represent collection ,mergescloud-2343433212-234343211-34
           //it's time quantum
@@ -84,16 +80,8 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
           val endUpdataTime = msgArray(2).trim
           val totalNum = msgArray(3).trim
           logInfo(s"sendMessage-startTime:$startUpdateTime-endTime:$endUpdataTime-totalNum:$totalNum")
-
-          var url = MERGECLOUD_URL
-          collection match {
-            case "screencloud" => url = SCREEN_URL
-            case "mergescloud" => url = MERGECLOUD_URL
-            case _ =>
-          }
-
           try {
-            requestHttp(url, callback)
+            requestUrl(collection, totalNum, startUpdateTime, endUpdataTime)
           } catch {
             case e: Exception =>
               logError("request faield!", e)
@@ -102,6 +90,41 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
         }
       }
     }
+
+    /**
+      *
+      * @param totalNum
+      * @param startUpdateTime
+      * @param endUpdataTime
+      */
+    def requestUrl(collection: String, totalNum: String, startUpdateTime: String, endUpdataTime: String): Unit = {
+      var url = MERGECLOUD_URL
+      collection match {
+        case "screencloud" => url = SCREEN_URL
+        case "mergescloud" => url = MERGECLOUD_URL
+        case _ =>
+      }
+
+
+      var more = 0
+      if (totalNum.toInt % pageSize != 0) more = totalNum.toInt % pageSize
+      var onePage = 0
+      if (more > 0) onePage = 1
+      val requestCounts = (totalNum.toInt / pageSize) + onePage
+
+      for (i <- 0 to requestCounts - 1) {
+        val paremeters = new mutable.HashMap[String, String]()
+        if (startUpdateTime != null && !startUpdateTime.trim.equalsIgnoreCase("null") && !startUpdateTime.trim.equalsIgnoreCase("") && startUpdateTime.trim.equalsIgnoreCase("0"))
+          paremeters("startUpdateTime") = startUpdateTime
+        if (endUpdataTime != null && !startUpdateTime.trim.equalsIgnoreCase("null") && !endUpdataTime.trim.equalsIgnoreCase("") && endUpdataTime.trim.equalsIgnoreCase("0"))
+          paremeters("endUpdateTime") = endUpdataTime
+        paremeters("start") = (i * pageSize).toString
+        paremeters("rows") = pageSize.toString
+        requestHttp(url, HttpRequestMethodType.POST, paremeters, callback)
+      }
+
+    }
+
     //have get data
     def callback(context: HttpContext, httpResp: HttpResponse) = {
       val responseData = EntityUtils.toString(httpResp.getEntity)
@@ -110,14 +133,24 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
         obj = om.readTree(responseData)
       }
     }
+
     obj
   }
 
 
-  def requestHttp(url: String, callback: (HttpContext, HttpResponse) => Unit): Unit = {
-    val request = HttpRequstUtil.createRequest(HttpRequestMethodType.GET, url)
+  def requestHttp(url: String, requestType: HttpRequestMethodType.Type, paremeters: mutable.Map[String, String], callback: (HttpContext, HttpResponse) => Unit): Unit = {
+    val request = HttpRequstUtil.createRequest(requestType, url)
+    if (paremeters != null && !paremeters.isEmpty) {
+      val formparams: java.util.List[BasicNameValuePair] = new java.util.ArrayList[BasicNameValuePair]()
+      paremeters.foreach { p =>
+        formparams.add(new BasicNameValuePair(p._1, p._2))
+      }
+      val entity: UrlEncodedFormEntity = new UrlEncodedFormEntity(formparams, "utf-8");
+      request.asInstanceOf[HttpEntityEnclosingRequestBase].setEntity(entity)
+    }
     HttpClientUtil.getInstance().execute(request, callback)
   }
+
 
   override def geneXml(data: AnyRef, collection: String): AnyRef = {
     var listMap: java.util.List[java.util.Map[java.lang.String, Object]] = new java.util.ArrayList[java.util.Map[java.lang.String, Object]]()
@@ -129,29 +162,34 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
       val xml = new StringBuilder
       if (data.isInstanceOf[JsonNode]) {
         //generate add index xml
-        val rootJsonNode = data.asInstanceOf[JsonNode]
-        if (!rootJsonNode.isNull && rootJsonNode.size() > 0) {
-          xml.append("<?xml version='1.0' encoding='UTF-8'?>")
-          xml.append("\n")
+        val dataJsonNode = data.asInstanceOf[JsonNode]
 
-          xml.append("<add>")
-          xml.append("\n")
+        if (!dataJsonNode.isNull && dataJsonNode.size() > 0) {
 
-          if (rootJsonNode.isArray) {
-            writeToFileCnt = rootJsonNode.size()
-            val arrayIt = rootJsonNode.iterator()
-            while (arrayIt.hasNext) {
-              val objNode = arrayIt.next()
-              geneAddXml(objNode, xml, listMap)
+          val rootJsonNode = dataJsonNode.get("data")
+          if (!rootJsonNode.isNull && rootJsonNode.size() > 0) {
+
+            xml.append("<?xml version='1.0' encoding='UTF-8'?>")
+            xml.append("\n")
+
+            xml.append("<add>")
+            xml.append("\n")
+
+            if (rootJsonNode.isArray) {
+              writeToFileCnt = rootJsonNode.size()
+              val arrayIt = rootJsonNode.iterator()
+              while (arrayIt.hasNext) {
+                val objNode = arrayIt.next()
+                geneAddXml(objNode, xml, listMap)
+              }
+            } else {
+              writeToFileCnt = 1
+              geneAddXml(rootJsonNode, xml, listMap) //single document
             }
-          } else {
-            writeToFileCnt = 1
-            geneAddXml(rootJsonNode, xml, listMap) //single document
+
+
+            xml.append("</add>")
           }
-
-          xml.append("</add>")
-
-
         }
       } else if (data.isInstanceOf[Array[String]]) {
         //generate delete index xml

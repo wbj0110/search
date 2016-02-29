@@ -788,11 +788,11 @@ object SearchInterface extends Logging {
 
 object testSearchInterface {
   def main(args: Array[String]) {
-    // searchByKeywords
+     searchByKeywords
 
 
-    testSearchFilterAttributeByCatagoryId
-    testAttributeFilterSearch
+   // testSearchFilterAttributeByCatagoryId
+    //testAttributeFilterSearch
 
     //testSearchBrandsByCatoryId
 
@@ -813,7 +813,8 @@ object testSearchInterface {
     val sorts = new java.util.HashMap[java.lang.String, java.lang.String]
     sorts.put("price", "asc")
     sorts.put("score", "desc")
-    val result = SearchInterface.searchByKeywords("防护口罩", 456, sorts, 0, 10)
+  //  val result = SearchInterface.searchByKeywords("防护口罩", 456, sorts, 0, 10)
+  val result = SearchInterface.searchByKeywords("西格玛", 363, null, 0, 10)
     println(result)
   }
 
@@ -860,13 +861,13 @@ object testSearchInterface {
 
   def testRecordSearchLog() = {
     /**
-      * @param keyWords
-      * @param appKey
-      * @param clientIp
-      * @param userAgent
-      * @param sourceType
-      * @param cookies
-      * @param userId
+      *  keyWords
+      * appKey
+      *  clientIp
+      *  userAgent
+      *  sourceType
+      *  cookies
+      *  userId
       */
     SearchInterface.recordSearchLog("防护口罩", "swe2323", null, "Useragent", "android", null, "undn3")
   }

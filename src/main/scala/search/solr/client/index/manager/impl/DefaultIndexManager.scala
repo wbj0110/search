@@ -6,7 +6,7 @@ import java.util
 
 import org.apache.http.HttpResponse
 import org.apache.http.client.entity.UrlEncodedFormEntity
-import org.apache.http.client.methods.HttpEntityEnclosingRequestBase
+import org.apache.http.client.methods.{HttpRequestBase, HttpEntityEnclosingRequestBase}
 import org.apache.http.client.protocol.HttpClientContext
 import org.apache.http.message.BasicNameValuePair
 import org.apache.http.protocol.{BasicHttpContext, HttpContext}
@@ -18,9 +18,9 @@ import search.solr.client.{SolrClientConf, SolrClient}
 import search.solr.client.config.Configuration
 import search.solr.client.entity.enumeration.HttpRequestMethodType
 import search.solr.client.http.{HttpClientUtil, HttpRequstUtil}
-import search.solr.client.index.manager.IndexManager
+import search.solr.client.index.manager.{IndexManagerRunner, IndexManager}
 import search.solr.client.product.Producter
-import search.solr.client.util.Logging
+import search.solr.client.util.{Util, Logging}
 import scala.collection.mutable
 import scala.util.control.Breaks._
 import scala.collection.JavaConversions._
@@ -48,6 +48,22 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
   }
 
   val solrClient = SolrClient(new SolrClientConf())
+
+
+  var coreThreadsNumber = consumerCoreThreadsNum
+
+  var moreThreadsNumber = 0
+
+  if (consumerThreadsNum % Util.inferCores() > 0) moreThreadsNumber = 1
+
+
+  if (consumerThreadsNum > 0) coreThreadsNumber = consumerThreadsNum / Util.inferCores() + moreThreadsNumber
+
+  val currentThreadsNum = Util.inferCores() * coreThreadsNumber
+
+  val consumerManageThreadPool = Util.newDaemonFixedThreadPool(currentThreadsNum, "consumer_index_manage_thread_excutor")
+  logInfo(s"***************************************current threads number:$currentThreadsNum***************************************")
+
 
   override def requestData(message: String): AnyRef = {
     var obj: AnyRef = null //return jsonNode
@@ -124,64 +140,72 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
           paremeters("endUpdateTime") = endUpdataTime
         paremeters("start") = (i * pageSize).toString
         paremeters("rows") = pageSize.toString
+
         requestHttp(collection, url, HttpRequestMethodType.POST, paremeters, callback)
       }
 
     }
-
-    //have get data
-    def callback(context: HttpContext, httpResp: HttpResponse) = {
-      val collection = context.getAttribute("collection").toString
-      val responseData = EntityUtils.toString(httpResp.getEntity)
-
-      if (responseData != null && !responseData.equalsIgnoreCase("")) {
-        val om = new ObjectMapper()
-        obj = om.readTree(responseData)
-
-        indexOrDelteData
-
-      }
-
-
-      def indexOrDelteData: Unit = {
-        val xmlBool = geneXml(obj, collection)
-        if (xmlBool != null) {
-          indexData(collection, xmlBool)
-          /*if (xmlBool.isInstanceOf[util.ArrayList[String]]) {
-            deleteIndexData(collection, xmlBool)
-          }
-          else {
-            indexData(collection, xmlBool)
-          }*/
-        }
-      }
-      /**
-        * index data
-        * @param collection
-        * @param xmlBool
-        */
-      def indexData(collection: java.lang.String, xmlBool: AnyRef): Unit = {
-        try {
-          val indexData = xmlBool.asInstanceOf[java.util.ArrayList[java.util.Map[java.lang.String, Object]]]
-          indexData(0).asInstanceOf[java.util.Map[java.lang.String, Object]]
-          if (indexer.indexData(indexData, collection)) logInfo(" index success!")
-          else {
-            logError("index faield!Ids:")
-            indexData.foreach { doc =>
-              logInfo(s"index faield id:\t${doc.get("id")}")
-            }
-          }
-        } catch {
-          case castEx: java.lang.ClassCastException =>
-            deleteIndexData(collection, xmlBool)
-          // case e: Exception => logError("index faield", e)
-        }
-
-      }
-    }
-
     //  obj
     null
+  }
+
+
+  override def execute(request: HttpRequestBase, context: HttpClientContext, callback: (HttpContext, HttpResponse) => Unit): Unit = {
+    logInfo(s"request---currentThread:${Thread.currentThread().getName}")
+    HttpClientUtil.getInstance().execute(request, context, callback)
+  }
+
+  //have get data
+  def callback(context: HttpContext, httpResp: HttpResponse) = {
+    var obj: AnyRef = null
+    logInfo(s"callback---currentThread:${Thread.currentThread().getName}")
+    val collection = context.getAttribute("collection").toString
+    val responseData = EntityUtils.toString(httpResp.getEntity)
+
+    if (responseData != null && !responseData.equalsIgnoreCase("")) {
+      val om = new ObjectMapper()
+      obj = om.readTree(responseData)
+
+      indexOrDelteData
+
+    }
+
+
+    def indexOrDelteData: Unit = {
+      val xmlBool = geneXml(obj, collection)
+      if (xmlBool != null) {
+        indexesData(collection, xmlBool)
+        /*if (xmlBool.isInstanceOf[util.ArrayList[String]]) {
+          deleteIndexData(collection, xmlBool)
+        }
+        else {
+          indexData(collection, xmlBool)
+        }*/
+      }
+    }
+    /**
+      * index data
+      * @param collection
+      * @param xmlBool
+      */
+    def indexesData(collection: java.lang.String, xmlBool: AnyRef): Unit = {
+      try {
+        val indexDatas = xmlBool.asInstanceOf[java.util.ArrayList[java.util.Map[java.lang.String, Object]]]
+        indexDatas(0).asInstanceOf[java.util.Map[java.lang.String, Object]]
+        if (indexData(indexDatas, collection)) logInfo(" index success!")
+        else {
+          logError("index faield!Ids:")
+          indexDatas.foreach { doc =>
+            logInfo(s"index faield id:\t${doc.get("id")}")
+          }
+        }
+      } catch {
+        case castEx: java.lang.ClassCastException =>
+          deleteIndexData(collection, xmlBool)
+        // case e: Exception => logError("index faield", e)
+      }
+
+    }
   }
 
 
@@ -197,7 +221,8 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
       val entity: UrlEncodedFormEntity = new UrlEncodedFormEntity(formparams, "utf-8");
       request.asInstanceOf[HttpEntityEnclosingRequestBase].setEntity(entity)
     }
-    HttpClientUtil.getInstance().execute(request, context, callback)
+    consumerManageThreadPool.execute(new IndexManagerRunner(this, request, context, callback))
+    //HttpClientUtil.getInstance().execute(request, context, callback)
   }
 
 
@@ -266,7 +291,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
         }
       }
       if (!xml.isEmpty) {
-        val fileName = collection + "_" + System.currentTimeMillis() + fileNamePreffix
+        val fileName = collection.trim + "_" + System.currentTimeMillis() + fileNamePreffix
         var filePath = filedirMergeCloud + fileName
         if (collection.equalsIgnoreCase("screencloud")) filePath = filedirScreenCloud + fileName
         writeToDisk(xml.toString(), filePath)

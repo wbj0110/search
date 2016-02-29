@@ -1,7 +1,10 @@
 package search.solr.client.util
 
 import java.text.SimpleDateFormat
+import java.util.concurrent.{ThreadFactory, Executors, ThreadPoolExecutor}
 import java.util.regex.{Matcher, Pattern}
+
+import com.google.common.util.concurrent.ThreadFactoryBuilder
 
 import scala.collection.mutable.ListBuffer
 
@@ -9,6 +12,10 @@ import scala.collection.mutable.ListBuffer
   * Created by soledede on 2015/11/25.
   */
 object Util {
+
+
+  private val daemonThreadFactoryBuilder: ThreadFactoryBuilder =
+    new ThreadFactoryBuilder().setDaemon(true)
 
   def dateToString(date: java.util.Date) = {
     val format = new SimpleDateFormat("yyyy-MM-dd_HH_mm_ss")
@@ -20,6 +27,19 @@ object Util {
     val d = format.format(timestamp)
     val date = format.parse(d)
     date
+  }
+
+  def namedThreadFactory(prefix: String): ThreadFactory = {
+    daemonThreadFactoryBuilder.setNameFormat(prefix + "-%d").build()
+  }
+
+  def newDaemonFixedThreadPool(nThreads: Int, prefix: String): ThreadPoolExecutor = {
+    val threadFactory = namedThreadFactory(prefix)
+    Executors.newFixedThreadPool(nThreads, threadFactory).asInstanceOf[ThreadPoolExecutor]
+  }
+
+  def inferCores(): Int = {
+    Runtime.getRuntime.availableProcessors()
   }
 
   def regex(input: String, regex: String): Boolean = {

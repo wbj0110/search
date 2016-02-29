@@ -89,9 +89,9 @@ trait Logging {
       Option(getClass.getClassLoader.getResource(defaultLogProps)) match {
         case Some(url) =>
           PropertyConfigurator.configure(url)
-          System.err.println(s"Using Crawler's default log4j profile: $defaultLogProps")
+          System.err.println(s"Using Indexer's default log4j profile: $defaultLogProps")
         case None =>
-          System.err.println(s"Crawler was unable to load $defaultLogProps")
+          System.err.println(s"Indexer was unable to load $defaultLogProps")
       }
     }
     Logging.initialized = true

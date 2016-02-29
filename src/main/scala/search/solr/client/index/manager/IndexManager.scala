@@ -1,7 +1,14 @@
 package search.solr.client.index.manager
 
+import org.apache.http.HttpResponse
+import org.apache.http.client.methods.HttpRequestBase
+import org.apache.http.client.protocol.HttpClientContext
+import org.apache.http.protocol.HttpContext
+import search.solr.client.entity.enumeration.HttpRequestMethodType
 import search.solr.client.index.manager.impl.DefaultIndexManager
 import search.solr.client.util.Logging
+
+import scala.collection.mutable
 
 /**
   * Created by soledede on 2016/2/15.
@@ -16,6 +23,7 @@ trait IndexManager extends Logging {
 
   def delete(ids: java.util.ArrayList[java.lang.String],collection: String): Boolean
 
+  def execute(request: HttpRequestBase, context: HttpClientContext, callback: (HttpContext, HttpResponse) => Unit): Unit = null
 }
 
 object IndexManager {

@@ -46,4 +46,13 @@ trait Configuration {
   //page
   lazy val pageSize = Try(config.getInt("pageSize")).getOrElse(10)
 
+  /**
+    * threads pool
+    */
+
+  lazy val consumerThreadsNum = Try(config.getInt("consumer.threads.number")).getOrElse(0)
+
+  lazy val consumerCoreThreadsNum =  Try(config.getInt("consumer.core.threads.number")).getOrElse(2)
+
+
 }

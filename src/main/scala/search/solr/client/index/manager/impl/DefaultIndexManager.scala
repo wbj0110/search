@@ -52,14 +52,12 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
 
   var coreThreadsNumber = consumerCoreThreadsNum
 
-  var moreThreadsNumber = 0
 
-  if (consumerThreadsNum % Util.inferCores() > 0) moreThreadsNumber = 1
+  var currentThreadsNum = Util.inferCores() * coreThreadsNumber
 
 
-  if (consumerThreadsNum > 0) coreThreadsNumber = consumerThreadsNum / Util.inferCores() + moreThreadsNumber
+  if (consumerThreadsNum > 0) currentThreadsNum = consumerThreadsNum
 
-  val currentThreadsNum = Util.inferCores() * coreThreadsNumber
 
   val consumerManageThreadPool = Util.newDaemonFixedThreadPool(currentThreadsNum, "consumer_index_manage_thread_excutor")
   logInfo(s"***************************************current threads number:$currentThreadsNum***************************************")
@@ -313,10 +311,12 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
     val fields = obj.getFields //get all fields
     while (fields.hasNext()) {
       val it = fields.next()
-      val key = it.getKey
-      var value = it.getValue.toString
+      val key = it.getKey.trim
+      var value = it.getValue.toString.trim
 
-      if (key != null && value != null) {
+
+
+      if (key != null && value != null && !value.trim.equalsIgnoreCase("") &&  !value.trim.equalsIgnoreCase("\"\"")  &&  !value.trim.equalsIgnoreCase("''") && !value.trim.equalsIgnoreCase("null")) {
         var isMultiValued = false
         if (arrayObj != null && arrayObj.length > 0) {
           //arrayObj represent have mutivalued field config
@@ -341,11 +341,15 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
                 else vals = value.split(s"$separator") //multiValued Array
                 val listMutivalued = new util.ArrayList[java.lang.String]()
                 vals.foreach { f =>
-                  var fV: String = f.replaceAll("\"(\\S+)\"", "$1")
-                  fV = fV.replaceAll("\"(\\S+)", "$1")
-                  fV = fV.replaceAll("(\\S+)\"", "$1")
-                  listMutivalued.add(fV)
-                  fieldAdd(xml, key, fV)
+                  if (!f.equalsIgnoreCase("") && !f.equalsIgnoreCase("null") && !f.equalsIgnoreCase("\"\"")) {
+                    var fV: String = f.replaceAll("\"(\\S+)\"", "$1")
+                    fV = fV.replaceAll("\"(\\S+)", "$1")
+                    fV = fV.replaceAll("(\\S+)\"", "$1")
+                    if (!fV.equalsIgnoreCase("") && !fV.equalsIgnoreCase("\"")&& !fV.equalsIgnoreCase("\\\"")) {
+                      listMutivalued.add(fV)
+                      fieldAdd(xml, key, fV)
+                    }
+                  }
                 }
                 objMap.put(key, listMutivalued)
                 isMultiValued = true
@@ -356,9 +360,13 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
         }
         if (!isMultiValued) {
           //if not multivalued,need save singleValue to xml
-          value = value.replaceAll("\"(\\S+)\"", "$1")
-          fieldAdd(xml, key, value)
-          objMap.put(key, value)
+          if (!value.equalsIgnoreCase("") && !value.equalsIgnoreCase("null") && !value.equalsIgnoreCase("\"\"")) {
+            value = value.replaceAll("\"(\\S+)\"", "$1")
+            if (!value.equalsIgnoreCase("") && !value.equalsIgnoreCase("\"")) {
+              fieldAdd(xml, key, value)
+              objMap.put(key, value)
+            }
+          }
         }
 
       }

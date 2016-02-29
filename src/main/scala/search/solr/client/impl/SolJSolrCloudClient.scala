@@ -59,12 +59,13 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
 
         } else {
           logError("not input document")
+
           return new Exception("请传入文档")
         }
       }
     } catch {
       case e: Exception =>
-        logError("add index faield!", e)
+        logError(s"add index faield$zeus!", e)
         throw new Exception(s"添加索引失败,${e.getMessage}", e.getCause)
     }
   }

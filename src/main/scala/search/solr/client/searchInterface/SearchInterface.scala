@@ -788,7 +788,7 @@ object SearchInterface extends Logging {
 
 object testSearchInterface {
   def main(args: Array[String]) {
-     searchByKeywords
+     //searchByKeywords
 
 
    // testSearchFilterAttributeByCatagoryId
@@ -803,7 +803,7 @@ object testSearchInterface {
     //testCountKeywordInDocs
 
 
-    // testSplit
+    testSplit
     //testRegex
     // testMaxInt
     //testSubString
@@ -884,6 +884,10 @@ object testSearchInterface {
     val testOrString = "memmert OR Honeywell"
     val testOrStringArray = testOrString.split("OR")
     println(testOrStringArray)
+
+    val vls = "_32"
+   val valsArray = vls.split("_")
+    println(valsArray)
 
 
   }

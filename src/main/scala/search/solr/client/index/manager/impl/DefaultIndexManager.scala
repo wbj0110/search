@@ -130,6 +130,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
       if (more > 0) onePage = 1
       val requestCounts = (totalNum.toInt / pageSize) + onePage
 
+      logInfo(s"start loop,total counts$requestCounts")
       for (i <- 0 to requestCounts - 1) {
         val paremeters = new mutable.HashMap[String, String]()
         if (startUpdateTime != null && !startUpdateTime.trim.equalsIgnoreCase("null") && !startUpdateTime.trim.equalsIgnoreCase("") && startUpdateTime.trim.equalsIgnoreCase("0"))
@@ -138,8 +139,14 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
           paremeters("endUpdateTime") = endUpdataTime
         paremeters("start") = (i * pageSize).toString
         paremeters("rows") = pageSize.toString
+        logInfo(s"request url${i + 1} $url,\t parameters:start=${paremeters("start")},rows=${paremeters("rows")}")
 
         requestHttp(collection, url, HttpRequestMethodType.POST, paremeters, callback)
+        if (i > 0 && ((i+1 % threadsWaitNum) == 0)) {
+          logInfo(s"thread sleeping...\n current loop i=$i,threadsWaitNum=$threadsWaitNum,threadsSleepTime:$threadsSleepTime")
+          Thread.sleep(threadsSleepTime)
+          logInfo("thread wakeuped")
+        }
       }
 
     }
@@ -149,23 +156,31 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
 
 
   override def execute(request: HttpRequestBase, context: HttpClientContext, callback: (HttpContext, HttpResponse) => Unit): Unit = {
-    logInfo(s"request---currentThread:${Thread.currentThread().getName}")
     HttpClientUtil.getInstance().execute(request, context, callback)
   }
 
   //have get data
   def callback(context: HttpContext, httpResp: HttpResponse) = {
     var obj: AnyRef = null
-    logInfo(s"callback---currentThread:${Thread.currentThread().getName}")
+    val entTime = System.currentTimeMillis()
+    val startTime = context.getAttribute(DefaultIndexManager.requestStartTime_key).toString.toLong
+    logInfo(s"request end time(ms):$entTime,\t all cost:${entTime - startTime},\trequest count(pagesize):$pageSize,\tcurrentThreadId:${Thread.currentThread().getId}")
+
     val collection = context.getAttribute("collection").toString
     val responseData = EntityUtils.toString(httpResp.getEntity)
 
     if (responseData != null && !responseData.equalsIgnoreCase("")) {
       val om = new ObjectMapper()
       obj = om.readTree(responseData)
-
+      if (obj == null) logInfo(s"response null,size:0")
+      else {
+        if (obj.isInstanceOf[JsonNode]) {
+          //generate add index xml
+          val dataJsonNode = obj.asInstanceOf[JsonNode]
+          logInfo(s"response size:${dataJsonNode.size()}")
+        }
+      }
       indexOrDelteData
-
     }
 
 
@@ -210,7 +225,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
   def requestHttp(collection: String, url: String, requestType: HttpRequestMethodType.Type, paremeters: mutable.Map[String, String], callback: (HttpContext, HttpResponse) => Unit): Unit = {
     val request = HttpRequstUtil.createRequest(requestType, url)
     val context: HttpClientContext = HttpClientContext.adapt(new BasicHttpContext)
-    context.setAttribute("collection", collection)
+    context.setAttribute(DefaultIndexManager.collection_key, collection.trim)
     if (paremeters != null && !paremeters.isEmpty) {
       val formparams: java.util.List[BasicNameValuePair] = new java.util.ArrayList[BasicNameValuePair]()
       paremeters.foreach { p =>
@@ -316,7 +331,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
 
 
 
-      if (key != null && value != null && !value.trim.equalsIgnoreCase("") &&  !value.trim.equalsIgnoreCase("\"\"")  &&  !value.trim.equalsIgnoreCase("''") && !value.trim.equalsIgnoreCase("null")) {
+      if (key != null && value != null && !value.trim.equalsIgnoreCase("") && !value.trim.equalsIgnoreCase("\"\"") && !value.trim.equalsIgnoreCase("''") && !value.trim.equalsIgnoreCase("null")) {
         var isMultiValued = false
         if (arrayObj != null && arrayObj.length > 0) {
           //arrayObj represent have mutivalued field config
@@ -345,7 +360,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
                     var fV: String = f.replaceAll("\"(\\S+)\"", "$1")
                     fV = fV.replaceAll("\"(\\S+)", "$1")
                     fV = fV.replaceAll("(\\S+)\"", "$1")
-                    if (!fV.equalsIgnoreCase("") && !fV.equalsIgnoreCase("\"")&& !fV.equalsIgnoreCase("\\\"")) {
+                    if (!fV.equalsIgnoreCase("") && !fV.equalsIgnoreCase("\"") && !fV.equalsIgnoreCase("\\\"")) {
                       listMutivalued.add(fV)
                       fieldAdd(xml, key, fV)
                     }
@@ -424,4 +439,13 @@ object DefaultIndexManager {
     if (indexManager == null) indexManager = new DefaultIndexManager()
     indexManager
   }
+
+  val requestStartTime_key = "requestStartTime"
+
+
+  val collection_key = "collection"
+
+
+  val waiteThreadsNum = 3000
+
 }

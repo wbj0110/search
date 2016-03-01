@@ -6,15 +6,20 @@ import org.apache.http.client.protocol.HttpClientContext
 import org.apache.http.protocol.HttpContext
 import search.solr.client.entity.enumeration.HttpRequestMethodType
 import search.solr.client.http.HttpClientUtil
+import search.solr.client.index.manager.impl.DefaultIndexManager
+import search.solr.client.util.Logging
 
 import scala.collection.mutable
 
 /**
   * Created by soledede on 2016/2/29.
   */
-class IndexManagerRunner(inexer: IndexManager, request: HttpRequestBase, context: HttpClientContext, callback: (HttpContext, HttpResponse) => Unit) extends Runnable {
+class IndexManagerRunner(inexer: IndexManager, request: HttpRequestBase, context: HttpClientContext, callback: (HttpContext, HttpResponse) => Unit) extends Runnable with Logging{
 
   override def run(): Unit = {
+    val startTime = System.currentTimeMillis()
+    logInfo(s"request start time(ms):$startTime,\tcurrent threadId:${Thread.currentThread().getId}")
+    context.setAttribute(DefaultIndexManager.requestStartTime_key,startTime)
     inexer.execute(request, context, callback)
   }
 }

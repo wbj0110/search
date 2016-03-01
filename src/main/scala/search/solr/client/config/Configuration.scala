@@ -54,5 +54,9 @@ trait Configuration {
 
   lazy val consumerCoreThreadsNum =  Try(config.getInt("consumer.core.threads.number")).getOrElse(2)
 
+  lazy val threadsWaitNum =  Try(config.getInt("threads.wait.number")).getOrElse(50000)
+
+  lazy val threadsSleepTime =  Try(config.getInt("threads.sleep")).getOrElse(1000)
+
 
 }

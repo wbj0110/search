@@ -19,14 +19,14 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
   val server: CloudSolrClient = SolJSolrCloudClient.singleCloudInstance(conf)
 
   override def searchByQuery[T: ClassTag](query: T, collection: String = "searchcloud"): AnyRef = {
-    if (server == null ) server.connect()
+    if (server == null) server.connect()
     var response: QueryResponse = null
     try {
       response = server.query(collection, query.asInstanceOf[SolrQuery])
     } catch {
       case e: Exception =>
         e.printStackTrace()
-        //server.close()
+      //server.close()
       //TODO Log
     }
     response
@@ -34,6 +34,8 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
 
   override def addIndices[D: ClassTag](zeus: D, collection: String = "searchcloud"): Unit = {
     try {
+      val startIndexTime = System.currentTimeMillis()
+      logInfo(s"start index start time(ms)$startIndexTime,\t current threadId:${Thread.currentThread().getId}")
       if (zeus.isInstanceOf[java.util.List[java.util.Map[java.lang.String, Object]]]) {
         val zList = zeus.asInstanceOf[java.util.List[java.util.Map[java.lang.String, Object]]]
         if (zList.size() > 0) {
@@ -63,6 +65,8 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
           return new Exception("请传入文档")
         }
       }
+      val endIndexTime = System.currentTimeMillis()
+      logInfo(s"start index end time(ms)$endIndexTime,\t total cost ${endIndexTime - startIndexTime}(ms)\t current threadId:${Thread.currentThread().getId}")
     } catch {
       case e: Exception =>
         logError(s"add index faield$zeus!", e)

@@ -791,7 +791,7 @@ object testSearchInterface {
      //searchByKeywords
 
 
-   // testSearchFilterAttributeByCatagoryId
+   testSearchFilterAttributeByCatagoryId
     //testAttributeFilterSearch
 
     //testSearchBrandsByCatoryId
@@ -803,7 +803,7 @@ object testSearchInterface {
     //testCountKeywordInDocs
 
 
-    testSplit
+   // testSplit
     //testRegex
     // testMaxInt
     //testSubString
@@ -819,7 +819,8 @@ object testSearchInterface {
   }
 
   def testSearchFilterAttributeByCatagoryId() = {
-    val result = SearchInterface.searchFilterAttributeByCatagoryId(1001739, 456)
+    //val result = SearchInterface.searchFilterAttributeByCatagoryId(1001739, 456)
+    val result = SearchInterface.searchFilterAttributeByCatagoryId(561, 456)
     println(result)
   }
 

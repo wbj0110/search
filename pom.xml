@@ -6,7 +6,7 @@
 
     <groupId>com.ehsy.search</groupId>
     <artifactId>seachclient</artifactId>
-    <version>0.1.6</version>
+    <version>0.1.7</version>
 
     <properties>
         <java.version>1.7</java.version>

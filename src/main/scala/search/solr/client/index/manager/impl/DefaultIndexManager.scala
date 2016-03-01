@@ -144,7 +144,9 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
         requestHttp(collection, url, HttpRequestMethodType.POST, paremeters, callback)
         if (i > 0 && ((i+1 % threadsWaitNum) == 0)) {
           logInfo(s"thread sleeping...\n current loop i=$i,threadsWaitNum=$threadsWaitNum,threadsSleepTime:$threadsSleepTime")
-          Thread.sleep(threadsSleepTime)
+          this.synchronized {
+            Thread.sleep(threadsSleepTime)
+          }
           logInfo("thread wakeuped")
         }
       }

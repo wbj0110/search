@@ -19,14 +19,14 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
   val server: CloudSolrClient = SolJSolrCloudClient.singleCloudInstance(conf)
 
   override def searchByQuery[T: ClassTag](query: T, collection: String = "searchcloud"): AnyRef = {
-    if (server == null) server.connect()
+    if (server == null ) server.connect()
     var response: QueryResponse = null
     try {
       response = server.query(collection, query.asInstanceOf[SolrQuery])
     } catch {
       case e: Exception =>
         e.printStackTrace()
-        server.close()
+        //server.close()
       //TODO Log
     }
     response

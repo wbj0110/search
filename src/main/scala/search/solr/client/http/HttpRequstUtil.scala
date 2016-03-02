@@ -22,6 +22,7 @@ object HttpRequstUtil {
     httpReq.addHeader("Accept-Language", "zh-CN,zh;q=0.8")
     httpReq.addHeader("Connection", "close")
     httpReq.addHeader("Cache-Control", "max-age=0")
+   // httpReq.addHeader("Content-Type", "application/json")
     httpReq.addHeader("User-Agent", DefalutUserAgent)
     httpReq
   }

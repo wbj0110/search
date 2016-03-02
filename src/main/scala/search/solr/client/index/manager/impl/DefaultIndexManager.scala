@@ -142,7 +142,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
         logInfo(s"request url${i + 1} $url,\t parameters:start=${paremeters("start")},rows=${paremeters("rows")}")
 
         requestHttp(collection, url, HttpRequestMethodType.POST, paremeters, callback)
-        if (i > 0 && ((i+1 % threadsWaitNum) == 0)) {
+        if (i > 0 && ((i + 1 % threadsWaitNum) == 0)) {
           logInfo(s"thread sleeping...\n current loop i=$i,threadsWaitNum=$threadsWaitNum,threadsSleepTime:$threadsSleepTime")
           this.synchronized {
             Thread.sleep(threadsSleepTime)
@@ -359,9 +359,10 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
                 val listMutivalued = new util.ArrayList[java.lang.String]()
                 vals.foreach { f =>
                   if (!f.equalsIgnoreCase("") && !f.equalsIgnoreCase("null") && !f.equalsIgnoreCase("\"\"")) {
-                    var fV: String = f.replaceAll("\"(\\S+)\"", "$1")
-                    fV = fV.replaceAll("\"(\\S+)", "$1")
-                    fV = fV.replaceAll("(\\S+)\"", "$1")
+                    var fV: String = f.replaceAll("^\"([\\S|\\s]+)\"$", "$1")
+                    fV = fV.replaceAll("^\"([\\S|\\s]+)", "$1")
+                    fV = fV.replaceAll("([\\S|\\s]+)\"$", "$1")
+                    fV = fV.trim
                     if (!fV.equalsIgnoreCase("") && !fV.equalsIgnoreCase("\"") && !fV.equalsIgnoreCase("\\\"")) {
                       listMutivalued.add(fV)
                       fieldAdd(xml, key, fV)
@@ -378,7 +379,10 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
         if (!isMultiValued) {
           //if not multivalued,need save singleValue to xml
           if (!value.equalsIgnoreCase("") && !value.equalsIgnoreCase("null") && !value.equalsIgnoreCase("\"\"")) {
-            value = value.replaceAll("\"(\\S+)\"", "$1")
+            value = value.replaceAll("^\"([\\S|\\s]+)\"$", "$1")
+            value = value.replaceAll("^\"([\\S|\\s]+)", "$1")
+            value = value.replaceAll("(\\[\\S|\\s]+)\"$", "$1")
+            value = value.trim
             if (!value.equalsIgnoreCase("") && !value.equalsIgnoreCase("\"")) {
               fieldAdd(xml, key, value)
               objMap.put(key, value)
@@ -449,5 +453,19 @@ object DefaultIndexManager {
 
 
   val waiteThreadsNum = 3000
+
+}
+
+
+object TestIndexManger {
+  def main(args: Array[String]) {
+    forTest
+  }
+
+  def forTest() = {
+    for (i <- 0 to 3) {
+      println(i)
+    }
+  }
 
 }

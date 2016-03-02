@@ -4,7 +4,6 @@ import java.util
 
 import search.solr.client.config.Configuration
 import search.solr.client.index.manager.{IndexManagerRunner, IndexManager}
-import search.solr.client.product.Producter
 import search.solr.client.queue.MessageQueue
 import search.solr.client.queue.impl.KafkaMessageQueue
 import search.solr.client.util.{Util, Logging}

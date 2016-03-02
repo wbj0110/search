@@ -362,7 +362,7 @@ object SearchInterface extends Logging {
         keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh:$keyWord^200) OR (brandEn:$keyWord^200) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
 
       val fqGeneral = s"(deliveryTime:0 OR cityId:$cityId)"
-      val fqCataId = s"(categoryId3:$catagoryId OR categoryId4:$catagoryId)"
+      val fqCataId = s"(categoryId1:$catagoryId OR categoryId2:$catagoryId OR categoryId3:$catagoryId OR categoryId4:$catagoryId)"
 
       val query: SolrQuery = new SolrQuery
       query.set("qt", "/select")
@@ -820,7 +820,7 @@ object testSearchInterface {
 
   def testSearchFilterAttributeByCatagoryId() = {
     //val result = SearchInterface.searchFilterAttributeByCatagoryId(1001739, 456)
-    val result = SearchInterface.searchFilterAttributeByCatagoryId(561, 456)
+    val result = SearchInterface.searchFilterAttributeByCatagoryId(2660, 321)
     println(result)
   }
 
@@ -851,7 +851,7 @@ object testSearchInterface {
   }
 
   def testSearchBrandsByCatoryId() = {
-    val result = SearchInterface.searchBrandsByCatoryId(1003437, 456)
+    val result = SearchInterface.searchBrandsByCatoryId(2660, 321)
     println(result)
   }
 

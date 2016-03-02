@@ -35,6 +35,8 @@ class HttpClientUtil private extends Logging {
     this.execute(request, context, callback)
   }
 
+
+
   def execute(request: HttpUriRequest, context: HttpContext, callback: (HttpContext, CloseableHttpResponse) => Unit): Unit = {
     var httpResp: CloseableHttpResponse = null
     try {
@@ -48,10 +50,32 @@ class HttpClientUtil private extends Logging {
       case t: Throwable => logError("Http Error", t)
     }
   }
-
   def execute(request: HttpUriRequest, callback: (HttpContext, CloseableHttpResponse) => Unit): Unit = {
     this.execute(request, null.asInstanceOf[HttpContext], callback)
   }
+
+  def executeSyn(request: HttpUriRequest, context: HttpContext): CloseableHttpResponse = {
+    var httpResp: CloseableHttpResponse = null
+    try {
+      if (context == null) {
+        httpResp = HttpClientUtil.httpClient.execute(request)
+      } else {
+        httpResp = HttpClientUtil.httpClient.execute(request, context)
+      }
+    } catch {
+      case t: Throwable => logError("Http Error", t)
+    }
+    httpResp
+  }
+
+  def executeSyn(request: HttpUriRequest): CloseableHttpResponse = {
+    this.executeSyn(request, null.asInstanceOf[HttpContext])
+  }
+
+
+
+
+
 
 }
 
@@ -68,7 +92,16 @@ object HttpClientUtil {
   def closeHttpClient = HttpClientUtils.closeQuietly(httpClient);
 
 
-  def requestHttp(url: String, requestType: HttpRequestMethodType.Type, paremeters: java.util.Map[String, Object], headers: java.util.Map[String, String], contexts: java.util.Map[String, String], callback: (HttpContext, HttpResponse) => Unit): Unit = {
+  def requestHttpSyn(url: String, requestType: String, paremeters: java.util.Map[String, Object], headers: java.util.Map[String, String]): CloseableHttpResponse = {
+    var rType = HttpRequestMethodType.GET
+    requestType match {
+      case "post" => rType = HttpRequestMethodType.POST
+      case _ => null
+    }
+    requestHttpSyn(url, rType, paremeters, headers, null)
+  }
+
+  def requestHttpSyn(url: String, requestType: HttpRequestMethodType.Type, paremeters: java.util.Map[String, Object], headers: java.util.Map[String, String], contexts: java.util.Map[String, String]): CloseableHttpResponse = {
     val request = HttpRequstUtil.createRequest(requestType, url)
     var isJson = false
     if (headers != null && !headers.isEmpty) {
@@ -81,8 +114,8 @@ object HttpClientUtil {
         request.addHeader(key, value)
       }
     }
+    val context: HttpClientContext = HttpClientContext.adapt(new BasicHttpContext)
     if (contexts != null && !contexts.isEmpty) {
-      val context: HttpClientContext = HttpClientContext.adapt(new BasicHttpContext)
       contexts.foreach { attr =>
         context.setAttribute(attr._1, attr._2)
       }
@@ -104,7 +137,58 @@ object HttpClientUtil {
 
       request.asInstanceOf[HttpEntityEnclosingRequestBase].setEntity(entity)
     }
-    HttpClientUtil.getInstance().execute(request, callback)
+    HttpClientUtil.getInstance().executeSyn(request,context)
+
+}
+
+
+  def requestHttp(url: String, requestType: String, paremeters: java.util.Map[String, Object], headers: java.util.Map[String, String], callback: (HttpContext, HttpResponse) => Unit): Unit = {
+    var rType = HttpRequestMethodType.GET
+    requestType match {
+      case "post" => rType = HttpRequestMethodType.POST
+      case _ => null
+    }
+    requestHttp(url, rType, paremeters, headers, null, callback)
+  }
+
+  def requestHttp(url: String, requestType: HttpRequestMethodType.Type, paremeters: java.util.Map[String, Object], headers: java.util.Map[String, String], contexts: java.util.Map[String, String], callback: (HttpContext, HttpResponse) => Unit): Unit = {
+    val request = HttpRequstUtil.createRequest(requestType, url)
+    var isJson = false
+    if (headers != null && !headers.isEmpty) {
+      headers.foreach { header =>
+        val key = header._1
+        val value = header._2
+        if (key.toLowerCase.trim.equalsIgnoreCase("content-type")) {
+          if (value.toLowerCase.trim.equalsIgnoreCase("application/json")) isJson = true
+        }
+        request.addHeader(key, value)
+      }
+    }
+    val context: HttpClientContext = HttpClientContext.adapt(new BasicHttpContext)
+    if (contexts != null && !contexts.isEmpty) {
+
+      contexts.foreach { attr =>
+        context.setAttribute(attr._1, attr._2)
+      }
+    }
+
+    if (paremeters != null && !paremeters.isEmpty) {
+      val formparams: java.util.List[BasicNameValuePair] = new java.util.ArrayList[BasicNameValuePair]()
+      paremeters.foreach { p =>
+        formparams.add(new BasicNameValuePair(p._1, p._2.toString))
+      }
+
+      var entity: StringEntity = null
+      if (isJson) {
+        val mapper = new ObjectMapper()
+        val jStirng = mapper.writeValueAsString(paremeters)
+        println("string json:" + jStirng)
+        entity = new StringEntity(jStirng, "utf-8");
+      } else entity = new UrlEncodedFormEntity(formparams, "utf-8");
+
+      request.asInstanceOf[HttpEntityEnclosingRequestBase].setEntity(entity)
+    }
+    HttpClientUtil.getInstance().execute(request,context, callback)
   }
 }
 
@@ -122,9 +206,9 @@ object TestHttpClientUtil {
     parametersMap.put("catagoryId", "null")
     parametersMap.put("brandId", "1421")
     parametersMap.put("number", Integer.valueOf(30))
-    val headers = new mutable.HashMap[String, String]()
+    val headers = new java.util.HashMap[String, String]()
     headers("Content-Type") = "application/json"
-    HttpClientUtil.requestHttp(url, HttpRequestMethodType.POST, parametersMap, headers,null, callback)
+    HttpClientUtil.requestHttp(url, HttpRequestMethodType.POST, parametersMap, headers, null, callback)
     def callback(context: HttpContext, httpResp: HttpResponse) = {
       try {
         println(Thread.currentThread().getName)

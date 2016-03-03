@@ -28,7 +28,7 @@ public class HttpClientTest {
         String url = "http://218.244.132.8:8088/recommend/sku";
         Map parametersMap = new java.util.HashMap<String, java.lang.Object>();
         parametersMap.put("userId", "null");
-        parametersMap.put("catagoryId", "null");
+       parametersMap.put("catagoryId", "null");
         parametersMap.put("brandId", "1421");
         parametersMap.put("number", Integer.valueOf(30));
         Map headers = new java.util.HashMap<String, String>();

@@ -68,7 +68,7 @@ object SearchInterface extends Logging {
     val keyWord = keyWords.trim.toLowerCase
     val keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh:$keyWord^200) OR (brandEn:$keyWord^200) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
 
-    val fq = s"deliveryTime:0 OR cityId:$cityId"
+    val fq = s"isRestrictedArea:0 OR cityId:$cityId"
 
 
     val query: SolrQuery = new SolrQuery
@@ -361,7 +361,7 @@ object SearchInterface extends Logging {
       if (keyWord != null)
         keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh:$keyWord^200) OR (brandEn:$keyWord^200) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
 
-      val fqGeneral = s"(deliveryTime:0 OR cityId:$cityId)"
+      val fqGeneral = s"(isRestrictedArea:0 OR cityId:$cityId)"
       val fqCataId = s"(categoryId1:$catagoryId OR categoryId2:$catagoryId OR categoryId3:$catagoryId OR categoryId4:$catagoryId)"
 
       val query: SolrQuery = new SolrQuery
@@ -593,7 +593,7 @@ object SearchInterface extends Logging {
 
       val keyWordsModel = "*:*"
 
-      val fqGeneral = s"(deliveryTime:0 OR cityId:$cityId)"
+      val fqGeneral = s"(isRestrictedArea:0 OR cityId:$cityId)"
       val fq = s"(categoryId1:$catagoryId OR categoryId2:$catagoryId OR categoryId3:$catagoryId OR categoryId4:$catagoryId)"
 
       val fl = "brandId,brandEn,brandZh"
@@ -675,7 +675,7 @@ object SearchInterface extends Logging {
       val keyWord = keyword.toString.trim.toLowerCase
       val keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh:$keyWord^200) OR (brandEn:$keyWord^200) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
 
-      val fq = s"deliveryTime:0 OR cityId:$cityId"
+      val fq = s"isRestrictedArea:0 OR cityId:$cityId"
 
 
       query.set("qt", "/select")
@@ -788,7 +788,7 @@ object SearchInterface extends Logging {
 
 object testSearchInterface {
   def main(args: Array[String]) {
-     //searchByKeywords
+     searchByKeywords
 
 
    testSearchFilterAttributeByCatagoryId

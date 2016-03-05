@@ -36,7 +36,6 @@ class HttpClientUtil private extends Logging {
   }
 
 
-
   def execute(request: HttpUriRequest, context: HttpContext, callback: (HttpContext, CloseableHttpResponse) => Unit): Unit = {
     var httpResp: CloseableHttpResponse = null
     try {
@@ -50,6 +49,7 @@ class HttpClientUtil private extends Logging {
       case t: Throwable => logError("Http Error", t)
     }
   }
+
   def execute(request: HttpUriRequest, callback: (HttpContext, CloseableHttpResponse) => Unit): Unit = {
     this.execute(request, null.asInstanceOf[HttpContext], callback)
   }
@@ -71,10 +71,6 @@ class HttpClientUtil private extends Logging {
   def executeSyn(request: HttpUriRequest): CloseableHttpResponse = {
     this.executeSyn(request, null.asInstanceOf[HttpContext])
   }
-
-
-
-
 
 
 }
@@ -137,9 +133,9 @@ object HttpClientUtil {
 
       request.asInstanceOf[HttpEntityEnclosingRequestBase].setEntity(entity)
     }
-    HttpClientUtil.getInstance().executeSyn(request,context)
+    HttpClientUtil.getInstance().executeSyn(request, context)
 
-}
+  }
 
 
   def requestHttp(url: String, requestType: String, paremeters: java.util.Map[String, Object], headers: java.util.Map[String, String], callback: (HttpContext, HttpResponse) => Unit): Unit = {
@@ -188,7 +184,7 @@ object HttpClientUtil {
 
       request.asInstanceOf[HttpEntityEnclosingRequestBase].setEntity(entity)
     }
-    HttpClientUtil.getInstance().execute(request,context, callback)
+    HttpClientUtil.getInstance().execute(request, context, callback)
   }
 }
 
@@ -196,7 +192,31 @@ object TestHttpClientUtil {
 
   def main(args: Array[String]): Unit = {
     //testHttp
-    testHttpRecommend
+    //testHttpRecommend
+    testHttpRecommend1
+  }
+
+  def testHttpRecommend1: Unit = {
+    val url = "http://192.168.51.161:8088/recommend/sku"
+    val parametersMap = new java.util.HashMap[String, java.lang.Object]()
+    // parametersMap.put("userId", "58438")
+    //parametersMap.put("catagoryId", "null")
+    //parametersMap.put("brandId", "1421")
+    parametersMap.put("docId", "614547")
+    parametersMap.put("number", Integer.valueOf(100))
+    val headers = new java.util.HashMap[String, String]()
+    headers("Content-Type") = "application/json"
+    HttpClientUtil.requestHttp(url, HttpRequestMethodType.POST, parametersMap, headers, null, callback)
+    def callback(context: HttpContext, httpResp: HttpResponse) = {
+      try {
+        println(Thread.currentThread().getName)
+        println(httpResp)
+        val sResponse = EntityUtils.toString(httpResp.getEntity)
+        println(sResponse)
+      } finally {
+        HttpClientUtils.closeQuietly(httpResp)
+      }
+    }
   }
 
   def testHttpRecommend: Unit = {

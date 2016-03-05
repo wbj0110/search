@@ -41,17 +41,17 @@ object SearchInterface extends Logging {
     logInfo(s"search by keywords:$keyWords")
     val msg = new Msg()
     val searchResult = new SearchResult()
-    if (keyWords == null && cityId == null) {
+   /* if (keyWords == null && cityId == null) {
       msg.setMsg("keyWords and cityId not null")
       searchResult.setMsg(msg)
       return searchResult
-    }
-    else if (keyWords == null) {
+    }*/
+    /*if (keyWords == null) {
       msg.setMsg("keyWords not null")
       searchResult.setMsg(msg)
       return searchResult
-    }
-    else if (cityId == null) {
+    }*/
+   if (cityId == null) {
       msg.setMsg("cityId not null")
       searchResult.setMsg(msg)
       return searchResult
@@ -64,8 +64,9 @@ object SearchInterface extends Logging {
     if (start != null && start > 0) sStart = start
     if (rows != null && rows > 0) sRows = rows
 
-
-    val keyWord = keyWords.trim.toLowerCase
+    var keyWord =  "*:*"
+    if(keyWords != null)
+      keyWord = keyWords.trim.toLowerCase
     val keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh:$keyWord^200) OR (brandEn:$keyWord^200) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
 
     val fq = s"isRestrictedArea:0 OR cityId:$cityId"
@@ -104,6 +105,91 @@ object SearchInterface extends Logging {
     if (resultSearch != null && resultSearch.size > 0) searchResult.setResult(resultSearch) //set response resut
     searchResult
   }
+
+
+  /**
+    *
+    * @param categoryId
+    * @param cityId
+    * @param sorts   eg:Map(price->desc,sales->desc,score->desc)
+    * @param start eg:0
+    * @param rows eg:10
+    * @return SearchResult
+    */
+  def searchByCategoryId(categoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer): SearchResult = {
+
+    if (categoryId != null) {
+      val msg = new Msg()
+      val searchResult = new SearchResult()
+      /* if (keyWords == null && cityId == null) {
+         msg.setMsg("keyWords and cityId not null")
+         searchResult.setMsg(msg)
+         return searchResult
+       }*/
+      /*if (keyWords == null) {
+        msg.setMsg("keyWords not null")
+        searchResult.setMsg(msg)
+        return searchResult
+      }*/
+      if (cityId == null) {
+        msg.setMsg("cityId not null")
+        searchResult.setMsg(msg)
+        return searchResult
+      }
+
+      //page
+      var sStart: Int = 0
+      var sRows: Int = 10
+
+      if (start != null && start > 0) sStart = start
+      if (rows != null && rows > 0) sRows = rows
+
+
+      val keyWordsModel = "*:*"
+
+      val fqGeneral = s"(isRestrictedArea:0 OR cityId:$cityId)"
+      val fq = s"(categoryId1:$categoryId OR categoryId2:$categoryId OR categoryId3:$categoryId OR categoryId4:$categoryId)"
+
+
+      val query: SolrQuery = new SolrQuery
+      query.set("qt", "/select")
+      query.setQuery(keyWordsModel)
+      query.addFilterQuery(fqGeneral)
+      query.addFilterQuery(fq)
+
+      //sort
+      if (sorts != null && sorts.size() > 0) {
+        // eg:  query.addSort("price", SolrQuery.ORDER.desc)
+        sorts.foreach { sortOrder =>
+          val field = sortOrder._1
+          val orderString = sortOrder._2.trim
+          var order: ORDER = null
+          orderString match {
+            case "desc" => order = SolrQuery.ORDER.desc
+            case "asc" => order = SolrQuery.ORDER.asc
+            case _ => SolrQuery.ORDER.desc
+          }
+          query.addSort(field, order)
+        }
+      }
+
+      //page
+      query.setStart(sStart)
+      query.setRows(sRows)
+
+      val r = solrClient.searchByQuery(query, "mergescloud")
+      var result: QueryResponse = null
+      if (r != null) result = r.asInstanceOf[QueryResponse]
+
+      val resultSearch = getSearchResult(result, searchResult) //get response result
+      if (resultSearch != null && resultSearch.size > 0) searchResult.setResult(resultSearch) //set response resut
+      searchResult
+    } else null
+  }
+
+
+
+
 
   /**
     *
@@ -788,10 +874,10 @@ object SearchInterface extends Logging {
 
 object testSearchInterface {
   def main(args: Array[String]) {
-     searchByKeywords
+     //searchByKeywords
 
 
-   testSearchFilterAttributeByCatagoryId
+   //testSearchFilterAttributeByCatagoryId
     //testAttributeFilterSearch
 
     //testSearchBrandsByCatoryId
@@ -807,6 +893,10 @@ object testSearchInterface {
     //testRegex
     // testMaxInt
     //testSubString
+
+
+    testSearchByCategoryId
+
   }
 
   def searchByKeywords = {
@@ -816,6 +906,12 @@ object testSearchInterface {
   //  val result = SearchInterface.searchByKeywords("防护口罩", 456, sorts, 0, 10)
   val result = SearchInterface.searchByKeywords("西格玛", 363, null, 0, 10)
     println(result)
+  }
+
+  def testSearchByCategoryId() = {
+   val result =  SearchInterface.searchByCategoryId(14887,321,null,0,10)
+    println(result)
+
   }
 
   def testSearchFilterAttributeByCatagoryId() = {

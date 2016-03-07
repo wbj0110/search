@@ -1,5 +1,6 @@
 package search.solr.client.util
 
+import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util.concurrent.{ThreadFactory, Executors, ThreadPoolExecutor}
 import java.util.regex.{Matcher, Pattern}
@@ -27,6 +28,13 @@ object Util {
     val d = format.format(timestamp)
     val date = format.parse(d)
     date
+  }
+
+  def stringTotimestamp(time: String): Long = {
+    val format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
+    //val d = format.format(time)
+    val date = format.parse(time)
+    date.getTime
   }
 
   def namedThreadFactory(prefix: String): ThreadFactory = {
@@ -102,5 +110,16 @@ object Util {
       }
       else return ""
     }
+  }
+}
+
+object testUtil{
+  def main(args: Array[String]) {
+    testTime
+  }
+
+  def testTime = {
+    println( Util.stringTotimestamp("2016-03-07 01:41:39.000"))
+
   }
 }

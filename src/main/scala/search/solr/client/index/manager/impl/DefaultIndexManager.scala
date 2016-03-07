@@ -133,9 +133,9 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
       logInfo(s"start loop,total counts$requestCounts")
       for (i <- 0 to requestCounts - 1) {
         val paremeters = new mutable.HashMap[String, String]()
-        if (startUpdateTime != null && !startUpdateTime.trim.equalsIgnoreCase("null") && !startUpdateTime.trim.equalsIgnoreCase("") && startUpdateTime.trim.equalsIgnoreCase("0"))
+        if (startUpdateTime != null && !startUpdateTime.trim.equalsIgnoreCase("null") && !startUpdateTime.trim.equalsIgnoreCase("") && !startUpdateTime.trim.equalsIgnoreCase("0"))
           paremeters("startUpdateTime") = startUpdateTime
-        if (endUpdataTime != null && !startUpdateTime.trim.equalsIgnoreCase("null") && !endUpdataTime.trim.equalsIgnoreCase("") && endUpdataTime.trim.equalsIgnoreCase("0"))
+        if (endUpdataTime != null && !startUpdateTime.trim.equalsIgnoreCase("null") && !endUpdataTime.trim.equalsIgnoreCase("") && !endUpdataTime.trim.equalsIgnoreCase("0"))
           paremeters("endUpdateTime") = endUpdataTime
         paremeters("start") = (i * pageSize).toString
         paremeters("rows") = pageSize.toString

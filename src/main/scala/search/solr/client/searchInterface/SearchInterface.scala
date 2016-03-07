@@ -64,10 +64,11 @@ object SearchInterface extends Logging {
     if (start != null && start > 0) sStart = start
     if (rows != null && rows > 0) sRows = rows
 
-    var keyWord = "*:*"
-    if (keyWords != null)
-      keyWord = keyWords.trim.toLowerCase
-    val keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh:$keyWord^200) OR (brandEn:$keyWord^200) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
+    var keyWordsModel = "*:*"
+    if (keyWords != null){
+     val  keyWord = keyWords.trim.toLowerCase
+    keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh:$keyWord^200) OR (brandEn:$keyWord^200) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
+    }
 
     val fq = s"isRestrictedArea:0 OR cityId:$cityId"
 

@@ -41,17 +41,17 @@ object SearchInterface extends Logging {
     logInfo(s"search by keywords:$keyWords")
     val msg = new Msg()
     val searchResult = new SearchResult()
-   /* if (keyWords == null && cityId == null) {
-      msg.setMsg("keyWords and cityId not null")
-      searchResult.setMsg(msg)
-      return searchResult
-    }*/
+    /* if (keyWords == null && cityId == null) {
+       msg.setMsg("keyWords and cityId not null")
+       searchResult.setMsg(msg)
+       return searchResult
+     }*/
     /*if (keyWords == null) {
       msg.setMsg("keyWords not null")
       searchResult.setMsg(msg)
       return searchResult
     }*/
-   if (cityId == null) {
+    if (cityId == null) {
       msg.setMsg("cityId not null")
       searchResult.setMsg(msg)
       return searchResult
@@ -64,8 +64,8 @@ object SearchInterface extends Logging {
     if (start != null && start > 0) sStart = start
     if (rows != null && rows > 0) sRows = rows
 
-    var keyWord =  "*:*"
-    if(keyWords != null)
+    var keyWord = "*:*"
+    if (keyWords != null)
       keyWord = keyWords.trim.toLowerCase
     val keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh:$keyWord^200) OR (brandEn:$keyWord^200) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
 
@@ -78,6 +78,8 @@ object SearchInterface extends Logging {
     query.setFilterQueries(fq)
 
     //sort
+    query.addSort("score", SolrQuery.ORDER.desc)
+
     if (sorts != null && sorts.size() > 0) {
       // eg:  query.addSort("price", SolrQuery.ORDER.desc)
       sorts.foreach { sortOrder =>
@@ -158,6 +160,7 @@ object SearchInterface extends Logging {
       query.addFilterQuery(fq)
 
       //sort
+      query.addSort("score", SolrQuery.ORDER.desc)
       if (sorts != null && sorts.size() > 0) {
         // eg:  query.addSort("price", SolrQuery.ORDER.desc)
         sorts.foreach { sortOrder =>
@@ -186,9 +189,6 @@ object SearchInterface extends Logging {
       searchResult
     } else null
   }
-
-
-
 
 
   /**
@@ -458,6 +458,8 @@ object SearchInterface extends Logging {
       query.addFilterQuery(fqCataId)
 
 
+
+
       if (filters != null && filters.size() > 0) {
         filters.foreach { fV =>
           val field = fV._1
@@ -510,6 +512,7 @@ object SearchInterface extends Logging {
 
 
       //sort
+      query.addSort("score", SolrQuery.ORDER.desc)
       if (sorts != null && sorts.size() > 0) {
         // eg:  query.addSort("price", SolrQuery.ORDER.desc)
         sorts.foreach { sortOrder =>
@@ -692,6 +695,7 @@ object SearchInterface extends Logging {
       query.setFields(fl)
 
       //sort
+      query.addSort("score", SolrQuery.ORDER.desc)
       if (sorts != null && sorts.size() > 0) {
         // eg:  query.addSort("price", SolrQuery.ORDER.desc)
         sorts.foreach { sortOrder =>
@@ -874,10 +878,10 @@ object SearchInterface extends Logging {
 
 object testSearchInterface {
   def main(args: Array[String]) {
-     //searchByKeywords
+    searchByKeywords
 
 
-   //testSearchFilterAttributeByCatagoryId
+    //testSearchFilterAttributeByCatagoryId
     //testAttributeFilterSearch
 
     //testSearchBrandsByCatoryId
@@ -889,27 +893,28 @@ object testSearchInterface {
     //testCountKeywordInDocs
 
 
-   // testSplit
+    // testSplit
     //testRegex
     // testMaxInt
     //testSubString
 
 
-    testSearchByCategoryId
+    //testSearchByCategoryId
 
   }
 
   def searchByKeywords = {
     val sorts = new java.util.HashMap[java.lang.String, java.lang.String]
-    sorts.put("price", "asc")
-    sorts.put("score", "desc")
-  //  val result = SearchInterface.searchByKeywords("防护口罩", 456, sorts, 0, 10)
-  val result = SearchInterface.searchByKeywords("西格玛", 363, null, 0, 10)
+    sorts.put("price", "desc")
+    //sorts.put("score", "desc")
+    //  val result = SearchInterface.searchByKeywords("防护口罩", 456, sorts, 0, 10)
+    //val result = SearchInterface.searchByKeywords("西格玛", 363, null, 0, 10)
+    val result = SearchInterface.searchByKeywords("laa001", 363, null, 0, 10)
     println(result)
   }
 
   def testSearchByCategoryId() = {
-   val result =  SearchInterface.searchByCategoryId(14887,321,null,0,10)
+    val result = SearchInterface.searchByCategoryId(14887, 321, null, 0, 10)
     println(result)
 
   }
@@ -941,7 +946,7 @@ object testSearchInterface {
     rangeList.add("[30 TO *}")
     filterFieldsValues.put("t87_tf", rangeList)
     //SearchInterface.attributeFilterSearch(null, 1001739, 456, sorts, null, filterFieldsValues, 0, 10)
-       val result = SearchInterface.attributeFilterSearch(null, 1001739, 456, sorts, filters, filterFieldsValues, 0, 10)
+    val result = SearchInterface.attributeFilterSearch(null, 1001739, 456, sorts, filters, filterFieldsValues, 0, 10)
     // val result = SearchInterface.attributeFilterSearch("3M", 1001739, 456, sorts, filters, filterFieldsValues, 0, 10)
     println(result)
   }
@@ -958,13 +963,13 @@ object testSearchInterface {
 
   def testRecordSearchLog() = {
     /**
-      *  keyWords
+      * keyWords
       * appKey
-      *  clientIp
-      *  userAgent
-      *  sourceType
-      *  cookies
-      *  userId
+      * clientIp
+      * userAgent
+      * sourceType
+      * cookies
+      * userId
       */
     SearchInterface.recordSearchLog("防护口罩", "swe2323", null, "Useragent", "android", null, "undn3")
   }
@@ -983,7 +988,7 @@ object testSearchInterface {
     println(testOrStringArray)
 
     val vls = "_32"
-   val valsArray = vls.split("_")
+    val valsArray = vls.split("_")
     println(valsArray)
 
 

@@ -197,13 +197,15 @@ object TestHttpClientUtil {
   }
 
   def testHttpRecommend1: Unit = {
-    val url = "http://192.168.51.161:8088/recommend/sku"
+    val url = "http://218.244.132.8:8088/recommend/sku"
+    //val url = "http://192.168.51.161:8088/recommend/sku"
     val parametersMap = new java.util.HashMap[String, java.lang.Object]()
     // parametersMap.put("userId", "58438")
     //parametersMap.put("catagoryId", "null")
     //parametersMap.put("brandId", "1421")
-    parametersMap.put("docId", "614547")
-    parametersMap.put("number", Integer.valueOf(100))
+   // parametersMap.put("docId", "614547")
+    parametersMap.put("docId", "MCA839")
+    parametersMap.put("number", Integer.valueOf(70))
     val headers = new java.util.HashMap[String, String]()
     headers("Content-Type") = "application/json"
     HttpClientUtil.requestHttp(url, HttpRequestMethodType.POST, parametersMap, headers, null, callback)

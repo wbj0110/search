@@ -169,7 +169,8 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
     var obj: AnyRef = null
     val entTime = System.currentTimeMillis()
     val startTime = context.getAttribute(DefaultIndexManager.requestStartTime_key).toString.toLong
-    logInfo(s"request end time(ms):$entTime,\t all cost:${entTime - startTime},\trequest count(pagesize):$pageSize,\tcurrentThreadId:${Thread.currentThread().getId}")
+    val params =  context.getAttribute(DefaultIndexManager.params_key)
+    logInfo(s"request end time(ms):$entTime,\t all cost:${entTime - startTime},\trequest count(pagesize):$pageSize,\tcurrentThreadName:${Thread.currentThread().getName}\tparameters:$params")
 
     val collection = context.getAttribute("collection").toString
     val responseData = EntityUtils.toString(httpResp.getEntity)
@@ -245,9 +246,12 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
     context.setAttribute(DefaultIndexManager.collection_key, collection.trim)
     if (paremeters != null && !paremeters.isEmpty) {
       val formparams: java.util.List[BasicNameValuePair] = new java.util.ArrayList[BasicNameValuePair]()
+      val pString = new StringBuilder
       paremeters.foreach { p =>
+        pString.append(s"key:${p._1},value:${p._2}\n")
         formparams.add(new BasicNameValuePair(p._1, p._2))
       }
+      context.setAttribute(DefaultIndexManager.params_key, pString.toString())
       val entity: UrlEncodedFormEntity = new UrlEncodedFormEntity(formparams, "utf-8");
       request.asInstanceOf[HttpEntityEnclosingRequestBase].setEntity(entity)
     }
@@ -466,6 +470,8 @@ object DefaultIndexManager {
 
 
   val collection_key = "collection"
+
+  val params_key = "params"
 
 
   val waiteThreadsNum = 3000

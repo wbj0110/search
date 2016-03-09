@@ -36,7 +36,7 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
   override def addIndices[D: ClassTag](zeus: D, collection: String = "searchcloud"): Unit = {
     try {
       val startIndexTime = System.currentTimeMillis()
-      logInfo(s"start index start time(ms)$startIndexTime,\t current threadId:${Thread.currentThread().getId}")
+      logInfo(s"solr start index  time(ms)$startIndexTime,\t current threadName:${Thread.currentThread().getName}")
       if (zeus.isInstanceOf[java.util.List[java.util.Map[java.lang.String, Object]]]) {
         val zList = zeus.asInstanceOf[java.util.List[java.util.Map[java.lang.String, Object]]]
         if (zList.size() > 0) {

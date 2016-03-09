@@ -9,6 +9,7 @@ trait SearchLog extends Log {
 
   def write(keyWords: java.lang.String, appKey: java.lang.String, clientIp: java.lang.String, userAgent: java.lang.String, sourceType: java.lang.String, cookies: java.lang.String, userId: java.lang.String,currentTime: java.util.Date)
 
+  def write(logMap: java.util.Map[String,Object]): Unit = null
 
 }
 

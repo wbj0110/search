@@ -22,6 +22,9 @@ class MongoSearchLogImpl extends SearchLog {
     MongoStorage.saveMap("searchlogcollection", map)
   }
 
+  override def write(logMap: util.Map[String, Object]): Unit = {
+    MongoStorage.saveMap("searchlogcollection", logMap)
+  }
 }
 
 object MongoSearchLogImpl {

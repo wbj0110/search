@@ -11,6 +11,7 @@ import org.apache.http.client.protocol.HttpClientContext
 import org.apache.http.message.BasicNameValuePair
 import org.apache.http.protocol.{BasicHttpContext, HttpContext}
 import org.apache.http.util.EntityUtils
+import org.bson.json.JsonParseException
 import org.codehaus.jackson.JsonNode
 import org.codehaus.jackson.map.ObjectMapper
 import search.solr.client.consume.Consumer._
@@ -175,16 +176,27 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
 
     if (responseData != null && !responseData.equalsIgnoreCase("")) {
       val om = new ObjectMapper()
-      obj = om.readTree(responseData)
-      if (obj == null) logInfo(s"response null,size:0")
-      else {
-        if (obj.isInstanceOf[JsonNode]) {
-          //generate add index xml
-          val dataJsonNode = obj.asInstanceOf[JsonNode]
-          logInfo(s"response size:${dataJsonNode.size()}")
+      try {
+        obj = om.readTree(responseData)
+        if (obj == null ) logInfo(s"response null,size:0")
+        else {
+          if (obj.isInstanceOf[JsonNode]) {
+            //generate add index xml
+            val dataJsonNode = obj.asInstanceOf[JsonNode]
+            logInfo(s"response size:${dataJsonNode.get("data").size()}")
+          }
         }
+        indexOrDelteData
+      } catch {
+        case ex:JsonParseException =>
+          var data:JsonNode  =null
+          try {
+            data = obj.asInstanceOf[JsonNode].get("data")
+          } catch {
+            case  e: Exception=>
+          }
+          logError(s"json pase faield:data:${data}",ex)
       }
-      indexOrDelteData
     }
 
 

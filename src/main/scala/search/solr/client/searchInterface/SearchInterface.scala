@@ -1,6 +1,7 @@
 package search.solr.client.searchInterface
 
 import java.util
+import java.util.concurrent.LinkedBlockingQueue
 
 import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.SolrQuery.ORDER
@@ -16,7 +17,7 @@ import scala.util.control.Breaks._
 /**
   * Created by soledede on 2016/2/20.
   */
-object SearchInterface extends Logging with Configuration{
+object SearchInterface extends Logging with Configuration {
 
   val spellcheckSeparator = "_____"
 
@@ -27,11 +28,13 @@ object SearchInterface extends Logging with Configuration{
 
   val filterSplitArray = Array("<->", "OR", "or", "->")
 
+  val logQueue = new LinkedBlockingQueue[java.util.Map[String, Object]]
+
 
   /**
     *
     * search by keywords,must record searchlog for log analysis
- *
+    *
     * @param keyWords eg:螺丝钉
     * @param cityId eg:111
     * @param sorts  eg:Map(price->desc,sales->desc,score->desc)
@@ -67,9 +70,9 @@ object SearchInterface extends Logging with Configuration{
     if (rows != null && rows > 0) sRows = rows
 
     var keyWordsModel = "*:*"
-    if (keyWords != null){
-     val  keyWord = keyWords.trim.toLowerCase
-    keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh:$keyWord^200) OR (brandEn:$keyWord^200) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
+    if (keyWords != null) {
+      val keyWord = keyWords.trim.toLowerCase
+      keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh:$keyWord^200) OR (brandEn:$keyWord^200) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
     }
 
     val fq = s"isRestrictedArea:0 OR cityId:$cityId"
@@ -102,7 +105,7 @@ object SearchInterface extends Logging with Configuration{
     query.setStart(sStart)
     query.setRows(sRows)
 
-    val r = solrClient.searchByQuery(query,defaultCollection)
+    val r = solrClient.searchByQuery(query, defaultCollection)
     var result: QueryResponse = null
     if (r != null) result = r.asInstanceOf[QueryResponse]
 
@@ -183,7 +186,7 @@ object SearchInterface extends Logging with Configuration{
       query.setStart(sStart)
       query.setRows(sRows)
 
-      val r = solrClient.searchByQuery(query,defaultCollection)
+      val r = solrClient.searchByQuery(query, defaultCollection)
       var result: QueryResponse = null
       if (r != null) result = r.asInstanceOf[QueryResponse]
 
@@ -197,7 +200,7 @@ object SearchInterface extends Logging with Configuration{
   /**
     *
     * get result spellcheck highlightini once
- *
+    *
     * @param msg
     * @param searchResult
     * @param result
@@ -227,7 +230,7 @@ object SearchInterface extends Logging with Configuration{
   /**
     *
     * get spellcheck list
- *
+    *
     * @param result
     * @return
     */
@@ -275,7 +278,7 @@ object SearchInterface extends Logging with Configuration{
   /**
     *
     * get highlighting list
- *
+    *
     * @param result
     * @return
     */
@@ -288,7 +291,7 @@ object SearchInterface extends Logging with Configuration{
   /**
     *
     * get response Result
- *
+    *
     * @param result
     * @return
     */
@@ -296,6 +299,7 @@ object SearchInterface extends Logging with Configuration{
     val resultList: java.util.List[util.Map[java.lang.String, Object]] = new java.util.ArrayList[util.Map[java.lang.String, Object]]() //search result
     //get Result
     if (result != null) {
+      // println("params:"+result.getHeader.get("params"))
       val response = result.getResults
       if (response != null) {
         if (searchResult != null) {
@@ -321,7 +325,7 @@ object SearchInterface extends Logging with Configuration{
     *
     * search keywords log record
     * who where when what
- *
+    *
     * @param keyWords
     * @param appKey
     * @param clientIp
@@ -334,13 +338,35 @@ object SearchInterface extends Logging with Configuration{
   def recordSearchLog(keyWords: java.lang.String, appKey: java.lang.String, clientIp: java.lang.String, userAgent: java.lang.String, sourceType: java.lang.String, cookies: java.lang.String, userId: java.lang.String): Unit = {
     val currentTime = System.currentTimeMillis()
     logInfo(s"record search log:keyWords:$keyWords-appKey:$appKey-clientIp:$clientIp-userAgent:$userAgent-sourceType:$sourceType-cookies:-$cookies-userId:$userId-currentTime:$currentTime")
-    mongoSearchLog.write(keyWords, appKey, clientIp, userAgent, sourceType, cookies, userId, Util.timestampToDate(currentTime))
+    val map = new util.HashMap[String, Object]()
+    map.put("keyWords", keyWords)
+    map.put("appKey", appKey)
+    map.put("clientIp", clientIp)
+    map.put("userAgent", userAgent)
+    map.put("sourceType", sourceType)
+    map.put("cookies", cookies)
+    map.put("userId", userId)
+    map.put("currentTime", currentTime.toString)
+    logQueue.put(map)
+    //mongoSearchLog.write(keyWords, appKey, clientIp, userAgent, sourceType, cookies, userId, Util.timestampToDate(currentTime))
   }
+
+  private var thread = new Thread("search log thread ") {
+    setDaemon(true)
+
+    override def run() {
+      while (true) {
+        mongoSearchLog.write(logQueue.take())
+      }
+    }
+  }
+
+  thread.start()
 
   /**
     *
     * get filter atrtributes by catagoryid
- *
+    *
     * @param catagoryId
     * @param cityId
     * @return FilterAttribute
@@ -422,7 +448,7 @@ object SearchInterface extends Logging with Configuration{
   /**
     *
     * Tips: front should keep the attributeName cache by searchFilterAttributeByCatagoryId
- *
+    *
     * @param keyWords
     * @param catagoryId
     * @param cityId
@@ -615,10 +641,10 @@ object SearchInterface extends Logging with Configuration{
         //facet.query
         /**
           * "t87_tf:[* TO 0}":0,
-              *"t87_tf:[0 TO 10}":0,
-              *"t87_tf:[10 TO 20}":1,
-              *"t87_tf:[20 TO 30}":2,
-              *"t87_tf:[30 TO *}":4},
+          * "t87_tf:[0 TO 10}":0,
+          * "t87_tf:[10 TO 20}":1,
+          * "t87_tf:[20 TO 30}":2,
+          * "t87_tf:[30 TO *}":4},
           */
         val facetQueryCountMap = new util.HashMap[String, util.Map[String, Integer]]()
 
@@ -662,7 +688,7 @@ object SearchInterface extends Logging with Configuration{
   /**
     *
     * get all brands by catoryId
- *
+    *
     * @param catagoryId
     * @param cityId
     * @return
@@ -745,7 +771,7 @@ object SearchInterface extends Logging with Configuration{
   /**
     *
     * get brands    Map(brandId->Brand)
- *
+    *
     * @param result
     * @return
     */
@@ -804,7 +830,7 @@ object SearchInterface extends Logging with Configuration{
   /**
     *
     * this for autoSuggest in search
- *
+    *
     * @param keyWords search keyword
     * @param cityId
     * @return  java.util.Map[java.lang.String,java.lang.Integer]   eg:Map("soledede"=>10004)  represent counts of document  the keywords  side in
@@ -858,7 +884,7 @@ object SearchInterface extends Logging with Configuration{
   /**
     *
     * data dictionary attribute id to attribute name
- *
+    *
     * @param attributeId
     * @return
     */
@@ -876,7 +902,7 @@ object SearchInterface extends Logging with Configuration{
   /**
     *
     * set data dictionary attribute id to attribute name
- *
+    *
     * @param attributeId
     * @param attributeName
     * @return
@@ -893,7 +919,7 @@ object SearchInterface extends Logging with Configuration{
 
 object testSearchInterface {
   def main(args: Array[String]) {
-    searchByKeywords
+    //searchByKeywords
 
 
     //testSearchFilterAttributeByCatagoryId
@@ -903,7 +929,7 @@ object testSearchInterface {
 
     //testSuggestByKeyWords
 
-    //testRecordSearchLog
+    testRecordSearchLog
 
     //testCountKeywordInDocs
 
@@ -919,13 +945,18 @@ object testSearchInterface {
   }
 
   def searchByKeywords = {
+
     val sorts = new java.util.HashMap[java.lang.String, java.lang.String]
     sorts.put("price", "desc")
     //sorts.put("score", "desc")
     //  val result = SearchInterface.searchByKeywords("防护口罩", 456, sorts, 0, 10)
     //val result = SearchInterface.searchByKeywords("西格玛", 363, null, 0, 10)
     val result = SearchInterface.searchByKeywords("优特", 363, null, 0, 10)
+    val starTime = System.currentTimeMillis()
+    SearchInterface.searchByKeywords("优特", 363, null, 0, 10)
+    val endTime = System.currentTimeMillis()
     println(result)
+    println(endTime - starTime)
   }
 
   def testSearchByCategoryId() = {
@@ -986,6 +1017,8 @@ object testSearchInterface {
       * cookies
       * userId
       */
+    SearchInterface.recordSearchLog("防护口罩", "swe2323", null, "Useragent", "android", null, "undn3")
+    Thread.sleep(6000)
     SearchInterface.recordSearchLog("防护口罩", "swe2323", null, "Useragent", "android", null, "undn3")
   }
 

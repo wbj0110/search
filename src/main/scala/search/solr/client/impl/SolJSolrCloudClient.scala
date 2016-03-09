@@ -3,6 +3,7 @@ package search.solr.client.impl
 import java.util
 
 import org.apache.solr.client.solrj.SolrQuery
+import org.apache.solr.client.solrj.impl.HttpSolrClient.RemoteSolrException
 import org.apache.solr.client.solrj.impl.{BinaryRequestWriter, CloudSolrClient}
 import org.apache.solr.client.solrj.response.QueryResponse
 import org.apache.solr.common.SolrInputDocument
@@ -68,6 +69,7 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
       val endIndexTime = System.currentTimeMillis()
       logInfo(s"start index end time(ms)$endIndexTime,\t total cost ${endIndexTime - startIndexTime}(ms)\t current threadId:${Thread.currentThread().getId}")
     } catch {
+      case e1: RemoteSolrException => logError("remoteSolrException", e1)
       case e: Exception =>
         logError(s"add index faield$zeus!", e)
         throw new Exception(s"添加索引失败,${e.getMessage}", e.getCause)

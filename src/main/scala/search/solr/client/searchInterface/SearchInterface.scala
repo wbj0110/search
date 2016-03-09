@@ -5,6 +5,7 @@ import java.util
 import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.SolrQuery.ORDER
 import org.apache.solr.client.solrj.response.QueryResponse
+import search.solr.client.config.Configuration
 import search.solr.client.entity.searchinterface._
 import search.solr.client.log.SearchLog
 import search.solr.client.util.{Util, Logging}
@@ -15,7 +16,7 @@ import scala.util.control.Breaks._
 /**
   * Created by soledede on 2016/2/20.
   */
-object SearchInterface extends Logging {
+object SearchInterface extends Logging with Configuration{
 
   val spellcheckSeparator = "_____"
 
@@ -30,6 +31,7 @@ object SearchInterface extends Logging {
   /**
     *
     * search by keywords,must record searchlog for log analysis
+ *
     * @param keyWords eg:螺丝钉
     * @param cityId eg:111
     * @param sorts  eg:Map(price->desc,sales->desc,score->desc)
@@ -100,7 +102,7 @@ object SearchInterface extends Logging {
     query.setStart(sStart)
     query.setRows(sRows)
 
-    val r = solrClient.searchByQuery(query, "mergescloud")
+    val r = solrClient.searchByQuery(query,defaultCollection)
     var result: QueryResponse = null
     if (r != null) result = r.asInstanceOf[QueryResponse]
 
@@ -181,7 +183,7 @@ object SearchInterface extends Logging {
       query.setStart(sStart)
       query.setRows(sRows)
 
-      val r = solrClient.searchByQuery(query, "mergescloud")
+      val r = solrClient.searchByQuery(query,defaultCollection)
       var result: QueryResponse = null
       if (r != null) result = r.asInstanceOf[QueryResponse]
 
@@ -195,6 +197,7 @@ object SearchInterface extends Logging {
   /**
     *
     * get result spellcheck highlightini once
+ *
     * @param msg
     * @param searchResult
     * @param result
@@ -224,6 +227,7 @@ object SearchInterface extends Logging {
   /**
     *
     * get spellcheck list
+ *
     * @param result
     * @return
     */
@@ -271,6 +275,7 @@ object SearchInterface extends Logging {
   /**
     *
     * get highlighting list
+ *
     * @param result
     * @return
     */
@@ -283,6 +288,7 @@ object SearchInterface extends Logging {
   /**
     *
     * get response Result
+ *
     * @param result
     * @return
     */
@@ -315,6 +321,7 @@ object SearchInterface extends Logging {
     *
     * search keywords log record
     * who where when what
+ *
     * @param keyWords
     * @param appKey
     * @param clientIp
@@ -333,6 +340,7 @@ object SearchInterface extends Logging {
   /**
     *
     * get filter atrtributes by catagoryid
+ *
     * @param catagoryId
     * @param cityId
     * @return FilterAttribute
@@ -352,7 +360,7 @@ object SearchInterface extends Logging {
 
       query.addSort("attSort_ti", SolrQuery.ORDER.desc) //sort
 
-      val r = solrClient.searchByQuery(query, "screencloud")
+      val r = solrClient.searchByQuery(query, defaultAttrCollection)
       var result: QueryResponse = null
       if (r != null) result = r.asInstanceOf[QueryResponse]
       val resultSearch = getSearchResult(result, null) //get response result
@@ -414,6 +422,7 @@ object SearchInterface extends Logging {
   /**
     *
     * Tips: front should keep the attributeName cache by searchFilterAttributeByCatagoryId
+ *
     * @param keyWords
     * @param catagoryId
     * @param cityId
@@ -557,7 +566,7 @@ object SearchInterface extends Logging {
 
 
 
-      val r = solrClient.searchByQuery(query, "mergescloud")
+      val r = solrClient.searchByQuery(query, defaultCollection)
       var result: QueryResponse = null
       if (r != null) result = r.asInstanceOf[QueryResponse]
       getSearchResultByResponse(msg, searchResult, result) //get searchResult
@@ -606,10 +615,10 @@ object SearchInterface extends Logging {
         //facet.query
         /**
           * "t87_tf:[* TO 0}":0,
-              "t87_tf:[0 TO 10}":0,
-              "t87_tf:[10 TO 20}":1,
-              "t87_tf:[20 TO 30}":2,
-              "t87_tf:[30 TO *}":4},
+              *"t87_tf:[0 TO 10}":0,
+              *"t87_tf:[10 TO 20}":1,
+              *"t87_tf:[20 TO 30}":2,
+              *"t87_tf:[30 TO *}":4},
           */
         val facetQueryCountMap = new util.HashMap[String, util.Map[String, Integer]]()
 
@@ -653,6 +662,7 @@ object SearchInterface extends Logging {
   /**
     *
     * get all brands by catoryId
+ *
     * @param catagoryId
     * @param cityId
     * @return
@@ -716,7 +726,7 @@ object SearchInterface extends Logging {
       query.setStart(sStart)
       query.setRows(sRows)
 
-      val r = solrClient.searchByQuery(query, "mergescloud")
+      val r = solrClient.searchByQuery(query, defaultCollection)
       var result: QueryResponse = null
       if (r != null) result = r.asInstanceOf[QueryResponse]
       val brandIdToBrandMap = getBrandsSearchResultUniqueById(result)
@@ -735,6 +745,7 @@ object SearchInterface extends Logging {
   /**
     *
     * get brands    Map(brandId->Brand)
+ *
     * @param result
     * @return
     */
@@ -776,7 +787,7 @@ object SearchInterface extends Logging {
       }
       query.setQuery(keyWordsModel)
       query.setRows(1)
-      val r = solrClient.searchByQuery(query, "mergescloud")
+      val r = solrClient.searchByQuery(query, defaultCollection)
       var result: QueryResponse = null
       if (r != null) result = r.asInstanceOf[QueryResponse]
       if (result != null) {
@@ -793,6 +804,7 @@ object SearchInterface extends Logging {
   /**
     *
     * this for autoSuggest in search
+ *
     * @param keyWords search keyword
     * @param cityId
     * @return  java.util.Map[java.lang.String,java.lang.Integer]   eg:Map("soledede"=>10004)  represent counts of document  the keywords  side in
@@ -821,7 +833,7 @@ object SearchInterface extends Logging {
       query.setStart(0)
       query.setRows(20)
 
-      val r = solrClient.searchByQuery(query, "kwsuggest")
+      val r = solrClient.searchByQuery(query, defaultSuggestCollection)
       var result: QueryResponse = null
       if (r != null) result = r.asInstanceOf[QueryResponse]
       val docs = getSearchResult(result, null)
@@ -846,6 +858,7 @@ object SearchInterface extends Logging {
   /**
     *
     * data dictionary attribute id to attribute name
+ *
     * @param attributeId
     * @return
     */
@@ -863,6 +876,7 @@ object SearchInterface extends Logging {
   /**
     *
     * set data dictionary attribute id to attribute name
+ *
     * @param attributeId
     * @param attributeName
     * @return
@@ -910,7 +924,7 @@ object testSearchInterface {
     //sorts.put("score", "desc")
     //  val result = SearchInterface.searchByKeywords("防护口罩", 456, sorts, 0, 10)
     //val result = SearchInterface.searchByKeywords("西格玛", 363, null, 0, 10)
-    val result = SearchInterface.searchByKeywords("laa001", 363, null, 0, 10)
+    val result = SearchInterface.searchByKeywords("优特", 363, null, 0, 10)
     println(result)
   }
 

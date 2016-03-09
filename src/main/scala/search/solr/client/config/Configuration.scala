@@ -37,6 +37,15 @@ trait Configuration {
 
   lazy val collection = Try(config.getString("collection")).getOrElse("")
 
+  lazy val defaultCollection = Try(config.getString("defaultcollection")).getOrElse("")
+
+  lazy val defaultAttrCollection = Try(config.getString("defaultattrcollection")).getOrElse("")
+
+
+  lazy val defaultSuggestCollection = Try(config.getString("defaultsuggestcollection")).getOrElse("")
+
+
+
   /**
     * remote http url
     */

@@ -117,11 +117,13 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
       */
     def requestUrl(collection: String, totalNum: String, startUpdateTime: String, endUpdataTime: String): Unit = {
       var url = MERGECLOUD_URL
-      collection match {
-        case "screencloud" => url = SCREEN_URL
-        case "mergescloud" => url = MERGECLOUD_URL
-        case _ =>
-      }
+
+      if (collection.contains("screencloud")) url = SCREEN_URL
+      /*  collection match {
+          case "screencloud" => url = SCREEN_URL
+          case "mergescloud" => url = MERGECLOUD_URL
+          case _ =>
+        }*/
 
 
       var more = 0
@@ -200,6 +202,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
     }
     /**
       * index data
+      *
       * @param collection
       * @param xmlBool
       */
@@ -308,7 +311,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
       if (!xml.isEmpty) {
         val fileName = collection.trim + "_" + System.currentTimeMillis() + fileNamePreffix
         var filePath = filedirMergeCloud + fileName
-        if (collection.equalsIgnoreCase("screencloud")) filePath = filedirScreenCloud + fileName
+        if (collection.contains("screencloud")) filePath = filedirScreenCloud + fileName
         writeToDisk(xml.toString(), filePath)
         logInfo(s"write file $filePath success,Total ${writeToFileCnt} documents！")
       }
@@ -422,6 +425,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
   /**
     * delete index
     * eg: delete-234523-34534
+    *
     * @param ids
     * @return
     */

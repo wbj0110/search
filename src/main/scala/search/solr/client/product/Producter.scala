@@ -39,9 +39,12 @@ object Producter extends Logging with Configuration {
     * eg: mergescloud-2343433212-234343211-34
     *     mergescloud-1456329600-1456477928-1
     *     mergescloud-null-null-740670
+    *     mergescloud_test-null-null-1056522
     *     mergescloud-null-null-20
     *     screencloud-null-null-25468
-    *     screencloud-null-null-40
+    *     screencloud_test-null-null-27174
+    *
+    *     bin/kafka-console-producer.sh --broker-list 121.40.54.54:9092 --topic indexManagesTest
     * @return
     */
   def send(collection: String, startUpdateTime: Long, endUpdataTime: Long, totalNum: Int): Boolean = {

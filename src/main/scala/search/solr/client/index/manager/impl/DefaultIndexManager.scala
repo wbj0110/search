@@ -190,13 +190,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
         indexOrDelteData
       } catch {
         case ex: JsonParseException =>
-          var data: String = null
-          try {
-            data = om.writeValueAsString(obj.asInstanceOf[JsonNode].get("data"))
-          } catch {
-            case e: Exception =>
-          }
-          logError(s"json pase faield:data:${data}", ex)
+          logError(s"json pase faield:data:${responseData}", ex)
       }
     }
 

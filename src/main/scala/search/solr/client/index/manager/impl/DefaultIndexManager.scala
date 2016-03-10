@@ -189,7 +189,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
         }
         indexOrDelteData
       } catch {
-        case ex: JsonParseException =>
+        case ex: Exception =>
           logError(s"json pase faield:data:${responseData}", ex)
       }
     }

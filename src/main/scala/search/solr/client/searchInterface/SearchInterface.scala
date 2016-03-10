@@ -117,6 +117,26 @@ object SearchInterface extends Logging with Configuration {
 
   /**
     *
+    * search by popularity
+    * @return
+    */
+  def popularityKeyWords(): java.util.List[String] =  {
+
+    val list = new util.ArrayList[String]()
+    list.add("3m")
+    list.add("工具箱")
+    list.add("安全防护")
+    list.add("omron")
+    list.add("铅柜")
+    list.add("20M胶带价格")
+    list.add("西玛特")
+    list.add("50ml玻璃试剂瓶")
+    list.add("HCN探测器")
+    list
+  }
+
+  /**
+    *
     * @param categoryId
     * @param cityId
     * @param sorts   eg:Map(price->desc,sales->desc,score->desc)
@@ -878,7 +898,6 @@ object SearchInterface extends Logging with Configuration {
 
     }
     else null
-
   }
 
   /**
@@ -927,9 +946,9 @@ object testSearchInterface {
 
     //testSearchBrandsByCatoryId
 
-    //testSuggestByKeyWords
+    testSuggestByKeyWords
 
-    testRecordSearchLog
+    //testRecordSearchLog
 
     //testCountKeywordInDocs
 
@@ -1003,7 +1022,24 @@ object testSearchInterface {
   }
 
   def testSuggestByKeyWords() = {
+
     val result = SearchInterface.suggestByKeyWords("dai", 456)
+    var startTime = System.currentTimeMillis().toDouble
+    SearchInterface.suggestByKeyWords("dai", 456)
+    var endTime = System.currentTimeMillis().toDouble
+    println(s"cost time:${(endTime-startTime)/1000}s")
+
+     startTime = System.currentTimeMillis().toDouble
+    SearchInterface.suggestByKeyWords("dai", 456)
+     endTime = System.currentTimeMillis().toDouble
+    println(s"cost time:${(endTime-startTime)/1000}s")
+
+
+    startTime = System.currentTimeMillis().toDouble
+    SearchInterface.suggestByKeyWords("dai", 456)
+    endTime = System.currentTimeMillis().toDouble
+    println(s"cost time:${(endTime-startTime)/1000}s")
+
     println(result)
   }
 
@@ -1017,9 +1053,12 @@ object testSearchInterface {
       * cookies
       * userId
       */
+    val startTime =System.currentTimeMillis()
     SearchInterface.recordSearchLog("防护口罩", "swe2323", null, "Useragent", "android", null, "undn3")
-    Thread.sleep(6000)
+    //Thread.sleep(6000)
     SearchInterface.recordSearchLog("防护口罩", "swe2323", null, "Useragent", "android", null, "undn3")
+    val endTime =System.currentTimeMillis()
+    println(endTime - startTime)
   }
 
   def testSplit() = {

@@ -169,7 +169,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
     var obj: AnyRef = null
     val entTime = System.currentTimeMillis()
     val startTime = context.getAttribute(DefaultIndexManager.requestStartTime_key).toString.toLong
-    val params =  context.getAttribute(DefaultIndexManager.params_key)
+    val params = context.getAttribute(DefaultIndexManager.params_key)
     logInfo(s"request end time(ms):$entTime,\t all cost:${entTime - startTime},\trequest count(pagesize):$pageSize,\tcurrentThreadName:${Thread.currentThread().getName}\tparameters:$params")
 
     val collection = context.getAttribute("collection").toString
@@ -179,7 +179,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
       val om = new ObjectMapper()
       try {
         obj = om.readTree(responseData)
-        if (obj == null ) logInfo(s"response null,size:0")
+        if (obj == null) logInfo(s"response null,size:0")
         else {
           if (obj.isInstanceOf[JsonNode]) {
             //generate add index xml
@@ -189,14 +189,14 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
         }
         indexOrDelteData
       } catch {
-        case ex:JsonParseException =>
-          var data:JsonNode  =null
+        case ex: JsonParseException =>
+          var data: String = null
           try {
-            data = obj.asInstanceOf[JsonNode].get("data")
+            data = om.writeValueAsString(obj.asInstanceOf[JsonNode].get("data"))
           } catch {
-            case  e: Exception=>
+            case e: Exception =>
           }
-          logError(s"json pase faield:data:${data}",ex)
+          logError(s"json pase faield:data:${data}", ex)
       }
     }
 

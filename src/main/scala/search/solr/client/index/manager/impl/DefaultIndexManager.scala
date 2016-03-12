@@ -141,7 +141,11 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
         if (endUpdataTime != null && !startUpdateTime.trim.equalsIgnoreCase("null") && !endUpdataTime.trim.equalsIgnoreCase("") && !endUpdataTime.trim.equalsIgnoreCase("0"))
           paremeters("endUpdateTime") = endUpdataTime
         paremeters("start") = (i * pageSize).toString
-        paremeters("rows") = pageSize.toString
+        if (i == (requestCounts - 1)) {
+          //the last pages
+          if (more > 0) paremeters("rows") = more.toString
+          else paremeters("rows") = pageSize.toString
+        }
         logInfo(s"request url${i + 1} $url,\t parameters:start=${paremeters("start")},rows=${paremeters("rows")}")
 
         requestHttp(collection, url, HttpRequestMethodType.POST, paremeters, callback)

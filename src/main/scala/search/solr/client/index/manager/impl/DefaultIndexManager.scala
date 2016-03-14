@@ -145,7 +145,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
           //the last pages
           if (more > 0) paremeters("rows") = more.toString
           else paremeters("rows") = pageSize.toString
-        }
+        }else paremeters("rows") = pageSize.toString
         logInfo(s"request url${i + 1} $url,\t parameters:start=${paremeters("start")},rows=${paremeters("rows")}")
 
         requestHttp(collection, url, HttpRequestMethodType.POST, paremeters, callback)

@@ -39,7 +39,7 @@ object Producter extends Logging with Configuration {
     * eg: mergescloud-2343433212-234343211-34
     *     mergescloud-1456329600-1456477928-1
     *     mergescloud-null-null-740670
-    *     mergescloud_test-null-null-670363
+    *     mergescloud_test-null-null-670376
     *     mergescloud-null-null-20
     *     screencloud-null-null-25468
     *     screencloud_test-null-null-27174

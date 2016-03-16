@@ -7,7 +7,7 @@
     <groupId>com.ehsy.search</groupId>
     <artifactId>seachclient</artifactId>
   <!--  <version>1.0.6</version>-->
-    <version>2.0.2</version> <!--test-->
+    <version>2.0.3</version> <!--test-->
     <!--<version>3.0.0</version>-->
 
     <properties>
@@ -457,7 +457,7 @@
             <id>snapshots</id>
             <url>http://192.168.0.249:8099/nexus/content/repositories/snapshots/</url>
         </snapshotRepository>
-        <!-- <repository>
+         <!--<repository>
              <id>releases</id>
              <url>http://112.124.32.129:8099/nexus/content/repositories/releases/</url>
          </repository>

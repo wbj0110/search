@@ -10,13 +10,15 @@ public class FilterAttributeSearchResult implements Serializable {
 
     private List<FilterAttribute> filterAttributes; //all filter attributes
     private SearchResult searchResult; //the searchResult
+    private List<Integer> categoryIds; // filter category ids
 
     public FilterAttributeSearchResult() {
     }
 
-    public FilterAttributeSearchResult(List<FilterAttribute> filterAttributes, SearchResult searchResult) {
+    public FilterAttributeSearchResult(List<FilterAttribute> filterAttributes, SearchResult searchResult, List<Integer> categoryIds) {
         this.filterAttributes = filterAttributes;
         this.searchResult = searchResult;
+        this.categoryIds = categoryIds;
     }
 
     public List<FilterAttribute> getFilterAttributes() {
@@ -33,5 +35,13 @@ public class FilterAttributeSearchResult implements Serializable {
 
     public void setSearchResult(SearchResult searchResult) {
         this.searchResult = searchResult;
+    }
+
+    public List<Integer> getCategoryIds() {
+        return categoryIds;
+    }
+
+    public void setCategoryIds(List<Integer> categoryIds) {
+        this.categoryIds = categoryIds;
     }
 }

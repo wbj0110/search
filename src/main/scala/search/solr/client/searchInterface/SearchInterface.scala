@@ -33,6 +33,10 @@ object SearchInterface extends Logging with Configuration {
   val logQueue = new LinkedBlockingQueue[java.util.Map[String, Object]]
 
 
+  val generalFacetFieldCategory = "da_2955_s"   //category facet Map(da_2955_s->类别)
+  val generalFacetFieldBrandId = "brandId"  //brand facet  Map(brandId->品牌)
+
+
   private def groupBucket(q: String, fq: String, json_facet: String): java.util.List[SimpleOrderedMap[java.lang.Object]] = {
     if (json_facet == null) return null
     val query: SolrQuery = new SolrQuery
@@ -620,7 +624,7 @@ object SearchInterface extends Logging with Configuration {
           }
         }
 
-        filterAttributeSearchResult = attributeFilterSearch(null, catagoryId, cityId, null, null, filterFieldsValues, null, null)
+        filterAttributeSearchResult = attributeFilterSearch(null, catagoryId, cityId, null, null, filterFieldsValues, null, null,null,false)
       }
 
       if (filterAttributeSearchResult == null) return null
@@ -774,8 +778,7 @@ object SearchInterface extends Logging with Configuration {
 
 
 
-      val generalFacetFieldCategory = "category"
-      val generalFacetFieldBrandId = "brandId"
+
 
       var keyWord: String = null
       if (keyWords != null && !keyWords.trim.equalsIgnoreCase(""))
@@ -1196,7 +1199,9 @@ object SearchInterface extends Logging with Configuration {
     * @return
     */
   def getAttributeNameById(attributeId: String): String = {
-    if (attributeId == null) return null
+    if (attributeId == null || attributeId.trim.equals("")) return null
+    if(attributeId.equals(generalFacetFieldCategory)) return "类别"
+    if(attributeId.equals(generalFacetFieldBrandId)) return "品牌"
     val attrCache = FilterAttribute.attrIdToattrName
     var attrName: String = null
     if (attrCache.contains(attributeId.trim)) {
@@ -1226,11 +1231,11 @@ object SearchInterface extends Logging with Configuration {
 
 object testSearchInterface {
   def main(args: Array[String]) {
-    searchByKeywords
+    //searchByKeywords
 
 
     //testSearchFilterAttributeByCatagoryId
-    // testAttributeFilterSearch
+     testAttributeFilterSearch
 
     //testSearchBrandsByCatoryId
 
@@ -1321,7 +1326,7 @@ object testSearchInterface {
 
     val filters1 = new java.util.HashMap[java.lang.String, java.lang.String]()
     //filters.put("t89_s", "Memmert")
-    filters1.put("da_1385_s", "1/4")
+    //filters1.put("da_1385_s", "1/4")
     /// filters1.put("da_89_s", "亚德客")
     // filters1.put("da_2306_s", "附锁型")
     //filters1.put("da_2178_s", "二位三通")

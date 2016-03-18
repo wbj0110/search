@@ -701,7 +701,7 @@ object SearchInterface extends Logging with Configuration {
           }
         }
 
-        filterAttributeSearchResult = attributeFilterSearch(keywords, catagoryId, cityId, sorts, null, filterFieldsValues, start, rows, categoryIds)
+        filterAttributeSearchResult = attributeFilterSearch(keywords, catagoryId, cityId, sorts, null, filterFieldsValues, start, rows, categoryIds,true)
       }
 
       if (filterAttributeSearchResult == null) return null
@@ -736,7 +736,7 @@ object SearchInterface extends Logging with Configuration {
     */
   def attributeFilterSearch(keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.Map[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, isCategoryTouch: java.lang.Boolean): FilterAttributeSearchResult = {
     if (isCategoryTouch) searchFilterAttributeAndResultByCatagoryId(catagoryId, cityId)
-    else attributeFilterSearch(keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows)
+    else attributeFilterSearch(keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows,null,false)
   }
 
 
@@ -757,7 +757,7 @@ object SearchInterface extends Logging with Configuration {
     * @param rows eg:10
     * @return   FilterAttributeSearchResult
     */
-  def attributeFilterSearch(keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.Map[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, categoryIds: java.util.List[Integer] = null): FilterAttributeSearchResult = {
+  def attributeFilterSearch(keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.Map[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, categoryIds: java.util.List[Integer] = null,isComeFromSearch: Boolean = false): FilterAttributeSearchResult = {
     if (catagoryId != null && cityId != null) {
       val filterAttributeSearchResult = new FilterAttributeSearchResult()
 
@@ -772,6 +772,10 @@ object SearchInterface extends Logging with Configuration {
       if (start != null && start > 0) sStart = start
       if (rows != null && rows > 0) sRows = rows
 
+
+
+      val generalFacetFieldCategory = "category"
+      val generalFacetFieldBrandId = "brandId"
 
       var keyWord: String = null
       if (keyWords != null && !keyWords.trim.equalsIgnoreCase(""))
@@ -788,6 +792,8 @@ object SearchInterface extends Logging with Configuration {
       query.setQuery(keyWordsModel)
 
       query.addFilterQuery(fqGeneral)
+
+      if(!isComeFromSearch) //whether is come from category filter
       query.addFilterQuery(fqCataId)
 
 
@@ -866,6 +872,11 @@ object SearchInterface extends Logging with Configuration {
       query.setFacet(true)
       query.setFacetMinCount(1)
       query.setFacetMissing(false)
+
+
+      //facet for category and brandId
+      query.addFacetField(generalFacetFieldCategory)
+      query.addFacetField(generalFacetFieldBrandId)
 
       if (filterFieldsValues != null && filterFieldsValues.size() > 0) {
         filterFieldsValues.foreach { facet =>
@@ -1250,9 +1261,9 @@ object testSearchInterface {
     //val result = SearchInterface.searchByKeywords("西格玛", 363, null, 0, 10)
     val result = SearchInterface.searchByKeywords("3m", 363, null, 0, 10)
     val starTime = System.currentTimeMillis()
-    SearchInterface.searchByKeywords("3m", 363, null, 0, 10)
+   val result1 = SearchInterface.searchByKeywords("白板笔", 363, null, 0, 10)
     val endTime = System.currentTimeMillis()
-    println(result)
+    println(result1)
     println(endTime - starTime)
   }
 

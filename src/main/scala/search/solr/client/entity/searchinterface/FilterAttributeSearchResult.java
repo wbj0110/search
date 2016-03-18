@@ -2,6 +2,7 @@ package search.solr.client.entity.searchinterface;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by soledede on 2016/2/20.
@@ -44,4 +45,6 @@ public class FilterAttributeSearchResult implements Serializable {
     public void setCategoryIds(List<Integer> categoryIds) {
         this.categoryIds = categoryIds;
     }
+
+
 }

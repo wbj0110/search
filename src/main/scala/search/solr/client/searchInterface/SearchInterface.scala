@@ -1244,11 +1244,8 @@ object SearchInterface extends Logging with Configuration {
 
 object testSearchInterface {
   def main(args: Array[String]) {
-<<<<<<< HEAD
-   // searchByKeywords
-=======
+
     searchByKeywords
->>>>>>> a754512b8876f1f310cfb7b287ca0d2ff46b65eb
 
 
     //testSearchFilterAttributeByCatagoryId

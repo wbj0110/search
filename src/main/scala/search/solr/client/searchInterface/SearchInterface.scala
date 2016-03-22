@@ -33,8 +33,9 @@ object SearchInterface extends Logging with Configuration {
   val logQueue = new LinkedBlockingQueue[java.util.Map[String, Object]]
 
 
-  val generalFacetFieldCategory = "da_2955_s"   //category facet Map(da_2955_s->类别)
-  val generalFacetFieldBrandId = "brandId"  //brand facet  Map(brandId->品牌)
+  val generalFacetFieldCategory = "da_2955_s"
+  //category facet Map(da_2955_s->类别)
+  val generalFacetFieldBrandId = "brandId" //brand facet  Map(brandId->品牌)
 
 
   private def groupBucket(q: String, fq: String, json_facet: String): java.util.List[SimpleOrderedMap[java.lang.Object]] = {
@@ -52,16 +53,24 @@ object SearchInterface extends Logging with Configuration {
     else {
       val r = rt.asInstanceOf[QueryResponse]
       val fMap = r.getResponse
-      val facetsMap = fMap.get("facets").asInstanceOf[SimpleOrderedMap[SimpleOrderedMap[java.util.List[SimpleOrderedMap[java.lang.Object]]]]]
-      val catagoryMap = facetsMap.get("categories")
-      val bucketList = catagoryMap.get("buckets")
-      bucketList
+      if (fMap != null) {
+        val facetsMap = fMap.get("facets").asInstanceOf[SimpleOrderedMap[java.lang.Object]]
+        if (facetsMap != null && !facetsMap.isEmpty && facetsMap.size() > 0) {
+          val count = facetsMap.get("count").toString.toInt
+          if (count > 0) {
+            val catagoryMap = facetsMap.get("categories").asInstanceOf[SimpleOrderedMap[java.util.List[SimpleOrderedMap[java.lang.Object]]]]
+            val bucketList = catagoryMap.get("buckets")
+            bucketList
+          } else null
+        } else null
+      } else null
     }
   }
 
 
   /**
     * get category ids
+    *
     * @param keyWords
     * @param cityId
     * @param field
@@ -97,10 +106,10 @@ object SearchInterface extends Logging with Configuration {
     * search by keywords,must record searchlog for log analysis
     *
     * @param keyWords eg:螺丝钉
-    * @param cityId eg:111
-    * @param sorts  eg:Map(price->desc,sales->desc,score->desc)
-    * @param start eg:0
-    * @param rows eg:10
+    * @param cityId   eg:111
+    * @param sorts    eg:Map(price->desc,sales->desc,score->desc)
+    * @param start    eg:0
+    * @param rows     eg:10
     * @return SearchResult
     */
   def searchByKeywords(keyWords: java.lang.String, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer): FilterAttributeSearchResult = {
@@ -126,10 +135,10 @@ object SearchInterface extends Logging with Configuration {
     * search by keywords,must record searchlog for log analysis
     *
     * @param keyWords eg:螺丝钉
-    * @param cityId eg:111
-    * @param sorts  eg:Map(price->desc,sales->desc,score->desc)
-    * @param start eg:0
-    * @param rows eg:10
+    * @param cityId   eg:111
+    * @param sorts    eg:Map(price->desc,sales->desc,score->desc)
+    * @param start    eg:0
+    * @param rows     eg:10
     * @return SearchResult
     */
   def queryByKeywords(keyWords: java.lang.String, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer): SearchResult = {
@@ -207,6 +216,7 @@ object SearchInterface extends Logging with Configuration {
   /**
     *
     * search by popularity
+    *
     * @return
     */
   def popularityKeyWords(): java.util.List[String] = {
@@ -228,9 +238,9 @@ object SearchInterface extends Logging with Configuration {
     *
     * @param categoryId
     * @param cityId
-    * @param sorts   eg:Map(price->desc,sales->desc,score->desc)
+    * @param sorts eg:Map(price->desc,sales->desc,score->desc)
     * @param start eg:0
-    * @param rows eg:10
+    * @param rows  eg:10
     * @return SearchResult
     */
   def searchByCategoryId(categoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer): SearchResult = {
@@ -558,7 +568,7 @@ object SearchInterface extends Logging with Configuration {
     *
     * @param catagoryId
     * @param cityId
-    * @return  FilterAttributeSearchResult
+    * @return FilterAttributeSearchResult
     */
   private def searchFilterAttributeAndResultByCatagoryId(catagoryId: java.lang.Integer, cityId: java.lang.Integer): FilterAttributeSearchResult = {
     if (catagoryId != null && cityId != null) {
@@ -624,7 +634,7 @@ object SearchInterface extends Logging with Configuration {
           }
         }
 
-        filterAttributeSearchResult = attributeFilterSearch(null, catagoryId, cityId, null, null, filterFieldsValues, null, null,null,false)
+        filterAttributeSearchResult = attributeFilterSearch(null, catagoryId, cityId, null, null, filterFieldsValues, null, null, null, false)
       }
 
       if (filterAttributeSearchResult == null) return null
@@ -705,7 +715,7 @@ object SearchInterface extends Logging with Configuration {
           }
         }
 
-        filterAttributeSearchResult = attributeFilterSearch(keywords, catagoryId, cityId, sorts, null, filterFieldsValues, start, rows, categoryIds,true)
+        filterAttributeSearchResult = attributeFilterSearch(keywords, catagoryId, cityId, sorts, null, filterFieldsValues, start, rows, categoryIds, true)
       }
 
       if (filterAttributeSearchResult == null) return null
@@ -717,6 +727,7 @@ object SearchInterface extends Logging with Configuration {
 
   /**
     * just category
+    *
     * @param catagoryId
     * @param cityId
     * @return
@@ -727,6 +738,7 @@ object SearchInterface extends Logging with Configuration {
 
   /**
     * merge category and filtersearch
+    *
     * @param keyWords
     * @param catagoryId
     * @param cityId
@@ -735,12 +747,12 @@ object SearchInterface extends Logging with Configuration {
     * @param filterFieldsValues
     * @param start
     * @param rows
-    * @param isCategoryTouch  whether come from category
-    * @return  FilterAttributeSearchResult
+    * @param isCategoryTouch whether come from category
+    * @return FilterAttributeSearchResult
     */
   def attributeFilterSearch(keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.Map[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, isCategoryTouch: java.lang.Boolean): FilterAttributeSearchResult = {
     if (isCategoryTouch) searchFilterAttributeAndResultByCatagoryId(catagoryId, cityId)
-    else attributeFilterSearch(keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows,null,false)
+    else attributeFilterSearch(keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows, null, false)
   }
 
 
@@ -751,21 +763,19 @@ object SearchInterface extends Logging with Configuration {
     * @param keyWords
     * @param catagoryId
     * @param cityId
-    * @param sorts   eg:Map(price->desc,sales->desc,score->desc)
-    * @param filters eg:Map("t89_s"->"一恒","t214_tf"->"[300 TO *]")  fq
-    * @param filterFieldsValues  facet.field and facet.querys  eg: Map(
-    *                            "t89_s"=>null,
-    *                            "t214_tf"=>List("* TO 100","100 TO 200","200 TO *")
-    *                            )
-    * @param start eg:0
-    * @param rows eg:10
-    * @return   FilterAttributeSearchResult
+    * @param sorts              eg:Map(price->desc,sales->desc,score->desc)
+    * @param filters            eg:Map("t89_s"->"一恒","t214_tf"->"[300 TO *]")  fq
+    * @param filterFieldsValues facet.field and facet.querys  eg: Map(
+    *                           "t89_s"=>null,
+    *                           "t214_tf"=>List("* TO 100","100 TO 200","200 TO *")
+    *                           )
+    * @param start              eg:0
+    * @param rows               eg:10
+    * @return FilterAttributeSearchResult
     */
-  def attributeFilterSearch(keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer,
-                            sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String],
-                            filterFieldsValues: java.util.Map[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer,
-                            categoryIds: java.util.List[Integer] = null,isComeFromSearch: Boolean = false): FilterAttributeSearchResult = {
-    if (catagoryId != null && cityId != null) {
+
+  def attributeFilterSearch(keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.Map[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, categoryIds: java.util.List[Integer] = null, isComeFromSearch: Boolean = false): FilterAttributeSearchResult = {
+    if (cityId != null) {
       val filterAttributeSearchResult = new FilterAttributeSearchResult()
 
       if (categoryIds != null && categoryIds.size() > 0) filterAttributeSearchResult.setCategoryIds(categoryIds)
@@ -799,8 +809,8 @@ object SearchInterface extends Logging with Configuration {
 
       query.addFilterQuery(fqGeneral)
 
-      if(!isComeFromSearch) //whether is come from category filter
-      query.addFilterQuery(fqCataId)
+      if (!isComeFromSearch) //whether is come from category filter
+        query.addFilterQuery(fqCataId)
 
 
 
@@ -1015,9 +1025,9 @@ object SearchInterface extends Logging with Configuration {
     *
     * @param catagoryId
     * @param cityId
-    * @param sorts   eg:Map(price->desc,sales->desc,score->desc)
+    * @param sorts eg:Map(price->desc,sales->desc,score->desc)
     * @param start eg:0
-    * @param rows eg:10
+    * @param rows  eg:10
     * @return java.util.List[Brand]
     */
   def searchBrandsByCatoryId(catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer): java.util.List[Brand] = {
@@ -1147,7 +1157,7 @@ object SearchInterface extends Logging with Configuration {
     *
     * @param keyWords search keyword
     * @param cityId
-    * @return  java.util.Map[java.lang.String,java.lang.Integer]   eg:Map("soledede"=>10004)  represent counts of document  the keywords  side in
+    * @return java.util.Map[java.lang.String,java.lang.Integer]   eg:Map("soledede"=>10004)  represent counts of document  the keywords  side in
     */
   def suggestByKeyWords(keyWords: java.lang.String, cityId: java.lang.Integer): java.util.Map[java.lang.String, java.lang.Integer] = {
 
@@ -1203,8 +1213,8 @@ object SearchInterface extends Logging with Configuration {
     */
   def getAttributeNameById(attributeId: String): String = {
     if (attributeId == null || attributeId.trim.equals("")) return null
-    if(attributeId.equals(generalFacetFieldCategory)) return "类别"
-    if(attributeId.equals(generalFacetFieldBrandId)) return "品牌"
+    if (attributeId.equals(generalFacetFieldCategory)) return "类别"
+    if (attributeId.equals(generalFacetFieldBrandId)) return "品牌"
     val attrCache = FilterAttribute.attrIdToattrName
     var attrName: String = null
     if (attrCache.contains(attributeId.trim)) {
@@ -1234,11 +1244,15 @@ object SearchInterface extends Logging with Configuration {
 
 object testSearchInterface {
   def main(args: Array[String]) {
+<<<<<<< HEAD
    // searchByKeywords
+=======
+    searchByKeywords
+>>>>>>> a754512b8876f1f310cfb7b287ca0d2ff46b65eb
 
 
     //testSearchFilterAttributeByCatagoryId
-     testAttributeFilterSearch
+    //testAttributeFilterSearch
 
     //testSearchBrandsByCatoryId
 
@@ -1267,9 +1281,9 @@ object testSearchInterface {
     //sorts.put("score", "desc")
     //  val result = SearchInterface.searchByKeywords("防护口罩", 456, sorts, 0, 10)
     //val result = SearchInterface.searchByKeywords("西格玛", 363, null, 0, 10)
-    val result = SearchInterface.searchByKeywords("3m", 363, null, 0, 10)
+    val result = SearchInterface.searchByKeywords("1234567", 363, null, 0, 10)
     val starTime = System.currentTimeMillis()
-   val result1 = SearchInterface.searchByKeywords("白板笔", 363, null, 0, 10)
+    val result1 = SearchInterface.searchByKeywords("白板笔", 363, null, 0, 10)
     val endTime = System.currentTimeMillis()
     println(result1)
     println(endTime - starTime)

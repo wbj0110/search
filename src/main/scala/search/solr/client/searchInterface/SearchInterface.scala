@@ -38,6 +38,11 @@ object SearchInterface extends Logging with Configuration {
   val generalFacetFieldBrandId = "brandId" //brand facet  Map(brandId->品牌)
 
 
+  //val keyWordsModel = s"(original:keyWord^50) OR (sku:keyWord^50) OR (brandZh:keyWord^200) OR (brandEn:keyWord^200) OR (sku:*keyWord*^11) OR (original:*keyWord*^10) OR (text:keyWord^2) OR (pinyin:keyWord^0.002)"
+  val keyWordsModel = s"(original:keyWord^50) OR (sku:keyWord^50) OR (brandZh:keyWord^200) OR (brandEn:keyWord^200) OR (sku:*keyWord*^11) OR (original:*keyWord*^10) OR (text:keyWord^2)"
+
+
+
   private def groupBucket(q: String, fq: String, json_facet: String): java.util.List[SimpleOrderedMap[java.lang.Object]] = {
     if (json_facet == null) return null
     val query: SolrQuery = new SolrQuery
@@ -796,16 +801,16 @@ object SearchInterface extends Logging with Configuration {
       var keyWord: String = null
       if (keyWords != null && !keyWords.trim.equalsIgnoreCase(""))
         keyWord = keyWords.trim.toLowerCase
-      var keyWordsModel = "*:*"
+      var keyWordsModels = "*:*"
       if (keyWord != null)
-        keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh:$keyWord^200) OR (brandEn:$keyWord^200) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
-
+       // keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh:$keyWord^200) OR (brandEn:$keyWord^200) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
+        keyWordsModels = keyWordsModel.replaceAll("keyWord",keyWord)
       val fqGeneral = s"(isRestrictedArea:0 OR cityId:$cityId)"
       val fqCataId = s"(categoryId1:$catagoryId OR categoryId2:$catagoryId OR categoryId3:$catagoryId OR categoryId4:$catagoryId)"
 
       val query: SolrQuery = new SolrQuery
       query.set("qt", "/select")
-      query.setQuery(keyWordsModel)
+      query.setQuery(keyWordsModels)
 
       query.addFilterQuery(fqGeneral)
 
@@ -867,7 +872,7 @@ object SearchInterface extends Logging with Configuration {
 
 
       //sort
-      query.addSort("score", SolrQuery.ORDER.desc)
+     // query.addSort("score", SolrQuery.ORDER.desc)
       if (sorts != null && sorts.size() > 0) {
         // eg:  query.addSort("price", SolrQuery.ORDER.desc)
         sorts.foreach { sortOrder =>
@@ -1125,17 +1130,17 @@ object SearchInterface extends Logging with Configuration {
   def countKeywordInDocs(keyword: Object, query: SolrQuery, cityId: java.lang.Integer): Int = {
     if (keyword != null) {
       val keyWord = keyword.toString.trim.toLowerCase
-      val keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh:$keyWord^200) OR (brandEn:$keyWord^200) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
-
+      //val keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh:$keyWord^200) OR (brandEn:$keyWord^200) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)
+      val keyWordsModels  = keyWordsModel.replaceAll("$keyWord",keyword.toString)
       val fq = s"isRestrictedArea:0 OR cityId:$cityId"
 
 
       query.set("qt", "/select")
-      query.setQuery(keyWordsModel)
+      query.setQuery(keyWordsModels)
       if (cityId != null) {
         query.setFilterQueries(fq)
       }
-      query.setQuery(keyWordsModel)
+      //query.setQuery(keyWordsModels)
       query.setRows(1)
       val r = solrClient.searchByQuery(query, defaultCollection)
       var result: QueryResponse = null
@@ -1273,16 +1278,24 @@ object testSearchInterface {
 
   def searchByKeywords = {
 
-    val sorts = new java.util.HashMap[java.lang.String, java.lang.String]
+    var sorts = new java.util.HashMap[java.lang.String, java.lang.String]
     sorts.put("price", "desc")
     //sorts.put("score", "desc")
     //  val result = SearchInterface.searchByKeywords("防护口罩", 456, sorts, 0, 10)
     //val result = SearchInterface.searchByKeywords("西格玛", 363, null, 0, 10)
-    val result = SearchInterface.searchByKeywords("1234567", 363, null, 0, 10)
+    //val result = SearchInterface.searchByKeywords("1234567", 363, null, 0, 10)
     val starTime = System.currentTimeMillis()
-    val result1 = SearchInterface.searchByKeywords("白板笔", 363, null, 0, 10)
+   // val result1 = SearchInterface.searchByKeywords("西格玛", 363, null, 0, 10)
+    //val result2 = SearchInterface.searchByKeywords("LAA001", 363, null, 0, 10)
+    val result3 = SearchInterface.searchByKeywords("西格玛", 363, sorts, 0, 10)
+    sorts = new java.util.HashMap[java.lang.String, java.lang.String]
+    sorts.put("price","asc")
+    val result4 = SearchInterface.searchByKeywords("西格玛", 363, sorts, 0, 10)
+    val result5 = SearchInterface.searchByKeywords("3m", 363, sorts, 0, 10)
+
+    val result6 = SearchInterface.searchByKeywords("LAA001", 363, sorts, 0, 10)
     val endTime = System.currentTimeMillis()
-    println(result1)
+    println(result3)
     println(endTime - starTime)
   }
 

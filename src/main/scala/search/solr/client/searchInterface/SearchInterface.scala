@@ -761,7 +761,10 @@ object SearchInterface extends Logging with Configuration {
     * @param rows eg:10
     * @return   FilterAttributeSearchResult
     */
-  def attributeFilterSearch(keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.Map[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, categoryIds: java.util.List[Integer] = null,isComeFromSearch: Boolean = false): FilterAttributeSearchResult = {
+  def attributeFilterSearch(keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer,
+                            sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String],
+                            filterFieldsValues: java.util.Map[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer,
+                            categoryIds: java.util.List[Integer] = null,isComeFromSearch: Boolean = false): FilterAttributeSearchResult = {
     if (catagoryId != null && cityId != null) {
       val filterAttributeSearchResult = new FilterAttributeSearchResult()
 
@@ -1231,7 +1234,7 @@ object SearchInterface extends Logging with Configuration {
 
 object testSearchInterface {
   def main(args: Array[String]) {
-    //searchByKeywords
+   // searchByKeywords
 
 
     //testSearchFilterAttributeByCatagoryId
@@ -1346,6 +1349,8 @@ object testSearchInterface {
 
     val result = SearchInterface.attributeFilterSearch(null, 521, 321, null, null, null, null, null, true)
     val result1 = SearchInterface.attributeFilterSearch(null, 521, 321, null, filters1, filterFieldsValues1, 0, 10, false)
+
+    val result2 = SearchInterface.attributeFilterSearch("优特", -1, 321, sorts, null, filterFieldsValues, 0, 10, null,true)
     println(result)
   }
 

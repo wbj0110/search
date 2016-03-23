@@ -12,6 +12,7 @@ object Producter extends Logging with Configuration {
 
   val separator = "-"
   val DELETE = "delete"
+  val DELETE_BY_QUERY = "delquery"
 
 
   def send(startUpdateTime: Long, endUpdataTime: Long, totalNum: Int): Boolean = {
@@ -37,14 +38,14 @@ object Producter extends Logging with Configuration {
     * @param endUpdataTime
     * @param totalNum
     * eg: mergescloud-2343433212-234343211-34
-    *     mergescloud-1456329600-1456477928-1
-    *     mergescloud-null-null-740670
-    *     mergescloud_test-null-null-670376
-    *     mergescloud-null-null-20
-    *     screencloud-null-null-25468
-    *     screencloud_test-null-null-27174
+    * mergescloud-1456329600-1456477928-1
+    * mergescloud-null-null-740670
+    * mergescloud_test-null-null-670376
+    * mergescloud-null-null-20
+    * screencloud-null-null-25468
+    * screencloud_test-null-null-27174
     *
-    *     bin/kafka-console-producer.sh --broker-list 121.40.54.54:9092 --topic indexManagesTest
+    * bin/kafka-console-producer.sh --broker-list 121.40.54.54:9092 --topic indexManagesTest
     * @return
     */
   def send(collection: String, startUpdateTime: Long, endUpdataTime: Long, totalNum: Int): Boolean = {
@@ -58,15 +59,15 @@ object Producter extends Logging with Configuration {
     * @param minUpdateTime
     * @param totalNum
     * eg:mergescloud-234343211-34
-    *    screencloud-234343211-34
-    *    mergescloud-1456329600-10
-    *    mergescloud-1456219967513-297840
-    *    mergescloud-1455960816240-715520
-    *    mergescloud-1457286099000-1
-    *    screencloud-1456329600-10
+    * screencloud-234343211-34
+    * mergescloud-1456329600-10
+    * mergescloud-1456219967513-297840
+    * mergescloud-1455960816240-715520
+    * mergescloud-1457286099000-1
+    * screencloud-1456329600-10
     * @return
     */
-  def send(collection: String, minUpdateTime: Long, totalNum: Int) = {
+  def send(collection: String, minUpdateTime: Long, totalNum: Int): Boolean = {
     logInfo(s"sendMessage-collection:$collection-minUpdateTime:$minUpdateTime-totalNum:$totalNum")
     if (MessageQueue().sendMsg(collection + separator + minUpdateTime + separator + totalNum)) true
     else false
@@ -78,9 +79,9 @@ object Producter extends Logging with Configuration {
     * @param id
     * delete single id
     * eg: mergescloud-delete-100429
-    *     screencloud-delete-1003484_t87_s
+    * screencloud-delete-1003484_t87_s
     */
-  def delete(collection: String, id: String) = {
+  def delete(collection: String, id: String): Boolean = {
     logInfo(s"deleteMessage-collection:$collection-id:$id")
     if (MessageQueue().sendMsg(collection + separator + DELETE + separator + id)) true
     else false
@@ -93,7 +94,7 @@ object Producter extends Logging with Configuration {
     * eg:mergescloud-delete-109432-1003435-2562234
     * screencloud-delete-109432-1003435-2562234
     */
-  def delete(collection: String, ids: java.util.List[String]) = {
+  def delete(collection: String, ids: java.util.List[String]): Boolean = {
     val idMsg = new StringBuilder()
     if (ids != null && ids.size() > 0) {
       ids.foreach(idMsg.append(_).append(separator))
@@ -102,6 +103,12 @@ object Producter extends Logging with Configuration {
       if (MessageQueue().sendMsg(collection + separator + DELETE + separator + idMsg.toString())) true
       else false
     } else false
+  }
+
+  def deleteAll(collection: String): Boolean = {
+    val query = "*:*"
+    if (MessageQueue().sendMsg(collection + separator + DELETE_BY_QUERY + separator + query)) true
+    else false
   }
 
 

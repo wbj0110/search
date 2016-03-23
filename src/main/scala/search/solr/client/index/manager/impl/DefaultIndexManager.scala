@@ -73,7 +73,16 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
       else if (msgArray(1).trim.equals(Producter.DELETE)) {
         //command delete index
         logInfo(s"recieveDeleteMessage-$message")
+        indexOrDelteData(msgArray, msgArray(0))
         obj = msgArray
+
+      } else if (msgArray(1).trim.equals(Producter.DELETE_BY_QUERY)) {
+        //command delete index by query
+        logInfo(s"recieveDeleteMessage-$message")
+        val query = msgArray(2)
+        if (query != null && !query.equalsIgnoreCase(""))
+          deleteByQuery(query, msgArray(0))
+        //obj = msgArray
       } else {
         //add or update index
         if (msgArray.length == 3) {
@@ -145,7 +154,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
           //the last pages
           if (more > 0) paremeters("rows") = more.toString
           else paremeters("rows") = pageSize.toString
-        }else paremeters("rows") = pageSize.toString
+        } else paremeters("rows") = pageSize.toString
         logInfo(s"request url${i + 1} $url,\t parameters:start=${paremeters("start")},rows=${paremeters("rows")}")
 
         requestHttp(collection, url, HttpRequestMethodType.POST, paremeters, callback)
@@ -191,7 +200,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
             logInfo(s"response size:${dataJsonNode.get("data").size()}")
           }
         }
-        indexOrDelteData
+        indexOrDelteData(obj, collection)
       } catch {
         case ex: Exception =>
           logError(s"json pase faield:data:${responseData}", ex)
@@ -199,44 +208,46 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
     }
 
 
-    def indexOrDelteData: Unit = {
-      val xmlBool = geneXml(obj, collection)
-      if (xmlBool != null) {
-        indexesData(collection, xmlBool)
-        /*if (xmlBool.isInstanceOf[util.ArrayList[String]]) {
-          deleteIndexData(collection, xmlBool)
-        }
-        else {
-          indexData(collection, xmlBool)
-        }*/
-      }
-    }
-    /**
-      * index data
-      *
-      * @param collection
-      * @param xmlBool
-      */
-    def indexesData(collection: java.lang.String, xmlBool: AnyRef): Unit = {
-      try {
-        val indexDatas = xmlBool.asInstanceOf[java.util.ArrayList[java.util.Map[java.lang.String, Object]]]
-        indexDatas(0).asInstanceOf[java.util.Map[java.lang.String, Object]]
-        if (indexData(indexDatas, collection)) logInfo(" index success!")
-        else {
-          logError("index faield!Ids:")
-          indexDatas.foreach { doc =>
-            logInfo(s"index faield id:\t${doc.get("id")}")
-          }
-        }
-      } catch {
-        case castEx: java.lang.ClassCastException =>
-          deleteIndexData(collection, xmlBool)
-        // case e: Exception => logError("index faield", e)
-      }
+  }
 
+
+  def indexOrDelteData(obj: AnyRef, collection: String): Unit = {
+    val xmlBool = geneXml(obj, collection)
+    if (xmlBool != null) {
+      indexesData(collection, xmlBool)
+      /*if (xmlBool.isInstanceOf[util.ArrayList[String]]) {
+      deleteIndexData(collection, xmlBool)
+    }
+    else {
+      indexData(collection, xmlBool)
+    }*/
     }
   }
 
+  /**
+    * index data
+    *
+    * @param collection
+    * @param xmlBool
+    */
+  def indexesData(collection: java.lang.String, xmlBool: AnyRef): Unit = {
+    try {
+      val indexDatas = xmlBool.asInstanceOf[java.util.ArrayList[java.util.Map[java.lang.String, Object]]]
+      indexDatas(0).asInstanceOf[java.util.Map[java.lang.String, Object]]
+      if (indexData(indexDatas, collection)) logInfo(" index success!")
+      else {
+        logError("index faield!Ids:")
+        indexDatas.foreach { doc =>
+          logInfo(s"index faield id:\t${doc.get("id")}")
+        }
+      }
+    } catch {
+      case castEx: java.lang.ClassCastException =>
+        deleteIndexData(collection, xmlBool)
+      // case e: Exception => logError("index faield", e)
+    }
+
+  }
 
   def requestHttp(collection: String, url: String, requestType: HttpRequestMethodType.Type, paremeters: mutable.Map[String, String], callback: (HttpContext, HttpResponse) => Unit): Unit = {
     val request = HttpRequstUtil.createRequest(requestType, url)
@@ -446,6 +457,11 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
   override def delete(ids: java.util.ArrayList[java.lang.String], collection: String): Boolean = {
     val r = solrClient.delete(ids, collection)
     //solrClient.close()
+    r
+  }
+
+  private def deleteByQuery(query: String, collection: String): Boolean = {
+    val r = solrClient.deleteByQuery(query, collection)
     r
   }
 

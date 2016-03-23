@@ -8,6 +8,7 @@ import scala.reflect.ClassTag
   * Created by soledede on 2015/11/16.
   */
 private[search] trait SolrClient {
+  def deleteByQuery(query: String, collection: String): Boolean = false
 
   def searchByQuery[T: ClassTag](query: T,collection:String = "searchcloud"): AnyRef = null
 

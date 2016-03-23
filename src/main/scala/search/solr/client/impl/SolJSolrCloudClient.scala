@@ -129,6 +129,18 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
   }
 
 
+  override def deleteByQuery(query: String, collection: String): Boolean = {
+    try {
+      server.deleteByQuery(collection, query)
+      server.commit(collection)
+      true
+    } catch {
+      case e: Exception =>
+        logError("deleteById index faield", e)
+        false
+    }
+  }
+
   override def delete(list: util.ArrayList[String], collection: String = "searchcloud"): Boolean = {
     try {
       server.deleteById(collection, list)

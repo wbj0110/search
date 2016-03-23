@@ -82,10 +82,10 @@ object SearchInterface extends Logging with Configuration {
     * @return
     */
   private def getCategoryIds(keyWords: java.lang.String, cityId: java.lang.Integer, field: String): util.List[Integer] = {
-    var keyWordsModel = "*:*"
+    var keyWordsModels = "*:*"
     if (keyWords != null) {
       val keyWord = keyWords.trim.toLowerCase
-      keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh:$keyWord^200) OR (brandEn:$keyWord^200) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
+      keyWordsModels = keyWordsModel.replaceAll("keyWord",keyWords)
     }
 
     val fq = s"isRestrictedArea:0 OR cityId:$cityId"
@@ -93,7 +93,7 @@ object SearchInterface extends Logging with Configuration {
     var jsonFacet = s"{categories:{type:terms,field:$field,limit:100,sort:{count:desc}}}"
     jsonFacet = jsonFacet.replaceAll(":", "\\:")
 
-    val categoryResultMap = groupBucket(keyWordsModel, fq, jsonFacet)
+    val categoryResultMap = groupBucket(keyWordsModels, fq, jsonFacet)
     var categoryIds: util.List[Integer] = null
     if (categoryResultMap != null) {
       categoryIds = new util.ArrayList[Integer]()

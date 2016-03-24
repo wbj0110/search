@@ -7,6 +7,7 @@ import org.apache.solr.client.solrj.impl.HttpSolrClient.RemoteSolrException
 import org.apache.solr.client.solrj.impl.{BinaryRequestWriter, CloudSolrClient}
 import org.apache.solr.client.solrj.response.QueryResponse
 import org.apache.solr.common.SolrInputDocument
+import search.solr.client.config.Configuration
 import search.solr.client.util.Logging
 import search.solr.client.{SolrClient, SolrClientConf}
 
@@ -16,7 +17,7 @@ import scala.reflect.ClassTag
 /**
   * Created by soledede on 2015/11/16.
   */
-private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends SolrClient with Logging {
+private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends SolrClient with Logging  {
   val server: CloudSolrClient = SolJSolrCloudClient.singleCloudInstance(conf)
 
   override def searchByQuery[T: ClassTag](query: T, collection: String = "searchcloud"): AnyRef = {
@@ -160,7 +161,7 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
 }
 
 
-object SolJSolrCloudClient {
+object SolJSolrCloudClient extends Configuration{
 
   val lockSearch = new Object
   val lockKwSearch = new Object
@@ -179,8 +180,9 @@ object SolJSolrCloudClient {
     if (server == null) {
       lockSearch.synchronized {
         if (server == null) {
-          val zkHostString: String = conf.get("solrj.zk", "solr1:3213,solr2:3213,solr3:3213/solr")
-          server = new CloudSolrClient(zkHostString)
+         // val zkHostString: String = conf.get("solrj.zk", "solr1:3213,solr2:3213,solr3:3213/solr")
+          //server = new CloudSolrClient(zkHostString)
+          server = new CloudSolrClient(s"$zk/solr")
           server.setDefaultCollection(conf.get("solrj.collection", "searchcloud"))
           server.setZkConnectTimeout(conf.getInt("solrj.zkConnectTimeout", 60000))
           server.setZkClientTimeout(conf.getInt("solrj.zkClientTimeout", 60000))

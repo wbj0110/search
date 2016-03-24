@@ -41,7 +41,7 @@ object Producter extends Logging with Configuration {
     * mergescloud-1456329600-1456477928-1
     * mergescloud-null-null-740670
     * mergescloud_test-null-null-670376
-    * mergescloud-null-null-20
+    * mergescloud-null-null-5
     * screencloud-null-null-25468
     * screencloud_test-null-null-27174
     *
@@ -123,5 +123,15 @@ object Producter extends Logging with Configuration {
     logInfo(s"customSendMessage-message:$msg")
     if (MessageQueue().sendMsg(msg)) true
     else false
+  }
+}
+
+object  testProducter{
+  def main(args: Array[String]) {
+    testeleteAll
+  }
+
+  def testeleteAll()={
+    Producter.deleteAll("mergescloud")
   }
 }

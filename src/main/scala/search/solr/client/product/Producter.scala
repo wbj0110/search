@@ -105,7 +105,15 @@ object Producter extends Logging with Configuration {
     } else false
   }
 
-  def deleteAll(collection: String): Boolean = {
+  //test dev env
+  /*def deleteAll(collection: String): Boolean = {
+    val query = "*:*"
+    if (MessageQueue().sendMsg(collection + separator + DELETE_BY_QUERY + separator + query)) true
+    else false
+  }*/
+
+  //product env
+  private def deleteAll(collection: String): Boolean = {
     val query = "*:*"
     if (MessageQueue().sendMsg(collection + separator + DELETE_BY_QUERY + separator + query)) true
     else false
@@ -126,12 +134,12 @@ object Producter extends Logging with Configuration {
   }
 }
 
-object  testProducter{
+object testProducter {
   def main(args: Array[String]) {
     testeleteAll
   }
 
-  def testeleteAll()={
+  def testeleteAll() = {
     Producter.deleteAll("mergescloud")
   }
 }

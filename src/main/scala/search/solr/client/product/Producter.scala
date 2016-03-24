@@ -39,11 +39,13 @@ object Producter extends Logging with Configuration {
     * @param totalNum
     * eg: mergescloud-2343433212-234343211-34
     * mergescloud-1456329600-1456477928-1
-    * mergescloud-null-null-740670
-    * mergescloud_test-null-null-670376
-    * mergescloud-null-null-5
+    * mergescloud-null-null-3
+    * mergescloud_test-null-null-772554
+    * mergescloud-null-null-772554
     * screencloud-null-null-25468
     * screencloud_test-null-null-27174
+    * mergescloud_prod-null-null-772554
+    * screencloud_prod-null-null-9286
     *
     * bin/kafka-console-producer.sh --broker-list 121.40.54.54:9092 --topic indexManagesTest
     * @return
@@ -106,19 +108,19 @@ object Producter extends Logging with Configuration {
   }
 
   //test dev env
-  /*def deleteAll(collection: String): Boolean = {
-    val query = "*:*"
-    if (MessageQueue().sendMsg(collection + separator + DELETE_BY_QUERY + separator + query)) true
-    else false
-  }*/
-
-  //product env
-  private def deleteAll(collection: String): Boolean = {
+  def deleteAll(collection: String): Boolean = {
     val query = "*:*"
     if (MessageQueue().sendMsg(collection + separator + DELETE_BY_QUERY + separator + query)) true
     else false
   }
 
+  //product env
+  /*private def deleteAll(collection: String): Boolean = {
+    val query = "*:*"
+    if (MessageQueue().sendMsg(collection + separator + DELETE_BY_QUERY + separator + query)) true
+    else false
+  }
+*/
 
   /**
     *
@@ -132,14 +134,20 @@ object Producter extends Logging with Configuration {
     if (MessageQueue().sendMsg(msg)) true
     else false
   }
-}
 
-object testProducter {
   def main(args: Array[String]) {
     testeleteAll
+    //testSend
   }
 
   def testeleteAll() = {
     Producter.deleteAll("mergescloud")
   }
+
+  def testSend()={
+    //Producter.send("mergescloud",0L,0L,5)
+    Producter.send("screencloud",0L,0L,5)
+  }
+
 }
+

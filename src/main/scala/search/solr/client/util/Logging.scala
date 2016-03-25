@@ -9,7 +9,9 @@ import org.slf4j.{LoggerFactory, Logger}
   * Created by soledede on 2015/11/23.
   */
 trait Logging {
-  @transient private var log_ : Logger = null
+  //@transient private var log_ : Logger = null
+  @transient private var log_ : Logger = LoggerFactory.getLogger(logName)  //solve the problem of covered by this when somebody invoke this jar pacakge
+
 
   protected def logName = {
     this.getClass.getName.stripSuffix("$")

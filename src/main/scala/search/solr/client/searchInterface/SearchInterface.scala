@@ -1364,7 +1364,7 @@ object testSearchInterface {
     val result4 = SearchInterface.searchByKeywords("mergescloud","screencloud","西格玛", 363, sorts, 0, 10)
     val result5 = SearchInterface.searchByKeywords("mergescloud","screencloud","3m", 363, sorts, 0, 10)
 
-    val result6 = SearchInterface.searchByKeywords("mergescloud","screencloud","LAA001", 363, sorts, 0, 10)
+    val result6 = SearchInterface.searchByKeywords("mergescloud","screencloud","LAA00s1", 363, sorts, 0, 10)
     val endTime = System.currentTimeMillis()
     println(result3)
     println(endTime - starTime)

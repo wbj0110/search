@@ -44,7 +44,7 @@ object Producter extends Logging with Configuration {
     * mergescloud-null-null-772554
     * screencloud-null-null-25468
     * screencloud_test-null-null-27174
-    * mergescloud_prod-null-null-772554
+    * mergescloud_prod-null-null-67064
     * screencloud_prod-null-null-9286
     *
     * bin/kafka-console-producer.sh --broker-list 121.40.54.54:9092 --topic indexManagesTest
@@ -136,17 +136,18 @@ object Producter extends Logging with Configuration {
   }
 
   def main(args: Array[String]) {
-    testeleteAll
-    //testSend
+   // testeleteAll
+    testSend
   }
 
   def testeleteAll() = {
-    Producter.deleteAll("mergescloud")
+   // Producter.deleteAll("mergescloud")
+    Producter.deleteAll("screencloud")
   }
 
   def testSend()={
     //Producter.send("mergescloud",0L,0L,5)
-    Producter.send("screencloud",0L,0L,5)
+    Producter.send("screencloud",0L,0L,9286)
   }
 
 }

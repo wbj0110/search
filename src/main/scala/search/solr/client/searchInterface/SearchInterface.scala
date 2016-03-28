@@ -38,8 +38,8 @@ object SearchInterface extends Logging with Configuration {
   val generalFacetFieldBrandId = "brandId" //brand facet  Map(brandId->品牌)
 
 
-  //val keyWordsModel = s"(original:keyWord^50) OR (sku:keyWord^50) OR (brandZh:keyWord^200) OR (brandEn:keyWord^200) OR (sku:*keyWord*^11) OR (original:*keyWord*^10) OR (text:keyWord^2) OR (pinyin:keyWord^0.002)"
-  val keyWordsModel = s"(original:keyWord^50) OR (sku:keyWord^50) OR (brandZh:keyWord^200) OR (brandEn:keyWord^200) OR (sku:*keyWord*^11) OR (original:*keyWord*^10) OR (text:keyWord^2)"
+  val keyWordsModelPinyin = s"(original:keyWord^50) OR (sku:keyWord^50) OR (brandZh:keyWord^200) OR (brandEn:keyWord^200) OR (sku:*keyWord*^11) OR (original:*keyWord*^10) OR (text:keyWord^2) OR (pinyin:keyWord^0.002)"
+  val keyWordsModel =       s"(original:keyWord^50) OR (sku:keyWord^50) OR (brandZh:keyWord^200) OR (brandEn:keyWord^200) OR (sku:*keyWord*^11) OR (original:*keyWord*^10) OR (text:keyWord^2)"
 
 
 
@@ -67,14 +67,16 @@ object SearchInterface extends Logging with Configuration {
     var filterAttributeSearchResult: FilterAttributeSearchResult = null
     var field = "categoryId4"
     var categoryIds: util.List[Integer] = getCategoryIds(collection,keyWords, cityId, field)
+    var categoryId = -1
     if (categoryIds != null && categoryIds.size() > 0) {
-      val categoryId = categoryIds.get(0)
+      categoryId = categoryIds.get(0)
       filterAttributeSearchResult = searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection,attrCollection,categoryId, cityId, keyWords, sorts, start, rows, categoryIds,true)
       if (filterAttributeSearchResult != null && filterAttributeSearchResult.getFilterAttributes == null) {
         field = "categoryId3"
         filterAttributeSearchResult = searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection,attrCollection,categoryId, cityId, keyWords, sorts, start, rows, categoryIds,true)
       }
-    }
+    }else filterAttributeSearchResult = searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection,attrCollection,-1, cityId, keyWords, sorts, start, rows, categoryIds,true)
+
     filterAttributeSearchResult
   }
 
@@ -297,7 +299,11 @@ object SearchInterface extends Logging with Configuration {
       var keyWordsModels = "*:*"
       if (keyWord != null)
        // keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh:$keyWord^200) OR (brandEn:$keyWord^200) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
+      if(Util.regex(keyWords,"(^[a-zA-Z]+$)")){
+        keyWordsModels = keyWordsModelPinyin.replaceAll("keyWord",keyWord)
+      }else
         keyWordsModels = keyWordsModel.replaceAll("keyWord",keyWord)
+
       val fqGeneral = s"(isRestrictedArea:0 OR cityId:$cityId)"
       val fqCataId = s"(categoryId1:$catagoryId OR categoryId2:$catagoryId OR categoryId3:$catagoryId OR categoryId4:$catagoryId)"
 
@@ -764,8 +770,12 @@ object SearchInterface extends Logging with Configuration {
     var keyWordsModels = "*:*"
     if (keyWords != null) {
       val keyWord = keyWords.trim.toLowerCase
+      if(Util.regex(keyWords,"(^[a-zA-Z]+$)")){
+        keyWordsModels = keyWordsModelPinyin.replaceAll("keyWord",keyWord)
+      }else
       keyWordsModels = keyWordsModel.replaceAll("keyWord",keyWord)
     }
+
 
     val fq = s"isRestrictedArea:0 OR cityId:$cityId"
 
@@ -1162,6 +1172,7 @@ object SearchInterface extends Logging with Configuration {
     * @return
     */
   private def searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection: String =defaultCollection,attrCollection: String = defaultAttrCollection,catagoryId: java.lang.Integer, cityId: java.lang.Integer, keywords: String, sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer, categoryIds: java.util.List[Integer] = null,isCameFromSearch: Boolean=true): FilterAttributeSearchResult = {
+    var filterAttributeSearchResult: FilterAttributeSearchResult = null
     if (catagoryId != null && cityId != null) {
       val q = s"catid_s:$catagoryId"
 
@@ -1181,7 +1192,7 @@ object SearchInterface extends Logging with Configuration {
       if (r != null) result = r.asInstanceOf[QueryResponse]
       val resultSearch = getSearchResult(result, null) //get response result
 
-      var filterAttributeSearchResult: FilterAttributeSearchResult = null
+
 
 
       if (resultSearch != null) {
@@ -1228,10 +1239,12 @@ object SearchInterface extends Logging with Configuration {
         filterAttributeSearchResult = attributeFilterSearch(collection,keywords, catagoryId, cityId, sorts, null, filterFieldsValues, start, rows, categoryIds, isCameFromSearch)
       }
 
-      if (filterAttributeSearchResult == null) return null
-      else return filterAttributeSearchResult
+       filterAttributeSearchResult
 
-    } else null
+    } else{
+      filterAttributeSearchResult = attributeFilterSearch(collection,keywords, catagoryId, cityId, sorts, null, null, start, rows, categoryIds, isCameFromSearch)
+      filterAttributeSearchResult
+    }
   }
 
 
@@ -1323,11 +1336,11 @@ object SearchInterface extends Logging with Configuration {
 object testSearchInterface {
   def main(args: Array[String]) {
 
-    searchByKeywords
+     searchByKeywords
 
 
     //testSearchFilterAttributeByCatagoryId
-    testAttributeFilterSearch
+    //testAttributeFilterSearch
 
     //testSearchBrandsByCatoryId
 
@@ -1363,7 +1376,8 @@ object testSearchInterface {
     val result3 = SearchInterface.searchByKeywords("mergescloud","screencloud","maj", 363, sorts, 0, 10)
     sorts = new java.util.HashMap[java.lang.String, java.lang.String]
     sorts.put("price","asc")
-    val result4 = SearchInterface.searchByKeywords("mergescloud","screencloud","西格玛", 363, sorts, 0, 10)
+    val result4 = SearchInterface.searchByKeywords("mergescloud","screencloud","西格玛", 363, null, 0, 10)
+    val result4_1 = SearchInterface.searchByKeywords("mergescloud","screencloud","xigema", 363, null, 0, 10)
     val result5 = SearchInterface.searchByKeywords("mergescloud","screencloud","3m", 363, sorts, 0, 10)
 
     val result6 = SearchInterface.searchByKeywords("mergescloud","screencloud","LAA00s1", 363, sorts, 0, 10)
@@ -1536,6 +1550,12 @@ object testSearchInterface {
       val v1 = value.charAt(0).toUpper + value.substring(1)
       val v2 = value.charAt(0).toLower + value.substring(1)
       println(v1 + "=" + v2)
+    }
+    val keyWords = "h的elloword"
+    if(Util.regex(keyWords,"(^[a-zA-Z]+$)")){
+      println("英文或拼音")
+    }else {
+      println("非拼音或英文")
     }
   }
 

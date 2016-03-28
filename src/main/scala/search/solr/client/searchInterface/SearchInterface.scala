@@ -75,7 +75,7 @@ object SearchInterface extends Logging with Configuration {
         field = "categoryId3"
         filterAttributeSearchResult = searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection,attrCollection,categoryId, cityId, keyWords, sorts, start, rows, categoryIds,true)
       }
-    }else filterAttributeSearchResult = searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection,attrCollection,-1, cityId, keyWords, sorts, start, rows, categoryIds,true)
+    }else filterAttributeSearchResult = searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection,attrCollection,null, cityId, keyWords, sorts, start, rows, categoryIds,true)
 
     filterAttributeSearchResult
   }
@@ -1173,7 +1173,7 @@ object SearchInterface extends Logging with Configuration {
     */
   private def searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection: String =defaultCollection,attrCollection: String = defaultAttrCollection,catagoryId: java.lang.Integer, cityId: java.lang.Integer, keywords: String, sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer, categoryIds: java.util.List[Integer] = null,isCameFromSearch: Boolean=true): FilterAttributeSearchResult = {
     var filterAttributeSearchResult: FilterAttributeSearchResult = null
-    if (catagoryId != null && cityId != null) {
+    if (catagoryId != null && cityId != null && catagoryId != -1) {
       val q = s"catid_s:$catagoryId"
 
       val fl = "filterId_s,attDescZh_s,range_s"
@@ -1373,7 +1373,7 @@ object testSearchInterface {
     val starTime = System.currentTimeMillis()
    // val result1 = SearchInterface.searchByKeywords("西格玛", 363, null, 0, 10)
     //val result2 = SearchInterface.searchByKeywords("LAA001", 363, null, 0, 10)
-    val result3 = SearchInterface.searchByKeywords("mergescloud","screencloud","maj", 363, sorts, 0, 10)
+    val result3 = SearchInterface.searchByKeywords("mergescloud","screencloud","MGJ796", 363, sorts, 0, 10)
     sorts = new java.util.HashMap[java.lang.String, java.lang.String]
     sorts.put("price","asc")
     val result4 = SearchInterface.searchByKeywords("mergescloud","screencloud","西格玛", 363, null, 0, 10)

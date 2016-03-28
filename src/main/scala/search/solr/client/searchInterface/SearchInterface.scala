@@ -764,7 +764,7 @@ object SearchInterface extends Logging with Configuration {
     var keyWordsModels = "*:*"
     if (keyWords != null) {
       val keyWord = keyWords.trim.toLowerCase
-      keyWordsModels = keyWordsModel.replaceAll("keyWord",keyWords)
+      keyWordsModels = keyWordsModel.replaceAll("keyWord",keyWord)
     }
 
     val fq = s"isRestrictedArea:0 OR cityId:$cityId"
@@ -1323,15 +1323,15 @@ object SearchInterface extends Logging with Configuration {
 object testSearchInterface {
   def main(args: Array[String]) {
 
-   // searchByKeywords
+    searchByKeywords
 
 
     //testSearchFilterAttributeByCatagoryId
-    //testAttributeFilterSearch
+    testAttributeFilterSearch
 
     //testSearchBrandsByCatoryId
 
-     testSuggestByKeyWords
+    // testSuggestByKeyWords
 
     //testRecordSearchLog
 
@@ -1360,7 +1360,7 @@ object testSearchInterface {
     val starTime = System.currentTimeMillis()
    // val result1 = SearchInterface.searchByKeywords("西格玛", 363, null, 0, 10)
     //val result2 = SearchInterface.searchByKeywords("LAA001", 363, null, 0, 10)
-    val result3 = SearchInterface.searchByKeywords("mergescloud","screencloud","西格玛", 363, sorts, 0, 10)
+    val result3 = SearchInterface.searchByKeywords("mergescloud","screencloud","maj", 363, sorts, 0, 10)
     sorts = new java.util.HashMap[java.lang.String, java.lang.String]
     sorts.put("price","asc")
     val result4 = SearchInterface.searchByKeywords("mergescloud","screencloud","西格玛", 363, sorts, 0, 10)
@@ -1411,7 +1411,7 @@ object testSearchInterface {
     filters.put("t89_s", "Memmert <-> honeywell")
     filters.put("t87_tf", "[0 TO *}")
 
-    val filterFieldsValues = new util.HashMap[java.lang.String, util.List[java.lang.String]]()
+    var filterFieldsValues = new util.HashMap[java.lang.String, util.List[java.lang.String]]()
     filterFieldsValues.put("t89_s", null)
     val rangeList = new util.ArrayList[String]()
     rangeList.add("[* TO 0}")
@@ -1431,7 +1431,7 @@ object testSearchInterface {
     // filters1.put("da_2306_s", "附锁型")
     //filters1.put("da_2178_s", "二位三通")
 
-    val filterFieldsValues1 = new util.HashMap[java.lang.String, util.List[java.lang.String]]()
+    var filterFieldsValues1 = new util.HashMap[java.lang.String, util.List[java.lang.String]]()
     filterFieldsValues1.put("da_1385_s", null)
     filterFieldsValues1.put("da_2178_s", null)
     filterFieldsValues1.put("da_2306_s", null)
@@ -1450,9 +1450,11 @@ object testSearchInterface {
     val result1 = SearchInterface.attributeFilterSearch("mergescloud","screencloud",null, 521, 321, null, filters1, filterFieldsValues1, 0, 10, false)
 
     filters1 =   new java.util.HashMap[java.lang.String, java.lang.String]()
-    filters1.put("da_2955_s",null)
-    filters1.put("brandId","323")
-    val result2 = SearchInterface.attributeFilterSearch("mergescloud","优特", -1, 321, sorts, filters1, filterFieldsValues, 0, 10, null,true)
+    //filters1.put("da_2955_s",null)
+    filters1.put("brandId","203")
+    filterFieldsValues = new util.HashMap[java.lang.String, util.List[java.lang.String]]()
+    filterFieldsValues.put("brandId",null)
+    val result2 = SearchInterface.attributeFilterSearch("mergescloud","大", -1, 321, sorts, filters1, filterFieldsValues, 0, 10, null,true)
 
 
 

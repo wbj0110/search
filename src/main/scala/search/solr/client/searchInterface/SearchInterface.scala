@@ -1365,7 +1365,8 @@ object testSearchInterface {
   def searchByKeywords = {
 
     var sorts = new java.util.HashMap[java.lang.String, java.lang.String]
-    sorts.put("price", "desc")
+    //sorts.put("price", "desc")
+    sorts.put("price", "asc")
     //sorts.put("score", "desc")
     //  val result = SearchInterface.searchByKeywords("防护口罩", 456, sorts, 0, 10)
     //val result = SearchInterface.searchByKeywords("西格玛", 363, null, 0, 10)
@@ -1373,7 +1374,7 @@ object testSearchInterface {
     val starTime = System.currentTimeMillis()
    // val result1 = SearchInterface.searchByKeywords("西格玛", 363, null, 0, 10)
     //val result2 = SearchInterface.searchByKeywords("LAA001", 363, null, 0, 10)
-    val result3 = SearchInterface.searchByKeywords("mergescloud","screencloud","MGJ796", 363, sorts, 0, 10)
+    val result3 = SearchInterface.searchByKeywords("mergescloud","screencloud","博世", 363, sorts, 0, 10)
     sorts = new java.util.HashMap[java.lang.String, java.lang.String]
     sorts.put("price","asc")
     val result4 = SearchInterface.searchByKeywords("mergescloud","screencloud","西格玛", 363, null, 0, 10)

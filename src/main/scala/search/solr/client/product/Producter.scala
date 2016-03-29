@@ -141,13 +141,13 @@ object Producter extends Logging with Configuration {
   }
 
   def testeleteAll() = {
-   // Producter.deleteAll("mergescloud")
-    Producter.deleteAll("screencloud")
+   Producter.deleteAll("mergescloud_prod")
+    Producter.deleteAll("screencloud_prod")
   }
 
   def testSend()={
-    //Producter.send("mergescloud",0L,0L,5)
-    Producter.send("screencloud",0L,0L,9286)
+    Producter.send("mergescloud_prod ",0L,0L,5)
+    Producter.send("screencloud_prod",0L,0L,9286)
   }
 
 }

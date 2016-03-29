@@ -395,8 +395,11 @@ object SearchInterface extends Logging with Configuration {
 
 
       //facet for category and brandId
-      query.addFacetField(generalFacetFieldCategory)
-      query.addFacetField(generalFacetFieldBrandId)
+
+      if(isComeFromSearch) {  //just for search
+        query.addFacetField(generalFacetFieldCategory)
+        query.addFacetField(generalFacetFieldBrandId)
+      }
 
       if (filterFieldsValues != null && filterFieldsValues.size() > 0) {
         filterFieldsValues.foreach { facet =>

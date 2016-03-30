@@ -108,19 +108,18 @@ object Producter extends Logging with Configuration {
   }
 
   //test dev env
-  def deleteAll(collection: String): Boolean = {
+ /* def deleteAll(collection: String): Boolean = {
     val query = "*:*"
     if (MessageQueue().sendMsg(collection + separator + DELETE_BY_QUERY + separator + query)) true
     else false
-  }
+  }*/
 
   //product env
-  /*private def deleteAll(collection: String): Boolean = {
+  private def deleteAll(collection: String): Boolean = {
     val query = "*:*"
     if (MessageQueue().sendMsg(collection + separator + DELETE_BY_QUERY + separator + query)) true
     else false
   }
-*/
 
   /**
     *
@@ -141,8 +140,8 @@ object Producter extends Logging with Configuration {
   }
 
   def testeleteAll() = {
-   Producter.deleteAll("mergescloud_prod")
-    Producter.deleteAll("screencloud_prod")
+   //Producter.deleteAll("mergescloud_prod")
+  //  Producter.deleteAll("screencloud_prod")
   }
 
   def testSend()={

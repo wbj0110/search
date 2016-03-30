@@ -33,8 +33,9 @@ object SearchInterface extends Logging with Configuration {
 
   val logQueue = new LinkedBlockingQueue[java.util.Map[String, Object]]
 
-
-  val generalFacetFieldCategory = "da_2955_s"
+  //brandId
+  val generalFacetFieldCategory = "brandId"
+  //val generalFacetFieldCategory = "da_2955_s"
   //category facet Map(da_2955_s->类别)
   val generalFacetFieldBrandId = "da_89_s" //brand facet  Map(da_89_s->品牌)
 
@@ -51,9 +52,9 @@ object SearchInterface extends Logging with Configuration {
     * @param cityId
     * @return
     */
-  def getCategoryIdsByKeyWords(collection: String = defaultCollection, keyWords: java.lang.String, cityId: java.lang.Integer,filters: java.util.Map[java.lang.String, java.lang.String]): java.util.List[Integer] = {
+  def getCategoryIdsByKeyWords(collection: String = defaultCollection, keyWords: java.lang.String, cityId: java.lang.Integer, filters: java.util.Map[java.lang.String, java.lang.String]): java.util.List[Integer] = {
     var field = "categoryId4"
-    getCategoryIdsByKeyWords(collection, keyWords, cityId, field,filters)
+    getCategoryIdsByKeyWords(collection, keyWords, cityId, field, filters)
   }
 
   //get all categoryIds
@@ -65,8 +66,8 @@ object SearchInterface extends Logging with Configuration {
     * @param field
     * @return
     */
-  def getCategoryIdsByKeyWords(collection: String, keyWords: java.lang.String, cityId: java.lang.Integer, field: String,filters: java.util.Map[java.lang.String, java.lang.String]): java.util.List[Integer] = {
-    getCategoryIds(collection, keyWords, cityId, field,filters)
+  def getCategoryIdsByKeyWords(collection: String, keyWords: java.lang.String, cityId: java.lang.Integer, field: String, filters: java.util.Map[java.lang.String, java.lang.String]): java.util.List[Integer] = {
+    getCategoryIds(collection, keyWords, cityId, field, filters)
   }
 
   /**
@@ -79,7 +80,7 @@ object SearchInterface extends Logging with Configuration {
     * @return
     */
   def searchByKeywords(keyWords: java.lang.String, cityId: java.lang.Integer, filters: java.util.Map[java.lang.String, java.lang.String], sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer): FilterAttributeSearchResult = {
-    searchByKeywords(defaultCollection, defaultAttrCollection, keyWords, cityId,filters, sorts, start, rows)
+    searchByKeywords(defaultCollection, defaultAttrCollection, keyWords, cityId, filters, sorts, start, rows)
   }
 
   /**
@@ -98,16 +99,16 @@ object SearchInterface extends Logging with Configuration {
 
     var filterAttributeSearchResult: FilterAttributeSearchResult = null
     var field = "categoryId4"
-    var categoryIds: util.List[Integer] = getCategoryIds(collection, keyWords, cityId, field,filters)
+    var categoryIds: util.List[Integer] = getCategoryIds(collection, keyWords, cityId, field, filters)
     var categoryId = -1
     if (categoryIds != null && categoryIds.size() > 0) {
       categoryId = categoryIds.get(0)
-      filterAttributeSearchResult = searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection, attrCollection, categoryId, cityId, keyWords,filters, sorts, start, rows, categoryIds, true)
+      filterAttributeSearchResult = searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection, attrCollection, categoryId, cityId, keyWords, filters, sorts, start, rows, categoryIds, true)
       if (filterAttributeSearchResult != null && filterAttributeSearchResult.getFilterAttributes == null) {
         field = "categoryId3"
-        filterAttributeSearchResult = searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection, attrCollection, categoryId, cityId, keyWords,filters, sorts, start, rows, categoryIds, true)
+        filterAttributeSearchResult = searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection, attrCollection, categoryId, cityId, keyWords, filters, sorts, start, rows, categoryIds, true)
       }
-    } else filterAttributeSearchResult = searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection, attrCollection, null, cityId, keyWords,filters, sorts, start, rows, categoryIds, true)
+    } else filterAttributeSearchResult = searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection, attrCollection, null, cityId, keyWords, filters, sorts, start, rows, categoryIds, true)
 
     filterAttributeSearchResult
   }
@@ -277,7 +278,7 @@ object SearchInterface extends Logging with Configuration {
   def attributeFilterSearch(collection: String, attrCollection: String, keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.Map[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, isCategoryTouch: java.lang.Boolean): FilterAttributeSearchResult = {
     if (isCategoryTouch) {
       // searchFilterAttributeAndResultByCatagoryId(collection,attrCollection,catagoryId, cityId)
-      searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection, attrCollection, catagoryId, cityId, null,filters, null, null, null, null, false)
+      searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection, attrCollection, catagoryId, cityId, null, filters, null, null, null, null, false)
     } else attributeFilterSearch(collection, keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows, null, false)
   }
 
@@ -420,7 +421,6 @@ object SearchInterface extends Logging with Configuration {
     filterAttributeSearchResult
     //} else null
   }
-
 
 
   /**
@@ -693,7 +693,7 @@ object SearchInterface extends Logging with Configuration {
     query.setRows(0)
     query.setStart(0)
 
-    if(filters !=null && !filters.isEmpty()) setFilters(filters,query)
+    if (filters != null && !filters.isEmpty()) setFilters(filters, query)
 
     val rt = solrClient.searchByQuery(query, collection)
     if (rt == null) return null
@@ -739,7 +739,7 @@ object SearchInterface extends Logging with Configuration {
     var jsonFacet = s"{categories:{type:terms,field:$field,limit:-1,sort:{count:desc}}}"
     jsonFacet = jsonFacet.replaceAll(":", "\\:")
 
-    val categoryResultMap = groupBucket(collection, keyWordsModels, fq, jsonFacet,filters)
+    val categoryResultMap = groupBucket(collection, keyWordsModels, fq, jsonFacet, filters)
     var categoryIds: util.List[Integer] = null
     if (categoryResultMap != null) {
       categoryIds = new util.ArrayList[Integer]()
@@ -1128,7 +1128,7 @@ object SearchInterface extends Logging with Configuration {
     * @param keywords
     * @return
     */
-  private def searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection: String = defaultCollection, attrCollection: String = defaultAttrCollection, catagoryId: java.lang.Integer, cityId: java.lang.Integer, keywords: String,filters: java.util.Map[java.lang.String, java.lang.String], sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer, categoryIds: java.util.List[Integer] = null, isCameFromSearch: Boolean = true): FilterAttributeSearchResult = {
+  private def searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection: String = defaultCollection, attrCollection: String = defaultAttrCollection, catagoryId: java.lang.Integer, cityId: java.lang.Integer, keywords: String, filters: java.util.Map[java.lang.String, java.lang.String], sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer, categoryIds: java.util.List[Integer] = null, isCameFromSearch: Boolean = true): FilterAttributeSearchResult = {
     var filterAttributeSearchResult: FilterAttributeSearchResult = null
     if (catagoryId != null && cityId != null && catagoryId != -1) {
       val q = s"catid_s:$catagoryId"
@@ -1387,14 +1387,14 @@ object testSearchInterface {
     val starTime = System.currentTimeMillis()
     // val result1 = SearchInterface.searchByKeywords("西格玛", 363, null, 0, 10)
     //val result2 = SearchInterface.searchByKeywords("LAA001", 363, null, 0, 10)
-    val result3 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "博世", 363,null, sorts, 0, 10)
+    val result3 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "博世", 363, null, sorts, 0, 10)
     sorts = new java.util.HashMap[java.lang.String, java.lang.String]
     sorts.put("price", "asc")
-    val result4 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "西格玛", 363,null,null, 0, 10)
-    val result4_1 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "xigema", 363,null, null, 0, 10)
-    val result5 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "3m", 363, sorts,null, 0, 10)
+    val result4 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "西格玛", 363, null, null, 0, 10)
+    val result4_1 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "xigema", 363, null, null, 0, 10)
+    val result5 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "3m", 363, sorts, null, 0, 10)
 
-    val result6 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "LAA00s1", 363,null, sorts, 0, 10)
+    val result6 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "LAA00s1", 363, null, sorts, 0, 10)
     val endTime = System.currentTimeMillis()
     println(result3)
     println(endTime - starTime)
@@ -1407,7 +1407,7 @@ object testSearchInterface {
     //sorts.put("score", "desc")
     //  val result = SearchInterface.searchByKeywords("防护口罩", 456, sorts, 0, 10)
     //val result = SearchInterface.searchByKeywords("西格玛", 363, null, 0, 10)
-    val result = SearchInterface.searchByKeywords("mergescloud", "screencloud", "优特", 363, null,null, 0, 10)
+    val result = SearchInterface.searchByKeywords("mergescloud", "screencloud", "优特", 363, null, null, 0, 10)
     val starTime = System.currentTimeMillis()
     // SearchInterface.queryByKeywords("优特", 363, null, 0, 10)
     val endTime = System.currentTimeMillis()

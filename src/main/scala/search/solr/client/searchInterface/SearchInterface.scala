@@ -35,19 +35,15 @@ object SearchInterface extends Logging with Configuration {
 
   val generalFacetFieldCategory = "da_2955_s"
   //category facet Map(da_2955_s->类别)
-  val generalFacetFieldBrandId = "brandId" //brand facet  Map(brandId->品牌)
+  val generalFacetFieldBrandId = "da_89_s" //brand facet  Map(da_89_s->品牌)
 
 
   val keyWordsModelPinyin = s"(original:keyWord^50) OR (sku:keyWord^50) OR (brandZh:keyWord^200) OR (brandEn:keyWord^200) OR (sku:*keyWord*^11) OR (original:*keyWord*^10) OR (text:keyWord^2) OR (pinyin:keyWord^0.002)"
-  val keyWordsModel =       s"(original:keyWord^50) OR (sku:keyWord^50) OR (brandZh:keyWord^200) OR (brandEn:keyWord^200) OR (sku:*keyWord*^11) OR (original:*keyWord*^10) OR (text:keyWord^2)"
-
-
-
-
+  val keyWordsModel = s"(original:keyWord^50) OR (sku:keyWord^50) OR (brandZh:keyWord^200) OR (brandEn:keyWord^200) OR (sku:*keyWord*^11) OR (original:*keyWord*^10) OR (text:keyWord^2)"
 
 
   def searchByKeywords(keyWords: java.lang.String, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer): FilterAttributeSearchResult = {
-    searchByKeywords(defaultCollection,defaultAttrCollection,keyWords,cityId,sorts,start,rows)
+    searchByKeywords(defaultCollection, defaultAttrCollection, keyWords, cityId, sorts, start, rows)
   }
 
   /**
@@ -61,26 +57,24 @@ object SearchInterface extends Logging with Configuration {
     * @param rows     eg:10
     * @return SearchResult
     */
-  def searchByKeywords(collection: String =defaultCollection,attrCollection: String = defaultAttrCollection,keyWords: java.lang.String, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer): FilterAttributeSearchResult = {
+  def searchByKeywords(collection: String = defaultCollection, attrCollection: String = defaultAttrCollection, keyWords: java.lang.String, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer): FilterAttributeSearchResult = {
     logInfo(s"search by keywords:$keyWords")
 
     var filterAttributeSearchResult: FilterAttributeSearchResult = null
     var field = "categoryId4"
-    var categoryIds: util.List[Integer] = getCategoryIds(collection,keyWords, cityId, field)
+    var categoryIds: util.List[Integer] = getCategoryIds(collection, keyWords, cityId, field)
     var categoryId = -1
     if (categoryIds != null && categoryIds.size() > 0) {
       categoryId = categoryIds.get(0)
-      filterAttributeSearchResult = searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection,attrCollection,categoryId, cityId, keyWords, sorts, start, rows, categoryIds,true)
+      filterAttributeSearchResult = searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection, attrCollection, categoryId, cityId, keyWords, sorts, start, rows, categoryIds, true)
       if (filterAttributeSearchResult != null && filterAttributeSearchResult.getFilterAttributes == null) {
         field = "categoryId3"
-        filterAttributeSearchResult = searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection,attrCollection,categoryId, cityId, keyWords, sorts, start, rows, categoryIds,true)
+        filterAttributeSearchResult = searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection, attrCollection, categoryId, cityId, keyWords, sorts, start, rows, categoryIds, true)
       }
-    }else filterAttributeSearchResult = searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection,attrCollection,null, cityId, keyWords, sorts, start, rows, categoryIds,true)
+    } else filterAttributeSearchResult = searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection, attrCollection, null, cityId, keyWords, sorts, start, rows, categoryIds, true)
 
     filterAttributeSearchResult
   }
-
-
 
 
   /**
@@ -105,8 +99,6 @@ object SearchInterface extends Logging with Configuration {
   }
 
 
-
-
   /**
     *
     * search keywords log record
@@ -124,16 +116,16 @@ object SearchInterface extends Logging with Configuration {
   def recordSearchLog(keyWords: java.lang.String, appKey: java.lang.String, clientIp: java.lang.String, userAgent: java.lang.String, sourceType: java.lang.String, cookies: java.lang.String, userId: java.lang.String): Unit = {
     val currentTime = System.currentTimeMillis()
     logInfo(s"record search log:keyWords:$keyWords-appKey:$appKey-clientIp:$clientIp-userAgent:$userAgent-sourceType:$sourceType-cookies:-$cookies-userId:$userId-currentTime:$currentTime")
-   /* val map = new util.HashMap[String, Object]()
-    map.put("keyWords", keyWords)
-    map.put("appKey", appKey)
-    map.put("clientIp", clientIp)
-    map.put("userAgent", userAgent)
-    map.put("sourceType", sourceType)
-    map.put("cookies", cookies)
-    map.put("userId", userId)
-    map.put("currentTime", currentTime.toString)*/
-   // logQueue.put(map)
+    /* val map = new util.HashMap[String, Object]()
+     map.put("keyWords", keyWords)
+     map.put("appKey", appKey)
+     map.put("clientIp", clientIp)
+     map.put("userAgent", userAgent)
+     map.put("sourceType", sourceType)
+     map.put("cookies", cookies)
+     map.put("userId", userId)
+     map.put("currentTime", currentTime.toString)*/
+    // logQueue.put(map)
     //mongoSearchLog.write(keyWords, appKey, clientIp, userAgent, sourceType, cookies, userId, Util.timestampToDate(currentTime))
   }
 
@@ -150,9 +142,8 @@ object SearchInterface extends Logging with Configuration {
   //thread.start()
 
 
-
   def suggestByKeyWords(keyWords: java.lang.String, cityId: java.lang.Integer): java.util.Map[java.lang.String, java.lang.Integer] = {
-    suggestByKeyWords(defaultCollection,keyWords,cityId)
+    suggestByKeyWords(defaultCollection, keyWords, cityId)
   }
 
   /**
@@ -163,7 +154,7 @@ object SearchInterface extends Logging with Configuration {
     * @param cityId
     * @return java.util.Map[java.lang.String,java.lang.Integer]   eg:Map("soledede"=>10004)  represent counts of document  the keywords  side in
     */
-  def suggestByKeyWords(collection: String =defaultCollection,keyWords: java.lang.String, cityId: java.lang.Integer): java.util.Map[java.lang.String, java.lang.Integer] = {
+  def suggestByKeyWords(collection: String = defaultCollection, keyWords: java.lang.String, cityId: java.lang.Integer): java.util.Map[java.lang.String, java.lang.Integer] = {
 
 
     if (keyWords != null && !keyWords.trim.equalsIgnoreCase("")) {
@@ -197,7 +188,7 @@ object SearchInterface extends Logging with Configuration {
         val query: SolrQuery = new SolrQuery
         docs.foreach { doc =>
           val keyword = doc.get("kw").toString.trim
-          val count: Int = countKeywordInDocs(collection,keyword, query, cityId)
+          val count: Int = countKeywordInDocs(collection, keyword, query, cityId)
           if (count > 0) keyWordsMap.put(keyword, count)
         }
         if (!keyWordsMap.isEmpty) keyWordsMap
@@ -210,8 +201,9 @@ object SearchInterface extends Logging with Configuration {
 
 
   def searchBrandsByCatoryId(catagoryId: java.lang.Integer, cityId: java.lang.Integer): java.util.List[Brand] = {
-    searchBrandsByCatoryId(defaultCollection,catagoryId, cityId, null, 0, java.lang.Integer.MAX_VALUE)
+    searchBrandsByCatoryId(defaultCollection, catagoryId, cityId, null, 0, java.lang.Integer.MAX_VALUE)
   }
+
   /**
     *
     * get all brands by catoryId
@@ -220,15 +212,16 @@ object SearchInterface extends Logging with Configuration {
     * @param cityId
     * @return
     */
-  def searchBrandsByCatoryId(collection: String=defaultCollection,catagoryId: java.lang.Integer, cityId: java.lang.Integer): java.util.List[Brand] = {
-    searchBrandsByCatoryId(collection,catagoryId, cityId, null, 0, java.lang.Integer.MAX_VALUE)
+  def searchBrandsByCatoryId(collection: String = defaultCollection, catagoryId: java.lang.Integer, cityId: java.lang.Integer): java.util.List[Brand] = {
+    searchBrandsByCatoryId(collection, catagoryId, cityId, null, 0, java.lang.Integer.MAX_VALUE)
   }
 
 
   def attributeFilterSearch(keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.Map[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, isCategoryTouch: java.lang.Boolean): FilterAttributeSearchResult = {
-    if (isCategoryTouch) searchFilterAttributeAndResultByCatagoryId(defaultCollection,defaultAttrCollection,catagoryId, cityId)
-    else attributeFilterSearch(defaultCollection,keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows, null, false)
+    if (isCategoryTouch) searchFilterAttributeAndResultByCatagoryId(defaultCollection, defaultAttrCollection, catagoryId, cityId)
+    else attributeFilterSearch(defaultCollection, keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows, null, false)
   }
+
   /**
     * merge category and filtersearch
     *
@@ -245,16 +238,16 @@ object SearchInterface extends Logging with Configuration {
     * @param isCategoryTouch whether come from category
     * @return FilterAttributeSearchResult
     */
-  def attributeFilterSearch(collection: String,attrCollection: String ,keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.Map[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, isCategoryTouch: java.lang.Boolean): FilterAttributeSearchResult = {
-    if (isCategoryTouch){
-     // searchFilterAttributeAndResultByCatagoryId(collection,attrCollection,catagoryId, cityId)
-      searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection,attrCollection,catagoryId,cityId,null, null, null,null,null,false)
-    }else attributeFilterSearch(collection,keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows, null, false)
+  def attributeFilterSearch(collection: String, attrCollection: String, keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.Map[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, isCategoryTouch: java.lang.Boolean): FilterAttributeSearchResult = {
+    if (isCategoryTouch) {
+      // searchFilterAttributeAndResultByCatagoryId(collection,attrCollection,catagoryId, cityId)
+      searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection, attrCollection, catagoryId, cityId, null, null, null, null, null, false)
+    } else attributeFilterSearch(collection, keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows, null, false)
   }
 
 
   def attributeFilterSearch(keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.Map[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, categoryIds: java.util.List[Integer], isComeFromSearch: Boolean): FilterAttributeSearchResult = {
-    attributeFilterSearch(defaultCollection,keyWords,catagoryId,cityId,sorts,filters,filterFieldsValues,start,rows,categoryIds,isComeFromSearch)
+    attributeFilterSearch(defaultCollection, keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows, categoryIds, isComeFromSearch)
   }
 
   /**
@@ -275,7 +268,7 @@ object SearchInterface extends Logging with Configuration {
     * @return FilterAttributeSearchResult
     */
 
-  def attributeFilterSearch(collection: String,keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.Map[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, categoryIds: java.util.List[Integer] = null, isComeFromSearch: Boolean = false): FilterAttributeSearchResult = {
+  def attributeFilterSearch(collection: String, keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.Map[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, categoryIds: java.util.List[Integer] = null, isComeFromSearch: Boolean = false): FilterAttributeSearchResult = {
     if (cityId != null) {
       val filterAttributeSearchResult = new FilterAttributeSearchResult()
 
@@ -298,11 +291,11 @@ object SearchInterface extends Logging with Configuration {
         keyWord = keyWords.trim.toLowerCase
       var keyWordsModels = "*:*"
       if (keyWord != null)
-       // keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh:$keyWord^200) OR (brandEn:$keyWord^200) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
-      if(Util.regex(keyWords,"(^[a-zA-Z]+$)")){
-        keyWordsModels = keyWordsModelPinyin.replaceAll("keyWord",keyWord)
-      }else
-        keyWordsModels = keyWordsModel.replaceAll("keyWord",keyWord)
+      // keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh:$keyWord^200) OR (brandEn:$keyWord^200) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
+        if (Util.regex(keyWords, "(^[a-zA-Z]+$)")) {
+          keyWordsModels = keyWordsModelPinyin.replaceAll("keyWord", keyWord)
+        } else
+          keyWordsModels = keyWordsModel.replaceAll("keyWord", keyWord)
 
       val fqGeneral = s"(isRestrictedArea:0 OR cityId:$cityId)"
       val fqCataId = s"(categoryId1:$catagoryId OR categoryId2:$catagoryId OR categoryId3:$catagoryId OR categoryId4:$catagoryId)"
@@ -371,7 +364,7 @@ object SearchInterface extends Logging with Configuration {
 
 
       //sort
-     // query.addSort("score", SolrQuery.ORDER.desc)
+      // query.addSort("score", SolrQuery.ORDER.desc)
       if (sorts != null && sorts.size() > 0) {
         // eg:  query.addSort("price", SolrQuery.ORDER.desc)
         sorts.foreach { sortOrder =>
@@ -394,12 +387,13 @@ object SearchInterface extends Logging with Configuration {
       query.setFacetMissing(false)
 
 
-      //facet for category and brandId
-
-      if(isComeFromSearch) {  //just for search
+      //facet for category and d_89_s that represent brand
+      if (isComeFromSearch) {
+        //just for search
         query.addFacetField(generalFacetFieldCategory)
         query.addFacetField(generalFacetFieldBrandId)
       }
+
 
       if (filterFieldsValues != null && filterFieldsValues.size() > 0) {
         filterFieldsValues.foreach { facet =>
@@ -414,6 +408,8 @@ object SearchInterface extends Logging with Configuration {
           }
         }
       }
+
+
 
 
       //page
@@ -437,36 +433,6 @@ object SearchInterface extends Logging with Configuration {
   }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   /**
     * just category
     *
@@ -475,7 +441,7 @@ object SearchInterface extends Logging with Configuration {
     * @return
     */
   private def attributeFilterSearch(catagoryId: java.lang.Integer, cityId: java.lang.Integer): FilterAttributeSearchResult = {
-    searchFilterAttributeAndResultByCatagoryId(defaultCollection,defaultAttrCollection,catagoryId, cityId)
+    searchFilterAttributeAndResultByCatagoryId(defaultCollection, defaultAttrCollection, catagoryId, cityId)
   }
 
 
@@ -559,10 +525,6 @@ object SearchInterface extends Logging with Configuration {
   }
 
 
-
-
-
-
   /**
     *
     * @param catagoryId
@@ -572,7 +534,7 @@ object SearchInterface extends Logging with Configuration {
     * @param rows  eg:10
     * @return java.util.List[Brand]
     */
-  private def  searchBrandsByCatoryId(collection: String,catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer): java.util.List[Brand] = {
+  private def searchBrandsByCatoryId(collection: String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer): java.util.List[Brand] = {
 
     if (catagoryId != null) {
       //page
@@ -664,11 +626,11 @@ object SearchInterface extends Logging with Configuration {
     else null
   }
 
-  private def countKeywordInDocs(collection: String,keyword: Object, query: SolrQuery, cityId: java.lang.Integer): Int = {
+  private def countKeywordInDocs(collection: String, keyword: Object, query: SolrQuery, cityId: java.lang.Integer): Int = {
     if (keyword != null) {
       val keyWord = keyword.toString.trim.toLowerCase
       //val keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh:$keyWord^200) OR (brandEn:$keyWord^200) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)
-      val keyWordsModels  = keyWordsModel.replaceAll("keyWord",keyword.toString)
+      val keyWordsModels = keyWordsModel.replaceAll("keyWord", keyword.toString)
       val fq = s"isRestrictedArea:0 OR cityId:$cityId"
 
 
@@ -694,7 +656,6 @@ object SearchInterface extends Logging with Configuration {
   }
 
 
-
   /**
     *
     * data dictionary attribute id to attribute name
@@ -702,7 +663,7 @@ object SearchInterface extends Logging with Configuration {
     * @param attributeId
     * @return
     */
- private def getAttributeNameById(attributeId: String): String = {
+  private def getAttributeNameById(attributeId: String): String = {
     if (attributeId == null || attributeId.trim.equals("")) return null
     if (attributeId.equals(generalFacetFieldCategory)) return "类别"
     if (attributeId.equals(generalFacetFieldBrandId)) return "品牌"
@@ -731,7 +692,7 @@ object SearchInterface extends Logging with Configuration {
   }
 
 
-  private def groupBucket(collection: String,q: String, fq: String, json_facet: String): java.util.List[SimpleOrderedMap[java.lang.Object]] = {
+  private def groupBucket(collection: String, q: String, fq: String, json_facet: String): java.util.List[SimpleOrderedMap[java.lang.Object]] = {
     if (json_facet == null) return null
     val query: SolrQuery = new SolrQuery
     query.set("qt", "/select")
@@ -769,14 +730,14 @@ object SearchInterface extends Logging with Configuration {
     * @param field
     * @return
     */
-  private def getCategoryIds(collection: String,keyWords: java.lang.String, cityId: java.lang.Integer, field: String): util.List[Integer] = {
+  private def getCategoryIds(collection: String, keyWords: java.lang.String, cityId: java.lang.Integer, field: String): util.List[Integer] = {
     var keyWordsModels = "*:*"
     if (keyWords != null) {
       val keyWord = keyWords.trim.toLowerCase
-      if(Util.regex(keyWords,"(^[a-zA-Z]+$)")){
-        keyWordsModels = keyWordsModelPinyin.replaceAll("keyWord",keyWord)
-      }else
-      keyWordsModels = keyWordsModel.replaceAll("keyWord",keyWord)
+      if (Util.regex(keyWords, "(^[a-zA-Z]+$)")) {
+        keyWordsModels = keyWordsModelPinyin.replaceAll("keyWord", keyWord)
+      } else
+        keyWordsModels = keyWordsModel.replaceAll("keyWord", keyWord)
     }
 
 
@@ -785,7 +746,7 @@ object SearchInterface extends Logging with Configuration {
     var jsonFacet = s"{categories:{type:terms,field:$field,limit:100,sort:{count:desc}}}"
     jsonFacet = jsonFacet.replaceAll(":", "\\:")
 
-    val categoryResultMap = groupBucket(collection,keyWordsModels, fq, jsonFacet)
+    val categoryResultMap = groupBucket(collection, keyWordsModels, fq, jsonFacet)
     var categoryIds: util.List[Integer] = null
     if (categoryResultMap != null) {
       categoryIds = new util.ArrayList[Integer]()
@@ -1077,7 +1038,7 @@ object SearchInterface extends Logging with Configuration {
           }
         }
 
-        filterAttributeSearchResult = attributeFilterSearch(defaultCollection,null, catagoryId, cityId, null, null, filterFieldsValues, null, null)
+        filterAttributeSearchResult = attributeFilterSearch(defaultCollection, null, catagoryId, cityId, null, null, filterFieldsValues, null, null)
       }
 
       if (filterAttributeSearchResult == null) return null
@@ -1093,7 +1054,7 @@ object SearchInterface extends Logging with Configuration {
     * @param cityId
     * @return FilterAttributeSearchResult
     */
-  private def searchFilterAttributeAndResultByCatagoryId(collection: String = defaultCollection,attCollection: String = defaultAttrCollection,catagoryId: java.lang.Integer, cityId: java.lang.Integer): FilterAttributeSearchResult = {
+  private def searchFilterAttributeAndResultByCatagoryId(collection: String = defaultCollection, attCollection: String = defaultAttrCollection, catagoryId: java.lang.Integer, cityId: java.lang.Integer): FilterAttributeSearchResult = {
     if (catagoryId != null && cityId != null) {
       val q = s"catid_s:$catagoryId"
 
@@ -1157,7 +1118,7 @@ object SearchInterface extends Logging with Configuration {
           }
         }
 
-        filterAttributeSearchResult = attributeFilterSearch(collection,null, catagoryId, cityId, null, null, filterFieldsValues, null, null, null, false)
+        filterAttributeSearchResult = attributeFilterSearch(collection, null, catagoryId, cityId, null, null, filterFieldsValues, null, null, null, false)
       }
 
       if (filterAttributeSearchResult == null) return null
@@ -1174,7 +1135,7 @@ object SearchInterface extends Logging with Configuration {
     * @param keywords
     * @return
     */
-  private def searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection: String =defaultCollection,attrCollection: String = defaultAttrCollection,catagoryId: java.lang.Integer, cityId: java.lang.Integer, keywords: String, sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer, categoryIds: java.util.List[Integer] = null,isCameFromSearch: Boolean=true): FilterAttributeSearchResult = {
+  private def searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection: String = defaultCollection, attrCollection: String = defaultAttrCollection, catagoryId: java.lang.Integer, cityId: java.lang.Integer, keywords: String, sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer, categoryIds: java.util.List[Integer] = null, isCameFromSearch: Boolean = true): FilterAttributeSearchResult = {
     var filterAttributeSearchResult: FilterAttributeSearchResult = null
     if (catagoryId != null && cityId != null && catagoryId != -1) {
       val q = s"catid_s:$catagoryId"
@@ -1194,8 +1155,6 @@ object SearchInterface extends Logging with Configuration {
       var result: QueryResponse = null
       if (r != null) result = r.asInstanceOf[QueryResponse]
       val resultSearch = getSearchResult(result, null) //get response result
-
-
 
 
       if (resultSearch != null) {
@@ -1239,13 +1198,13 @@ object SearchInterface extends Logging with Configuration {
           }
         }
 
-        filterAttributeSearchResult = attributeFilterSearch(collection,keywords, catagoryId, cityId, sorts, null, filterFieldsValues, start, rows, categoryIds, isCameFromSearch)
+        filterAttributeSearchResult = attributeFilterSearch(collection, keywords, catagoryId, cityId, sorts, null, filterFieldsValues, start, rows, categoryIds, isCameFromSearch)
       }
 
-       filterAttributeSearchResult
+      filterAttributeSearchResult
 
-    } else{
-      filterAttributeSearchResult = attributeFilterSearch(collection,keywords, catagoryId, cityId, sorts, null, null, start, rows, categoryIds, isCameFromSearch)
+    } else {
+      filterAttributeSearchResult = attributeFilterSearch(collection, keywords, catagoryId, cityId, sorts, null, null, start, rows, categoryIds, isCameFromSearch)
       filterAttributeSearchResult
     }
   }
@@ -1339,7 +1298,7 @@ object SearchInterface extends Logging with Configuration {
 object testSearchInterface {
   def main(args: Array[String]) {
 
-     searchByKeywords
+    searchByKeywords
 
 
     //testSearchFilterAttributeByCatagoryId
@@ -1375,16 +1334,16 @@ object testSearchInterface {
     //val result = SearchInterface.searchByKeywords("西格玛", 363, null, 0, 10)
     //val result = SearchInterface.searchByKeywords("1234567", 363, null, 0, 10)
     val starTime = System.currentTimeMillis()
-   // val result1 = SearchInterface.searchByKeywords("西格玛", 363, null, 0, 10)
+    // val result1 = SearchInterface.searchByKeywords("西格玛", 363, null, 0, 10)
     //val result2 = SearchInterface.searchByKeywords("LAA001", 363, null, 0, 10)
-    val result3 = SearchInterface.searchByKeywords("mergescloud","screencloud","博世", 363, sorts, 0, 10)
+    val result3 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "博世", 363, sorts, 0, 10)
     sorts = new java.util.HashMap[java.lang.String, java.lang.String]
-    sorts.put("price","asc")
-    val result4 = SearchInterface.searchByKeywords("mergescloud","screencloud","西格玛", 363, null, 0, 10)
-    val result4_1 = SearchInterface.searchByKeywords("mergescloud","screencloud","xigema", 363, null, 0, 10)
-    val result5 = SearchInterface.searchByKeywords("mergescloud","screencloud","3m", 363, sorts, 0, 10)
+    sorts.put("price", "asc")
+    val result4 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "西格玛", 363, null, 0, 10)
+    val result4_1 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "xigema", 363, null, 0, 10)
+    val result5 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "3m", 363, sorts, 0, 10)
 
-    val result6 = SearchInterface.searchByKeywords("mergescloud","screencloud","LAA00s1", 363, sorts, 0, 10)
+    val result6 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "LAA00s1", 363, sorts, 0, 10)
     val endTime = System.currentTimeMillis()
     println(result3)
     println(endTime - starTime)
@@ -1397,9 +1356,9 @@ object testSearchInterface {
     //sorts.put("score", "desc")
     //  val result = SearchInterface.searchByKeywords("防护口罩", 456, sorts, 0, 10)
     //val result = SearchInterface.searchByKeywords("西格玛", 363, null, 0, 10)
-    val result = SearchInterface.searchByKeywords("mergescloud","screencloud","优特", 363, null, 0, 10)
+    val result = SearchInterface.searchByKeywords("mergescloud", "screencloud", "优特", 363, null, 0, 10)
     val starTime = System.currentTimeMillis()
-   // SearchInterface.queryByKeywords("优特", 363, null, 0, 10)
+    // SearchInterface.queryByKeywords("优特", 363, null, 0, 10)
     val endTime = System.currentTimeMillis()
     println(result)
     println(endTime - starTime)
@@ -1407,7 +1366,7 @@ object testSearchInterface {
 
   def testSearchByCategoryId() = {
     //val result = SearchInterface.searchByCategoryId("mergescloud",14887, 321, null, 0, 10)
-  //  println(result)
+    //  println(result)
 
   }
 
@@ -1415,7 +1374,7 @@ object testSearchInterface {
     //val result = SearchInterface.searchFilterAttributeByCatagoryId(1001739, 456)
     // val result = SearchInterface.searchFilterAttributeByCatagoryId(2660, 321)
     //val result = SearchInterface.searchFilterAttributeByCatagoryId(1225, 321)
-  //  println(result)
+    //  println(result)
   }
 
   def testAttributeFilterSearch = {
@@ -1462,17 +1421,17 @@ object testSearchInterface {
     /* val result = SearchInterface.attributeFilterSearch(null,1225, 321,null,null,null,null,null,true)
      val result1 = SearchInterface.attributeFilterSearch(null, 1225, 321, null, filters1, filterFieldsValues1, 0, 10,false)*/
 
-      val categoryResult =  SearchInterface.attributeFilterSearch("mergescloud","screencloud",null,15760, 321,null, null, null, null, null, true)
+    val categoryResult = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", null, 15760, 321, null, null, null, null, null, true)
 
-    val result = SearchInterface.attributeFilterSearch("mergescloud","screencloud",null, 521, 321, null, null, null, null, null, true)
-    val result1 = SearchInterface.attributeFilterSearch("mergescloud","screencloud",null, 521, 321, null, filters1, filterFieldsValues1, 0, 10, false)
+    val result = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", null, 521, 321, null, null, null, null, null, true)
+    val result1 = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", null, 521, 321, null, filters1, filterFieldsValues1, 0, 10, false)
 
-    filters1 =   new java.util.HashMap[java.lang.String, java.lang.String]()
+    filters1 = new java.util.HashMap[java.lang.String, java.lang.String]()
     //filters1.put("da_2955_s",null)
-    filters1.put("brandId","203")
+    filters1.put("brandId", "203")
     filterFieldsValues = new util.HashMap[java.lang.String, util.List[java.lang.String]]()
-    filterFieldsValues.put("brandId",null)
-    val result2 = SearchInterface.attributeFilterSearch("mergescloud","大", -1, 321, sorts, filters1, filterFieldsValues, 0, 10, null,true)
+    filterFieldsValues.put("brandId", null)
+    val result2 = SearchInterface.attributeFilterSearch("mergescloud", "大", -1, 321, sorts, filters1, filterFieldsValues, 0, 10, null, true)
 
 
 
@@ -1480,26 +1439,26 @@ object testSearchInterface {
   }
 
   def testSearchBrandsByCatoryId() = {
-    val result = SearchInterface.searchBrandsByCatoryId("mergescloud",2660, 321)
+    val result = SearchInterface.searchBrandsByCatoryId("mergescloud", 2660, 321)
     println(result)
   }
 
   def testSuggestByKeyWords() = {
 
-    val result = SearchInterface.suggestByKeyWords("mergescloud","史丹利", 456)
+    val result = SearchInterface.suggestByKeyWords("mergescloud", "史丹利", 456)
     var startTime = System.currentTimeMillis().toDouble
-    SearchInterface.suggestByKeyWords("mergescloud","dai", 456)
+    SearchInterface.suggestByKeyWords("mergescloud", "dai", 456)
     var endTime = System.currentTimeMillis().toDouble
     println(s"cost time:${(endTime - startTime) / 1000}s")
 
     startTime = System.currentTimeMillis().toDouble
-    SearchInterface.suggestByKeyWords("mergescloud","dai", 456)
+    SearchInterface.suggestByKeyWords("mergescloud", "dai", 456)
     endTime = System.currentTimeMillis().toDouble
     println(s"cost time:${(endTime - startTime) / 1000}s")
 
 
     startTime = System.currentTimeMillis().toDouble
-    SearchInterface.suggestByKeyWords("mergescloud","dai", 456)
+    SearchInterface.suggestByKeyWords("mergescloud", "dai", 456)
     endTime = System.currentTimeMillis().toDouble
     println(s"cost time:${(endTime - startTime) / 1000}s")
 
@@ -1556,15 +1515,15 @@ object testSearchInterface {
       println(v1 + "=" + v2)
     }
     val keyWords = "h的elloword"
-    if(Util.regex(keyWords,"(^[a-zA-Z]+$)")){
+    if (Util.regex(keyWords, "(^[a-zA-Z]+$)")) {
       println("英文或拼音")
-    }else {
+    } else {
       println("非拼音或英文")
     }
   }
 
   def testCountKeywordInDocs() = {
-  //  SearchInterface.countKeywordInDocs("3m", new SolrQuery(), 456)
+    //  SearchInterface.countKeywordInDocs("3m", new SolrQuery(), 456)
   }
 
   def testMaxInt() = {

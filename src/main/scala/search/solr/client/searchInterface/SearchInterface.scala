@@ -42,6 +42,41 @@ object SearchInterface extends Logging with Configuration {
   val keyWordsModel = s"(original:keyWord^50) OR (sku:keyWord^50) OR (brandZh:keyWord^200) OR (brandEn:keyWord^200) OR (sku:*keyWord*^11) OR (original:*keyWord*^10) OR (text:keyWord^2)"
 
 
+  //get all categoryIds
+  /**
+    *
+    * @param collection
+    * @param keyWords
+    * @param cityId
+    * @return
+    */
+  def getCategoryIdsByKeyWords(collection: String = defaultCollection, keyWords: java.lang.String, cityId: java.lang.Integer): java.util.List[Integer] = {
+    var field = "categoryId4"
+    getCategoryIdsByKeyWords(collection, keyWords, cityId, field)
+  }
+
+  //get all categoryIds
+  /**
+    *
+    * @param collection
+    * @param keyWords
+    * @param cityId
+    * @param field
+    * @return
+    */
+  def getCategoryIdsByKeyWords(collection: String, keyWords: java.lang.String, cityId: java.lang.Integer, field: String): java.util.List[Integer] = {
+    getCategoryIds(collection, keyWords, cityId, field)
+  }
+
+  /**
+    *
+    * @param keyWords
+    * @param cityId
+    * @param sorts
+    * @param start
+    * @param rows
+    * @return
+    */
   def searchByKeywords(keyWords: java.lang.String, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer): FilterAttributeSearchResult = {
     searchByKeywords(defaultCollection, defaultAttrCollection, keyWords, cityId, sorts, start, rows)
   }
@@ -269,167 +304,168 @@ object SearchInterface extends Logging with Configuration {
     */
 
   def attributeFilterSearch(collection: String, keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.Map[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, categoryIds: java.util.List[Integer] = null, isComeFromSearch: Boolean = false): FilterAttributeSearchResult = {
-    if (cityId != null) {
-      val filterAttributeSearchResult = new FilterAttributeSearchResult()
+    //if (cityId != null) {
+    val filterAttributeSearchResult = new FilterAttributeSearchResult()
 
-      if (categoryIds != null && categoryIds.size() > 0) filterAttributeSearchResult.setCategoryIds(categoryIds)
+    if (categoryIds != null && categoryIds.size() > 0) filterAttributeSearchResult.setCategoryIds(categoryIds)
 
-      val msg = new Msg()
-      val searchResult = new SearchResult()
-      //page
-      var sStart: Int = 0
-      var sRows: Int = 10
+    val msg = new Msg()
+    val searchResult = new SearchResult()
+    //page
+    var sStart: Int = 0
+    var sRows: Int = 10
 
-      if (start != null && start > 0) sStart = start
-      if (rows != null && rows > 0) sRows = rows
-
-
-
-
-      var keyWord: String = null
-      if (keyWords != null && !keyWords.trim.equalsIgnoreCase(""))
-        keyWord = keyWords.trim.toLowerCase
-      var keyWordsModels = "*:*"
-      if (keyWord != null)
-      // keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh:$keyWord^200) OR (brandEn:$keyWord^200) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
-        if (Util.regex(keyWords, "(^[a-zA-Z]+$)")) {
-          keyWordsModels = keyWordsModelPinyin.replaceAll("keyWord", keyWord)
-        } else
-          keyWordsModels = keyWordsModel.replaceAll("keyWord", keyWord)
-
-      val fqGeneral = s"(isRestrictedArea:0 OR cityId:$cityId)"
-      val fqCataId = s"(categoryId1:$catagoryId OR categoryId2:$catagoryId OR categoryId3:$catagoryId OR categoryId4:$catagoryId)"
-
-      val query: SolrQuery = new SolrQuery
-      query.set("qt", "/select")
-      query.setQuery(keyWordsModels)
-
-      query.addFilterQuery(fqGeneral)
-
-      if (!isComeFromSearch) //whether is come from category filter
-        query.addFilterQuery(fqCataId)
+    if (start != null && start > 0) sStart = start
+    if (rows != null && rows > 0) sRows = rows
 
 
 
 
-      if (filters != null && filters.size() > 0) {
-        filters.foreach { fV =>
-          val field = fV._1
-          val value = fV._2
-          if (value != null && !value.equalsIgnoreCase("")) {
-            var valuesArray: Array[String] = null
-            breakable {
-              for (i <- 0 to filterSplitArray.length - 1) {
-                valuesArray = value.split(filterSplitArray(i).trim)
-                if (valuesArray.length > 1) break
-              }
+    var keyWord: String = null
+    if (keyWords != null && !keyWords.trim.equalsIgnoreCase(""))
+      keyWord = keyWords.trim.toLowerCase
+    var keyWordsModels = "*:*"
+    if (keyWord != null)
+    // keyWordsModel = s"(original:$keyWord^50) OR (sku:$keyWord^50) OR (brandZh:$keyWord^200) OR (brandEn:$keyWord^200) OR (sku:*$keyWord*^11) OR (original:*$keyWord*^10) OR (text:$keyWord^2) OR (pinyin:$keyWord^0.002)"
+      if (Util.regex(keyWords, "(^[a-zA-Z]+$)")) {
+        keyWordsModels = keyWordsModelPinyin.replaceAll("keyWord", keyWord)
+      } else
+        keyWordsModels = keyWordsModel.replaceAll("keyWord", keyWord)
+
+    val fqGeneral = s"(isRestrictedArea:0 OR cityId:$cityId)"
+    val fqCataId = s"(categoryId1:$catagoryId OR categoryId2:$catagoryId OR categoryId3:$catagoryId OR categoryId4:$catagoryId)"
+
+    val query: SolrQuery = new SolrQuery
+    query.set("qt", "/select")
+    query.setQuery(keyWordsModels)
+
+    query.addFilterQuery(fqGeneral)
+
+    if (!isComeFromSearch) //whether is come from category filter
+      query.addFilterQuery(fqCataId)
+
+
+
+
+    if (filters != null && filters.size() > 0) {
+      filters.foreach { fV =>
+        val field = fV._1
+        val value = fV._2
+        if (value != null && !value.equalsIgnoreCase("")) {
+          var valuesArray: Array[String] = null
+          breakable {
+            for (i <- 0 to filterSplitArray.length - 1) {
+              valuesArray = value.split(filterSplitArray(i).trim)
+              if (valuesArray.length > 1) break
             }
+          }
 
-            if (valuesArray != null && valuesArray.length > 1) {
-              val fqString = new StringBuilder()
-              fqString.append("(")
-              //t89_s:(memmert+OR+Memmert+OR+honeywell+OR+Honeywell)
-              valuesArray.foreach { filterValue =>
-                val value = filterValue.trim
-                //fq=t89_s:(memmert OR Memmert OR honeywell OR Honeywell)
-                if (Util.regex(value, "^[A-Za-z]+$")) {
-                  val v1 = value.charAt(0).toUpper + value.substring(1)
-                  val v2 = value.charAt(0).toLower + value.substring(1)
-                  fqString.append(s"$v1 OR $v2 OR ")
-                  // val fq = s"$field:($v1 OR $v2)"
-                  //query.addFilterQuery(fq)
-                } else {
-                  fqString.append(s"$value OR ")
-                  // query.addFilterQuery(s"$field:$value")
-                }
-              }
-              val fq = fqString.substring(0, fqString.lastIndexOf("OR") - 1) + ")"
-              query.addFilterQuery(s"$field:$fq")
-            } else {
+          if (valuesArray != null && valuesArray.length > 1) {
+            val fqString = new StringBuilder()
+            fqString.append("(")
+            //t89_s:(memmert+OR+Memmert+OR+honeywell+OR+Honeywell)
+            valuesArray.foreach { filterValue =>
+              val value = filterValue.trim
               //fq=t89_s:(memmert OR Memmert OR honeywell OR Honeywell)
               if (Util.regex(value, "^[A-Za-z]+$")) {
                 val v1 = value.charAt(0).toUpper + value.substring(1)
                 val v2 = value.charAt(0).toLower + value.substring(1)
-                val fq = s"$field:($v1 OR $v2)"
-                query.addFilterQuery(fq)
+                fqString.append(s"$v1 OR $v2 OR ")
+                // val fq = s"$field:($v1 OR $v2)"
+                //query.addFilterQuery(fq)
               } else {
-                query.addFilterQuery(s"$field:$value")
+                fqString.append(s"$value OR ")
+                // query.addFilterQuery(s"$field:$value")
               }
             }
-
-
-          }
-        }
-      }
-
-
-      //sort
-      // query.addSort("score", SolrQuery.ORDER.desc)
-      if (sorts != null && sorts.size() > 0) {
-        // eg:  query.addSort("price", SolrQuery.ORDER.desc)
-        sorts.foreach { sortOrder =>
-          val field = sortOrder._1
-          val orderString = sortOrder._2.trim
-          var order: ORDER = null
-          orderString match {
-            case "desc" => order = SolrQuery.ORDER.desc
-            case "asc" => order = SolrQuery.ORDER.asc
-            case _ => SolrQuery.ORDER.desc
-          }
-          query.addSort(field, order)
-        }
-      }
-
-
-      //facet and facet query
-      query.setFacet(true)
-      query.setFacetMinCount(1)
-      query.setFacetMissing(false)
-
-
-      //facet for category and d_89_s that represent brand
-      if (isComeFromSearch) {
-        //just for search
-        query.addFacetField(generalFacetFieldCategory)
-        query.addFacetField(generalFacetFieldBrandId)
-      }
-
-
-      if (filterFieldsValues != null && filterFieldsValues.size() > 0) {
-        filterFieldsValues.foreach { facet =>
-          val field = facet._1
-          val ranges = facet._2
-          if (ranges != null && ranges.size() > 0) {
-            //range facet.query
-            ranges.foreach(range => query.addFacetQuery(s"$field:$range"))
+            val fq = fqString.substring(0, fqString.lastIndexOf("OR") - 1) + ")"
+            query.addFilterQuery(s"$field:$fq")
           } else {
-            //facet.field
-            query.addFacetField(field)
+            //fq=t89_s:(memmert OR Memmert OR honeywell OR Honeywell)
+            if (Util.regex(value, "^[A-Za-z]+$")) {
+              val v1 = value.charAt(0).toUpper + value.substring(1)
+              val v2 = value.charAt(0).toLower + value.substring(1)
+              val fq = s"$field:($v1 OR $v2)"
+              query.addFilterQuery(fq)
+            } else {
+              query.addFilterQuery(s"$field:$value")
+            }
           }
+
+
         }
       }
+    }
+
+
+    //sort
+    // query.addSort("score", SolrQuery.ORDER.desc)
+    if (sorts != null && sorts.size() > 0) {
+      // eg:  query.addSort("price", SolrQuery.ORDER.desc)
+      sorts.foreach { sortOrder =>
+        val field = sortOrder._1
+        val orderString = sortOrder._2.trim
+        var order: ORDER = null
+        orderString match {
+          case "desc" => order = SolrQuery.ORDER.desc
+          case "asc" => order = SolrQuery.ORDER.asc
+          case _ => SolrQuery.ORDER.desc
+        }
+        query.addSort(field, order)
+      }
+    }
+
+
+    //facet and facet query
+    query.setFacet(true)
+    query.setFacetMinCount(1)
+    query.setFacetMissing(false)
+    query.setFacetLimit(-1)
+
+
+    //facet for category and d_89_s that represent brand
+    if (isComeFromSearch) {
+      //just for search
+      query.addFacetField(generalFacetFieldCategory)
+      query.addFacetField(generalFacetFieldBrandId)
+    }
+
+
+    if (filterFieldsValues != null && filterFieldsValues.size() > 0) {
+      filterFieldsValues.foreach { facet =>
+        val field = facet._1
+        val ranges = facet._2
+        if (ranges != null && ranges.size() > 0) {
+          //range facet.query
+          ranges.foreach(range => query.addFacetQuery(s"$field:$range"))
+        } else {
+          //facet.field
+          query.addFacetField(field)
+        }
+      }
+    }
 
 
 
 
-      //page
-      query.setStart(sStart)
-      query.setRows(sRows)
+    //page
+    query.setStart(sStart)
+    query.setRows(sRows)
 
 
 
 
-      val r = solrClient.searchByQuery(query, collection)
-      var result: QueryResponse = null
-      if (r != null) result = r.asInstanceOf[QueryResponse]
-      getSearchResultByResponse(msg, searchResult, result) //get searchResult
+    val r = solrClient.searchByQuery(query, collection)
+    var result: QueryResponse = null
+    if (r != null) result = r.asInstanceOf[QueryResponse]
+    getSearchResultByResponse(msg, searchResult, result) //get searchResult
 
-      filterAttributeSearchResult.setSearchResult(searchResult) //set searchResult
+    filterAttributeSearchResult.setSearchResult(searchResult) //set searchResult
 
 
-      getFacetFieldAndFacetQueryToFilterAttributes(filterAttributeSearchResult, result)
-      filterAttributeSearchResult
-    } else null
+    getFacetFieldAndFacetQueryToFilterAttributes(filterAttributeSearchResult, result)
+    filterAttributeSearchResult
+    //} else null
   }
 
 
@@ -743,7 +779,7 @@ object SearchInterface extends Logging with Configuration {
 
     val fq = s"isRestrictedArea:0 OR cityId:$cityId"
 
-    var jsonFacet = s"{categories:{type:terms,field:$field,limit:100,sort:{count:desc}}}"
+    var jsonFacet = s"{categories:{type:terms,field:$field,limit:-1,sort:{count:desc}}}"
     jsonFacet = jsonFacet.replaceAll(":", "\\:")
 
     val categoryResultMap = groupBucket(collection, keyWordsModels, fq, jsonFacet)

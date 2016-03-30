@@ -33,11 +33,13 @@ object SearchInterface extends Logging with Configuration {
 
   val logQueue = new LinkedBlockingQueue[java.util.Map[String, Object]]
 
-  //brandId
-  val generalFacetFieldCategory = "brandId"
-  //val generalFacetFieldCategory = "da_2955_s"
+
+  val generalFacetFieldCategory = "da_2955_s"
   //category facet Map(da_2955_s->类别)
-  val generalFacetFieldBrandId = "da_89_s" //brand facet  Map(da_89_s->品牌)
+
+  //brandId
+  val generalFacetFieldBrandId = "brandId"
+ // val generalFacetFieldBrandId = "da_89_s" //brand facet  Map(da_89_s->品牌)
 
 
   val keyWordsModelPinyin = s"(original:keyWord^50) OR (sku:keyWord^50) OR (brandZh:keyWord^200) OR (brandEn:keyWord^200) OR (sku:*keyWord*^11) OR (original:*keyWord*^10) OR (text:keyWord^2) OR (pinyin:keyWord^0.002)"

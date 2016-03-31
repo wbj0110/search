@@ -210,19 +210,26 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
 
   }
 
-
   def indexOrDelteData(obj: AnyRef, collection: String): Unit = {
     val xmlBool = geneXml(obj, collection)
     if (xmlBool != null) {
       indexesData(collection, xmlBool)
-      /*if (xmlBool.isInstanceOf[util.ArrayList[String]]) {
-      deleteIndexData(collection, xmlBool)
-    }
-    else {
-      indexData(collection, xmlBool)
-    }*/
     }
   }
+
+
+  /* def indexOrDelteData(obj: AnyRef, collection: String): Unit = {
+     val xmlBool = geneXml(obj, collection)
+     if (xmlBool != null) {
+       indexesData(collection, xmlBool)
+       if (xmlBool.isInstanceOf[util.ArrayList[String]]) {
+       deleteIndexData(collection, xmlBool)
+     }
+     else {
+       indexData(collection, xmlBool)
+     }
+     }
+   }*/
 
   /**
     * index data

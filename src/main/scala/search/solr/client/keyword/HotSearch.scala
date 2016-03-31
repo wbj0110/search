@@ -32,10 +32,12 @@ object HotSearch {
 
   private def caculateHotKeyWords(): java.util.List[String] = {
     val currentWeekKeys = cache.keys(preffixCaculate + suffixKeys)
-    val hotKeyWords = currentWeekKeys.map { k =>
-      (cache.get(k), k.substring(k.indexOf(preffixCaculate) + 7)) //(keyword,count)
-    }.filter(_._1>0).sortBy(_._1).map(_._2).take(10)
-    hotKeyWords
+    if (currentWeekKeys != null) {
+      val hotKeyWords = currentWeekKeys.map { k =>
+        (cache.get(k), k.substring(k.indexOf(preffixCaculate) + 7)) //(keyword,count)
+      }.filter(_._1 > 0).sortBy(_._1).map(_._2).take(10)
+      hotKeyWords
+    }else null
   }
 
 

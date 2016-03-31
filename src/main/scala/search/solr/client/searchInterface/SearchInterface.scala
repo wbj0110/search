@@ -280,7 +280,7 @@ object SearchInterface extends Logging with Configuration {
   def attributeFilterSearch(collection: String, attrCollection: String, keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.Map[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, isCategoryTouch: java.lang.Boolean): FilterAttributeSearchResult = {
     if (isCategoryTouch) {
       // searchFilterAttributeAndResultByCatagoryId(collection,attrCollection,catagoryId, cityId)
-      searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection, attrCollection, catagoryId, cityId, null, filters, null, start, rows, null, false)
+      searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection, attrCollection, catagoryId, cityId, keyWords, filters, null, start, rows, null, false)
     } else attributeFilterSearch(collection, keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows, null, false)
   }
 
@@ -1144,7 +1144,7 @@ object SearchInterface extends Logging with Configuration {
 
       query.setFields(fl)
 
-      query.addSort("attSort_ti", SolrQuery.ORDER.desc) //sort
+      query.addSort("attSort_ti", SolrQuery.ORDER.asc) //sort
 
       val r = solrClient.searchByQuery(query, attrCollection)
       var result: QueryResponse = null
@@ -1351,8 +1351,8 @@ object SearchInterface extends Logging with Configuration {
 object testSearchInterface {
   def main(args: Array[String]) {
 
-    searchByKeywords
-
+    // searchByKeywords
+    testMoniSearchKeywords
 
     //testSearchFilterAttributeByCatagoryId
     //testAttributeFilterSearch
@@ -1375,6 +1375,19 @@ object testSearchInterface {
     //testSearchByCategoryId
 
   }
+
+
+
+  def testMoniSearchKeywords() = {
+    val result = SearchInterface.searchByKeywords("mergescloud", "screencloud", "防毒面具", 363, null, null, 0, 10)
+    val categoryResult = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "防毒面具", 2324, 321, null, null, null, 0, 10, true)
+
+    println(result)
+
+    val categoryResultSort = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "防毒面具", 2324, 321, null, null, null, 0, 10, true)
+
+  }
+
 
 
   def searchByKeywords = {

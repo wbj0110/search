@@ -280,7 +280,7 @@ object SearchInterface extends Logging with Configuration {
   def attributeFilterSearch(collection: String, attrCollection: String, keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.Map[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, isCategoryTouch: java.lang.Boolean): FilterAttributeSearchResult = {
     if (isCategoryTouch) {
       // searchFilterAttributeAndResultByCatagoryId(collection,attrCollection,catagoryId, cityId)
-      searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection, attrCollection, catagoryId, cityId, null, filters, null, null, null, null, false)
+      searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection, attrCollection, catagoryId, cityId, null, filters, null, start, rows, null, false)
     } else attributeFilterSearch(collection, keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows, null, false)
   }
 
@@ -1351,11 +1351,11 @@ object SearchInterface extends Logging with Configuration {
 object testSearchInterface {
   def main(args: Array[String]) {
 
-    searchByKeywords
+    //searchByKeywords
 
 
     //testSearchFilterAttributeByCatagoryId
-    //testAttributeFilterSearch
+    testAttributeFilterSearch
 
     //testSearchBrandsByCatoryId
 
@@ -1477,14 +1477,26 @@ object testSearchInterface {
     val categoryResult = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", null, 15760, 321, null, null, null, null, null, true)
 
     val result = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", null, 521, 321, null, null, null, null, null, true)
-    val result1 = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", null, 521, 321, null, filters1, filterFieldsValues1, 0, 10, false)
+
+
+    val result2 = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", null, null, 321, null, null, null, 0, 2, true)
+
+
+
+    //attributeFilterSearch(collection: String, keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.Map[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, categoryIds: java.util.List[Integer] = null, isComeFromSearch: Boolean = false)
+
+
+    val result5 = SearchInterface.attributeFilterSearch("mergescloud", null, null, 321, null, null, null, 0, 3, null, true)
+
+
+    val result6 = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", null, 1237, 321, null, null, null, 0, 12, true)
 
     filters1 = new java.util.HashMap[java.lang.String, java.lang.String]()
     //filters1.put("da_2955_s",null)
     filters1.put("brandId", "203")
     filterFieldsValues = new util.HashMap[java.lang.String, util.List[java.lang.String]]()
     filterFieldsValues.put("brandId", null)
-    val result2 = SearchInterface.attributeFilterSearch("mergescloud", "大", -1, 321, sorts, filters1, filterFieldsValues, 0, 10, null, true)
+    val result3 = SearchInterface.attributeFilterSearch("mergescloud", "大", -1, 321, sorts, filters1, filterFieldsValues, 0, 10, null, true)
 
 
 

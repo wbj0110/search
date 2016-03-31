@@ -6,10 +6,10 @@
 
     <groupId>com.ehsy.search</groupId>
     <artifactId>seachclient</artifactId>
-   <!-- <version>1.2.2</version>-->
-   <!-- <version>2.0.10</version>--> <!--test-->
-   <!-- <version>3.1.3</version>--> <!--staging-->
-    <version>4.0.0</version> <!--product-->
+     <version>1.2.3</version>
+    <!-- <version>2.0.10</version>--> <!--test-->
+    <!-- <version>3.1.3</version>--> <!--staging-->
+    <!--<version>4.0.1</version>--> <!--product-->
 
     <properties>
         <java.version>1.7</java.version>
@@ -328,64 +328,64 @@
             </plugin>
 
             <!--package-->
-           <!-- <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <transformers>
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                                    <resource>reference.conf</resource>
-                                </transformer>
-                                <transformer
-                                        implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>search.solr.client.consume.Consumer</mainClass>
-                                </transformer>
-                            </transformers>
-                            <shadedArtifactAttached>true</shadedArtifactAttached>
-                            <shadedClassifierName>index_manager_exec</shadedClassifierName>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                        </configuration>
+            <!-- <plugin>
+                 <groupId>org.apache.maven.plugins</groupId>
+                 <artifactId>maven-shade-plugin</artifactId>
+                 <executions>
+                     <execution>
+                         <phase>package</phase>
+                         <goals>
+                             <goal>shade</goal>
+                         </goals>
+                         <configuration>
+                             <transformers>
+                                 <transformer
+                                         implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                     <resource>reference.conf</resource>
+                                 </transformer>
+                                 <transformer
+                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                     <mainClass>search.solr.client.consume.Consumer</mainClass>
+                                 </transformer>
+                             </transformers>
+                             <shadedArtifactAttached>true</shadedArtifactAttached>
+                             <shadedClassifierName>index_manager_exec</shadedClassifierName>
+                             <filters>
+                                 <filter>
+                                     <artifact>*:*</artifact>
+                                     <excludes>
+                                         <exclude>META-INF/*.SF</exclude>
+                                         <exclude>META-INF/*.DSA</exclude>
+                                         <exclude>META-INF/*.RSA</exclude>
+                                     </excludes>
+                                 </filter>
+                             </filters>
+                         </configuration>
 
-                    </execution>
-                </executions>
-            </plugin>
+                     </execution>
+                 </executions>
+             </plugin>
 
-            &lt;!&ndash; deploy &ndash;&gt;
-            <plugin>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <version>2.8.1</version>
-                <executions>
-                    <execution>
-                        <id>default-deploy</id>
-                        <phase>deploy</phase>
-                        <goals>
-                            <goal>deploy</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>-->
+             &lt;!&ndash; deploy &ndash;&gt;
+             <plugin>
+                 <artifactId>maven-deploy-plugin</artifactId>
+                 <version>2.8.1</version>
+                 <executions>
+                     <execution>
+                         <id>default-deploy</id>
+                         <phase>deploy</phase>
+                         <goals>
+                             <goal>deploy</goal>
+                         </goals>
+                     </execution>
+                 </executions>
+             </plugin>-->
 
         </plugins>
     </build>
 
     <repositories>
-        <repository>
+       <!-- <repository>
             <id>nexus</id>
             <url>http://192.168.0.249:8099/nexus/content/repositories/thirdparty/</url>
             <releases>
@@ -394,7 +394,19 @@
             <snapshots>
                 <enabled>true</enabled>
             </snapshots>
-        </repository>
+        </repository>-->
+
+        <!-- <repository>
+           <id>nexus</id>
+           <url>http://121.40.241.26:8081/nexus/content/groups/public/</url>
+           <releases>
+               <enabled>true</enabled>
+           </releases>
+           <snapshots>
+               <enabled>true</enabled>
+           </snapshots>
+       </repository>-->
+
         <repository>
             <id>terracotta-repository</id>
             <url>http://www.terracotta.org/download/reflector/releases</url>
@@ -441,6 +453,19 @@
                 <enabled>true</enabled>
             </snapshots>
         </pluginRepository>
+
+        <pluginRepository>
+            <id>nexus1</id>
+            <url>http://121.40.241.26:8081/nexus/content/groups/public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+
+
     </pluginRepositories>
 
     <distributionManagement>
@@ -450,7 +475,7 @@
          </repository>-->
 
 
-      <!--  <repository>
+        <!--<repository>
             <id>releases</id>
             <url>http://192.168.0.249:8099/nexus/content/repositories/releases/</url>
         </repository>
@@ -458,14 +483,23 @@
             <id>snapshots</id>
             <url>http://192.168.0.249:8099/nexus/content/repositories/snapshots/</url>
         </snapshotRepository>-->
-         <repository>
-             <id>releases</id>
-             <url>http://112.124.32.129:8099/nexus/content/repositories/releases/</url>
-         </repository>
-         <snapshotRepository>
-             <id>snapshots</id>
-             <url>http://112.124.32.129:8099/nexus/content/repositories/snapshots/</url>
-         </snapshotRepository>
+        <!--<repository>
+            <id>releases</id>
+            <url>http://112.124.32.129:8099/nexus/content/repositories/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <url>http://112.124.32.129:8099/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>-->
+
+        <repository>
+            <id>releases</id>
+            <url>http://121.40.241.26:8081/nexus/content/repositories/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <url>http://121.40.241.26:8081/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
     </distributionManagement>
 
 </project>

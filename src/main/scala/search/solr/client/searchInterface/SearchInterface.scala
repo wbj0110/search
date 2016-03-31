@@ -9,6 +9,7 @@ import org.apache.solr.client.solrj.response.QueryResponse
 import org.apache.solr.common.util.SimpleOrderedMap
 import search.solr.client.config.Configuration
 import search.solr.client.entity.searchinterface._
+import search.solr.client.keyword.HotSearch
 import search.solr.client.log.SearchLog
 import search.solr.client.util.{Util, Logging}
 import search.solr.client.{SolrClientConf, SolrClient}
@@ -39,7 +40,7 @@ object SearchInterface extends Logging with Configuration {
 
   //brandId
   val generalFacetFieldBrandId = "brandId"
- // val generalFacetFieldBrandId = "da_89_s" //brand facet  Map(da_89_s->品牌)
+  // val generalFacetFieldBrandId = "da_89_s" //brand facet  Map(da_89_s->品牌)
 
 
   val keyWordsModelPinyin = s"(original:keyWord^50) OR (sku:keyWord^50) OR (brandZh:keyWord^200) OR (brandEn:keyWord^200) OR (sku:*keyWord*^11) OR (original:*keyWord*^10) OR (text:keyWord^2) OR (pinyin:keyWord^0.002)"
@@ -123,18 +124,13 @@ object SearchInterface extends Logging with Configuration {
     * @return
     */
   def popularityKeyWords(): java.util.List[String] = {
-
-    val list = new util.ArrayList[String]()
-    list.add("3m")
-    list.add("工具箱")
-    list.add("安全防护")
-    list.add("omron")
-    list.add("铅柜")
-    list.add("20M胶带价格")
-    list.add("西玛特")
-    list.add("50ml玻璃试剂瓶")
-    list.add("HCN探测器")
-    list
+    val keywords = HotSearch.hotKeywords
+    if (keywords == null || keywords.size()==0) {
+      val list = new util.ArrayList[String]()
+      list.add("3m")
+      list.add("工具箱")
+      list
+    } else keywords
   }
 
 
@@ -155,17 +151,19 @@ object SearchInterface extends Logging with Configuration {
   def recordSearchLog(keyWords: java.lang.String, appKey: java.lang.String, clientIp: java.lang.String, userAgent: java.lang.String, sourceType: java.lang.String, cookies: java.lang.String, userId: java.lang.String): Unit = {
     val currentTime = System.currentTimeMillis()
     logInfo(s"record search log:keyWords:$keyWords-appKey:$appKey-clientIp:$clientIp-userAgent:$userAgent-sourceType:$sourceType-cookies:-$cookies-userId:$userId-currentTime:$currentTime")
-    /* val map = new util.HashMap[String, Object]()
-     map.put("keyWords", keyWords)
-     map.put("appKey", appKey)
-     map.put("clientIp", clientIp)
-     map.put("userAgent", userAgent)
-     map.put("sourceType", sourceType)
-     map.put("cookies", cookies)
-     map.put("userId", userId)
-     map.put("currentTime", currentTime.toString)*/
-    // logQueue.put(map)
+    val map = new util.HashMap[String, Object]()
+    map.put("keyWords", keyWords)
+    map.put("appKey", appKey)
+    map.put("clientIp", clientIp)
+    map.put("userAgent", userAgent)
+    map.put("sourceType", sourceType)
+    map.put("cookies", cookies)
+    map.put("userId", userId)
+    map.put("currentTime", currentTime.toString)
+    logQueue.put(map)
     //mongoSearchLog.write(keyWords, appKey, clientIp, userAgent, sourceType, cookies, userId, Util.timestampToDate(currentTime))
+
+
   }
 
   private var thread = new Thread("search log thread ") {
@@ -173,12 +171,14 @@ object SearchInterface extends Logging with Configuration {
 
     override def run() {
       while (true) {
-        mongoSearchLog.write(logQueue.take())
+        // mongoSearchLog.write(logQueue.take())
+        //stastics hot keywords,just one week
+        HotSearch.recordAndStatictisKeywords(logQueue.take())
       }
     }
   }
 
-  //thread.start()
+  thread.start()
 
 
   def suggestByKeyWords(keyWords: java.lang.String, cityId: java.lang.Integer): java.util.Map[java.lang.String, java.lang.Integer] = {
@@ -1351,17 +1351,17 @@ object SearchInterface extends Logging with Configuration {
 object testSearchInterface {
   def main(args: Array[String]) {
 
-    //searchByKeywords
+    searchByKeywords
 
 
     //testSearchFilterAttributeByCatagoryId
-    testAttributeFilterSearch
+    //testAttributeFilterSearch
 
     //testSearchBrandsByCatoryId
 
     // testSuggestByKeyWords
 
-    //testRecordSearchLog
+   // testRecordSearchLog
 
     //testCountKeywordInDocs
 
@@ -1394,7 +1394,7 @@ object testSearchInterface {
     sorts.put("price", "asc")
     val result4 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "西格玛", 363, null, null, 0, 10)
     val result4_1 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "xigema", 363, null, null, 0, 10)
-    val result5 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "3m", 363, sorts, null, 0, 10)
+    val result5 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "3m", 363, null,sorts, 0, 10)
 
     val result6 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "LAA00s1", 363, null, sorts, 0, 10)
     val endTime = System.currentTimeMillis()
@@ -1540,12 +1540,29 @@ object testSearchInterface {
       * cookies
       * userId
       */
+    val hotKeywords = SearchInterface.popularityKeyWords()
     val startTime = System.currentTimeMillis()
-    SearchInterface.recordSearchLog("防护口罩", "swe2323", null, "Useragent", "android", null, "undn3")
+    SearchInterface.recordSearchLog("sd", "swe2323", null, "Useragent", "android", null, "undn3")
+    SearchInterface.recordSearchLog("第三方V", "swe2323", null, "Useragent", "android", null, "undn3")
+    SearchInterface.recordSearchLog("问", "swe2323", null, "Useragent", "android", null, "undn3")
+    SearchInterface.recordSearchLog("32", "swe2323", null, "Useragent", "android", null, "undn3")
+    SearchInterface.recordSearchLog("额外", "swe2323", null, "Useragent", "android", null, "undn3")
+    SearchInterface.recordSearchLog("稍等", "swe2323", null, "Useragent", "android", null, "undn3")
+    SearchInterface.recordSearchLog("松岛枫", "swe2323", null, "Useragent", "android", null, "undn3")
+    SearchInterface.recordSearchLog("士大夫", "swe2323", null, "Useragent", "android", null, "undn3")
+    SearchInterface.recordSearchLog("水电费", "swe2323", null, "Useragent", "android", null, "undn3")
+    SearchInterface.recordSearchLog("定位", "swe2323", null, "Useragent", "android", null, "undn3")
+    Thread.sleep(3000)
+    val hotKeywords1 = SearchInterface.popularityKeyWords()
     //Thread.sleep(6000)
-    SearchInterface.recordSearchLog("防护口罩", "swe2323", null, "Useragent", "android", null, "undn3")
+    SearchInterface.recordSearchLog("密封", "swe2323", null, "Useragent", "android", null, "undn3")
+    Thread.sleep(3000)
+    val hotKeyword2 = SearchInterface.popularityKeyWords()
     val endTime = System.currentTimeMillis()
     println(endTime - startTime)
+
+
+
   }
 
   def testSplit() = {

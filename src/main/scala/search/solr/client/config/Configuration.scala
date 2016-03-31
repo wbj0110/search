@@ -68,4 +68,8 @@ trait Configuration {
   lazy val threadsSleepTime =  Try(config.getInt("threads.sleep")).getOrElse(1000)
 
 
+  //redis
+  lazy val redisHost = Try(config.getString("redis.host")).getOrElse("localhost")
+  lazy val redisPort = Try(config.getInt("redis.port")).getOrElse(6379)
+
 }

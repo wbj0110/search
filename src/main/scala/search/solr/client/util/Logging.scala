@@ -10,7 +10,7 @@ import org.slf4j.{LoggerFactory, Logger}
   */
 trait Logging {
   @transient private var log_ : Logger = null
-  //@transient private var log_ : Logger = LoggerFactory.getLogger(logName)  //solve the problem of covered by this when somebody invoke this jar pacakge
+ // @transient private var log_ : Logger = LoggerFactory.getLogger(logName)  //solve the problem of covered by this when somebody invoke this jar pacakge
 
 
   protected def logName = {

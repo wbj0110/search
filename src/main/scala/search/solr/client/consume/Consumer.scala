@@ -2,11 +2,13 @@ package search.solr.client.consume
 
 import java.util
 
+import search.solr.client.SolrClientConf
 import search.solr.client.config.Configuration
 import search.solr.client.index.manager.{IndexManagerRunner, IndexManager}
 import search.solr.client.queue.MessageQueue
 import search.solr.client.queue.impl.KafkaMessageQueue
 import search.solr.client.util.{Util, Logging}
+import search.solr.client.view.control.ControlWebView
 import scala.collection.JavaConversions._
 
 /**
@@ -14,17 +16,19 @@ import scala.collection.JavaConversions._
   */
 object Consumer extends Logging with Configuration {
   val indexer = IndexManager()
+  val web = new ControlWebView(monitorPort, new SolrClientConf())
+  web.bind()
 
- /* var coreThreadsNumber = consumerCoreThreadsNum
+  /* var coreThreadsNumber = consumerCoreThreadsNum
 
-  var moreThreadsNumber = 0
+   var moreThreadsNumber = 0
 
-  if (consumerThreadsNum % Util.inferCores() > 0) moreThreadsNumber = 1
+   if (consumerThreadsNum % Util.inferCores() > 0) moreThreadsNumber = 1
 
 
-  if (consumerThreadsNum > 0) coreThreadsNumber = consumerThreadsNum / Util.inferCores() + moreThreadsNumber
+   if (consumerThreadsNum > 0) coreThreadsNumber = consumerThreadsNum / Util.inferCores() + moreThreadsNumber
 
-  val consumerManageThreadPool = Util.newDaemonFixedThreadPool((Util.inferCores() * coreThreadsNumber), "consumer_manage_thread_excutor")*/
+   val consumerManageThreadPool = Util.newDaemonFixedThreadPool((Util.inferCores() * coreThreadsNumber), "consumer_manage_thread_excutor")*/
 
   def main(args: Array[String]) {
     MessageQueue().start() //start recieve message,default we use kafka

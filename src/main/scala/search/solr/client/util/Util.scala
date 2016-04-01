@@ -1,19 +1,28 @@
 package search.solr.client.util
 
+import java.net.{Inet4Address, NetworkInterface, InetAddress}
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util.concurrent.{ThreadFactory, Executors, ThreadPoolExecutor}
 import java.util.regex.{Matcher, Pattern}
 
+import com.google.common.net.InetAddresses
 import com.google.common.util.concurrent.ThreadFactoryBuilder
+import org.apache.commons.lang3.SystemUtils
 
+import scala.collection.JavaConversions.asScalaBuffer
+import scala.collection.JavaConversions.asScalaSet
+import scala.collection.JavaConversions.enumerationAsScalaIterator
+import scala.collection.JavaConversions.propertiesAsScalaMap
 import scala.collection.mutable.ListBuffer
+
 
 /**
   * Created by soledede on 2015/11/25.
   */
-object Util {
-
+object Util extends  Logging{
+  private var customHostname: Option[String] = None
+  val isWindows = SystemUtils.IS_OS_WINDOWS
 
   private val daemonThreadFactoryBuilder: ThreadFactoryBuilder =
     new ThreadFactoryBuilder().setDaemon(true)
@@ -60,6 +69,63 @@ object Util {
     if (m.find()) return true
     else return false
   }
+
+  private lazy val localIpAddressNew: InetAddress = findLocalInetAddress()
+
+  def localHostNameForURI(): String = {
+    customHostname.getOrElse(InetAddresses.toUriString(localIpAddressNew))
+  }
+
+
+
+  private def findLocalInetAddress(): InetAddress = {
+    val defaultIpOverride = System.getenv("SEARCH_LOCAL_IP")
+    if (defaultIpOverride != null) {
+      InetAddress.getByName(defaultIpOverride)
+    } else {
+      val address = InetAddress.getLocalHost
+      if (address.isLoopbackAddress) {
+        // Address resolves to something like 127.0.1.1, which happens on Debian; try to find
+        // a better address using the local network interfaces
+        // getNetworkInterfaces returns ifs in reverse order compared to ifconfig output order
+        // on unix-like system. On windows, it returns in index order.
+        // It's more proper to pick ip address following system output order.
+        val activeNetworkIFs = NetworkInterface.getNetworkInterfaces.toList
+        val reOrderedNetworkIFs = if (isWindows) activeNetworkIFs else activeNetworkIFs.reverse
+
+        for (ni <- reOrderedNetworkIFs) {
+          val addresses = ni.getInetAddresses.toList
+            .filterNot(addr => addr.isLinkLocalAddress || addr.isLoopbackAddress)
+          if (addresses.nonEmpty) {
+            val addr = addresses.find(_.isInstanceOf[Inet4Address]).getOrElse(addresses.head)
+            // because of Inet6Address.toHostName may add interface at the end if it knows about it
+            val strippedAddress = InetAddress.getByAddress(addr.getAddress)
+            // We've found an address that looks reasonable!
+            log.warn("Your hostname, " + InetAddress.getLocalHost.getHostName + " resolves to" +
+              " a loopback address: " + address.getHostAddress + "; using " +
+              strippedAddress.getHostAddress + " instead (on interface " + ni.getName + ")")
+            logWarning("Set SEARCH_LOCAL_IP if you need to bind to another address")
+            return strippedAddress
+          }
+        }
+        logWarning("Your hostname, " + InetAddress.getLocalHost.getHostName + " resolves to" +
+          " a loopback address: " + address.getHostAddress + ", but we couldn't find any" +
+          " external IP address!")
+        logWarning("Set Crawler_LOCAL_IP if you need to bind to another address")
+      }
+      address
+    }
+  }
+
+
+  def getFormattedClassName(obj: AnyRef): String = {
+    obj.getClass.getSimpleName.replace("$", "")
+  }
+
+
+  def getClassLoader: ClassLoader = getClass.getClassLoader
+
+
 
   def regexExtract(input: String, regex: String): AnyRef = regexExtract(input, regex, -2)
 

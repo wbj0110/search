@@ -1,6 +1,7 @@
 package search.solr.client.config
 
 import com.typesafe.config.ConfigFactory
+import search.solr.client.util.Util
 
 import scala.util.Try
 
@@ -45,7 +46,6 @@ trait Configuration {
   lazy val defaultSuggestCollection = Try(config.getString("defaultsuggestcollection")).getOrElse("")
 
 
-
   /**
     * remote http url
     */
@@ -61,15 +61,24 @@ trait Configuration {
 
   lazy val consumerThreadsNum = Try(config.getInt("consumer.threads.number")).getOrElse(0)
 
-  lazy val consumerCoreThreadsNum =  Try(config.getInt("consumer.core.threads.number")).getOrElse(2)
+  lazy val consumerCoreThreadsNum = Try(config.getInt("consumer.core.threads.number")).getOrElse(2)
 
-  lazy val threadsWaitNum =  Try(config.getInt("threads.wait.number")).getOrElse(50000)
+  lazy val threadsWaitNum = Try(config.getInt("threads.wait.number")).getOrElse(50000)
 
-  lazy val threadsSleepTime =  Try(config.getInt("threads.sleep")).getOrElse(1000)
+  lazy val threadsSleepTime = Try(config.getInt("threads.sleep")).getOrElse(1000)
 
 
   //redis
   lazy val redisHost = Try(config.getString("redis.host")).getOrElse("localhost")
   lazy val redisPort = Try(config.getInt("redis.port")).getOrElse(6379)
+
+  //monitoru host
+  lazy val monitorConfigHost = Try(config.getString("monitor.host")).getOrElse(Util.localHostNameForURI())
+  var monitorHost = Util.localHostNameForURI()
+  if (monitorConfigHost != null && monitorConfigHost.equalsIgnoreCase("")) monitorHost = monitorConfigHost
+  lazy val monitorPort = Try(config.getInt("monitor.port")).getOrElse(9999)
+
+  //web
+  val WEB_STATIC_RESOURCE_DIR = "static"
 
 }

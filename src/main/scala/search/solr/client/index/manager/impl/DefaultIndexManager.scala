@@ -51,17 +51,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
   val solrClient = SolrClient(new SolrClientConf())
 
 
-  var coreThreadsNumber = consumerCoreThreadsNum
-
-
-  var currentThreadsNum = Util.inferCores() * coreThreadsNumber
-
-
-  if (consumerThreadsNum > 0) currentThreadsNum = consumerThreadsNum
-
-
-  val consumerManageThreadPool = Util.newDaemonFixedThreadPool(currentThreadsNum, "consumer_index_manage_thread_excutor")
-  logInfo(s"***************************************current threads number:$currentThreadsNum***************************************")
+  logInfo(s"***************************************current threads number:${DefaultIndexManager.currentThreadsNum}***************************************")
 
 
   override def requestData(message: String): AnyRef = {
@@ -271,7 +261,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
       val entity: UrlEncodedFormEntity = new UrlEncodedFormEntity(formparams, "utf-8");
       request.asInstanceOf[HttpEntityEnclosingRequestBase].setEntity(entity)
     }
-    consumerManageThreadPool.execute(new IndexManagerRunner(this, request, context, callback))
+    DefaultIndexManager.consumerManageThreadPool.execute(new IndexManagerRunner(this, request, context, callback))
     //HttpClientUtil.getInstance().execute(request, context, callback)
   }
 
@@ -479,8 +469,17 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
   }
 }
 
-object DefaultIndexManager {
+object DefaultIndexManager extends Configuration {
   var indexManager: DefaultIndexManager = null
+
+  var coreThreadsNumber = consumerCoreThreadsNum
+
+
+  var currentThreadsNum = Util.inferCores() * coreThreadsNumber
+
+
+  if (consumerThreadsNum > 0) currentThreadsNum = consumerThreadsNum
+  val consumerManageThreadPool = Util.newDaemonFixedThreadPool(currentThreadsNum, "consumer_index_manage_thread_excutor")
 
   def apply(): DefaultIndexManager = {
     if (indexManager == null) indexManager = new DefaultIndexManager()

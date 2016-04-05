@@ -39,8 +39,8 @@ trait PageUtil {
   def root: String = {
     if (System.getenv("APPLICATION_WEB_CONTROL_BASE") != null) {
       System.getenv("APPLICATION_WEB_CONTROL_BASE")
-    } else if (System.getProperty("crawler.view.baseUrl") != null) {
-      System.getProperty("crawler.view.baseUrl")
+    } else if (System.getProperty("solr.view.baseUrl") != null) {
+      System.getProperty("solr.view.baseUrl")
     }
     else {
       ""

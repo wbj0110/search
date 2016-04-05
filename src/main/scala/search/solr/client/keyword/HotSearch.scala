@@ -17,7 +17,8 @@ object HotSearch {
 
   val SEPARATOR = "_"
 
-  val preffixCaculate = s"$WEEK_PREFIX${weekOfMonth}$SEPARATOR"
+  //val preffixCaculate = s"$WEEK_PREFIX${weekOfMonth}$SEPARATOR"
+  val preffixCaculate = s"$WEEK_PREFIX"
 
   val suffixKeys = "*"
 
@@ -34,7 +35,7 @@ object HotSearch {
     val currentWeekKeys = cache.keys(preffixCaculate + suffixKeys)
     if (currentWeekKeys != null) {
       val hotKeyWords = currentWeekKeys.map { k =>
-        (cache.get(k), k.substring(k.indexOf(preffixCaculate) + 7)) //(keyword,count)
+        (cache.get(k), k.substring(k.indexOf(preffixCaculate) + 5)) //(keyword,count)
       }.filter(_._1 > 0).sortBy(_._1).map(_._2).take(10)
       hotKeyWords
     }else null

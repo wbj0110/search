@@ -5,7 +5,8 @@ import javax.servlet.http.HttpServletRequest
 import org.json4s.JValue
 import search.solr.client.SolrClientConf
 import search.solr.client.index.manager.impl.DefaultIndexManager
-import search.solr.client.util.{Json4sHelp, Logging}
+import search.solr.client.searchInterface.SearchInterface
+import search.solr.client.util.{Util, Json4sHelp, Logging}
 import search.solr.client.view.{PageUtil, WebView, WebViewPage}
 
 import scala.collection.mutable
@@ -17,6 +18,7 @@ import search.solr.client.view.JettyUtil._
   * Created by soledede on 2015/9/15.
   */
 private[search] class ControlWebView(requestedPort: Int, conf: SolrClientConf) extends WebView(requestedPort, conf, name = "ControlWebView") with Logging {
+
 
   /** Initialize all components of the server. */
   override def initialize(): Unit = {
@@ -39,12 +41,40 @@ private[search] class ControlWebView(requestedPort: Int, conf: SolrClientConf) e
            </svg>
          </svg>*/
 
-private[search] class ControlWebPage extends WebViewPage("") with PageUtil {
+private[search] class ControlWebPage extends WebViewPage("solr") with PageUtil with Logging {
 
 
   override def render(request: HttpServletRequest): Seq[Node] = {
+
     val currentActiveCount = DefaultIndexManager.consumerManageThreadPool.getActiveCount
 
+    val queryString = request.getQueryString
+
+    try {
+      if (queryString != null) {
+        if (queryString.contains("switchCollection=")) {
+          val isChoosenCollection = Util.regexExtract(queryString, "switchCollection=([a-zA-Z0-9]+)&?", 1)
+          if (isChoosenCollection != null && !isChoosenCollection.toString.trim.equalsIgnoreCase(""))
+            SearchInterface.switchCollection = isChoosenCollection.toString.toBoolean
+        }
+        if (SearchInterface.switchCollection) {
+          if (queryString.contains("switchMg=")) {
+            val mergeClouds = Util.regexExtract(queryString, "switchMg=([a-zA-Z0-9]+)&?", 1)
+            if (mergeClouds != null && !mergeClouds.toString.trim.equalsIgnoreCase(""))
+              SearchInterface.switchMg = mergeClouds.toString.trim
+          }
+          if (queryString.contains("switchSc=")) {
+            val screenClouds = Util.regexExtract(queryString, "switchSc=([a-zA-Z0-9]+)&?", 1)
+            if (screenClouds != null && !screenClouds.toString.trim.equalsIgnoreCase(""))
+              SearchInterface.switchSc = screenClouds.toString.trim
+          }
+        }
+      }
+    } catch {
+      case e: Exception => log.error("switch faield", e)
+    }
+
+    // println(isChoosenCollection)
     /*
            <img src="/image/log.png"/>{if currentActiveCount > 0) {
            <h4 style="color:red">Index is Running...</h4>
@@ -57,12 +87,22 @@ private[search] class ControlWebPage extends WebViewPage("") with PageUtil {
       <div>
         <img src="http://www.ehsy.com/images/logo.png"/>{if (currentActiveCount > 0) {
         <h4 style="color:red">Index is Running...</h4>
+
       } else {
         <h4 style="color:green">Index Finished</h4>
+      }}{if (SearchInterface.switchMg != null && !"null".equalsIgnoreCase(SearchInterface.switchMg)) {
+        <h4 style="color:yellow">current product collection:
+          {SearchInterface.switchMg}
+        </h4>
+      }}<br/>{if (SearchInterface.switchSc != null && !"null".equalsIgnoreCase(SearchInterface.switchSc)) {
+        <h4 style="color:yellow">current attribute collection:
+          {SearchInterface.switchSc}
+        </h4>
       }}
+
       </div>
     }
-    assemblePage(showPage, "crawler task trace")
+    assemblePage(showPage, "solr task trace")
   }
 
   override def renderJson(request: HttpServletRequest): JValue = Json4sHelp.writeTest

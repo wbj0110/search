@@ -58,6 +58,12 @@ object SearchInterface extends Logging with Configuration {
   val keyWordsModel = s"(original:keyWord^50) OR (sku:keyWord^50) OR (brandZh_ps:keyWord^300) OR (brandEn_ps:keyWord^300) OR (brandZh:keyWord^200) OR (brandEn:keyWord^200) OR (sku:*keyWord*^11) OR (original:*keyWord*^10) OR (text:keyWord^2)"
 
 
+
+  def getTrees() = {
+
+  }
+
+
   //get all categoryIds
   /**
     *
@@ -208,7 +214,7 @@ object SearchInterface extends Logging with Configuration {
     * @return java.util.Map[java.lang.String,java.lang.Integer]   eg:Map("soledede"=>10004)  represent counts of document  the keywords  side in
     */
   def suggestByKeyWords(collection: String = defaultCollection, keyWords: java.lang.String, cityId: java.lang.Integer): java.util.Map[java.lang.String, java.lang.Integer] = {
-    var (collections: String, attrCollections: String) = setSwitchCollection(collection, null)
+    var (collections: String, attrCollections: String) = setSwitchCollection(collection, defaultAttrCollection)
 
     if (keyWords != null && !keyWords.trim.equalsIgnoreCase("")) {
 
@@ -324,7 +330,7 @@ object SearchInterface extends Logging with Configuration {
   def attributeFilterSearch(collection: String, keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.LinkedHashMap[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, categoryIds: java.util.List[Integer] = null, isComeFromSearch: Boolean = false): FilterAttributeSearchResult = {
     //if (cityId != null) {
 
-    var (collections: String, attrCollections: String) = setSwitchCollection(collection, null)
+    var (collections: String, attrCollections: String) = setSwitchCollection(collection, defaultAttrCollection)
 
     val filterAttributeSearchResult = new FilterAttributeSearchResult()
 
@@ -548,7 +554,7 @@ object SearchInterface extends Logging with Configuration {
 
 
     if (catagoryId != null) {
-      var (collections: String, attrCollections: String) = setSwitchCollection(collection, null)
+      var (collections: String, attrCollections: String) = setSwitchCollection(collection, defaultAttrCollection)
       //page
       var sStart: Int = 0
       var sRows: Int = 10
@@ -1230,8 +1236,8 @@ object SearchInterface extends Logging with Configuration {
 
 
   private def setSwitchCollection(collection: String, attrCollection: String): (String, String) = {
-    var collections = collection
-    var attrCollections = attrCollection
+    var collections: String = collection
+    var attrCollections: String = attrCollection
 
     if (SearchInterface.switchCollection) {
       if (SearchInterface.switchMg != null && !"null".equalsIgnoreCase(SearchInterface.switchMg.trim)) collections = SearchInterface.switchMg
@@ -1390,15 +1396,15 @@ object testSearchInterface {
 
   def main(args: Array[String]) {
 
-    searchByKeywords
-    // testMoniSearchKeywords
+    //searchByKeywords
+   //  testMoniSearchKeywords
 
     //testSearchFilterAttributeByCatagoryId
     //testAttributeFilterSearch
 
     //testSearchBrandsByCatoryId
 
-    // testSuggestByKeyWords
+     testSuggestByKeyWords
 
     //testRecordSearchLog
 
@@ -1417,8 +1423,11 @@ object testSearchInterface {
 
 
   def testMoniSearchKeywords() = {
-    val result = SearchInterface.searchByKeywords("mergescloud", "screencloud", "防毒面具", 363, null, null, 0, 10)
-    val categoryResult = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "防毒面具", 2324, 321, null, null, null, 0, 10, true)
+   // val result = SearchInterface.searchByKeywords("mergescloud", "screencloud", "防毒面具", 363, null, null, 0, 10)
+   // val categoryResult = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "防毒面具", 2324, 321, null, null, null, 0, 10, true)
+   val result = SearchInterface.searchByKeywords("mergescloud", "screencloud", "实验室产品", 3, null, null, 0, 10)
+
+    val categoryResult = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "实验室产品", 903, 321, null, null, null, 0, 10, true)
 
     println(result)
 

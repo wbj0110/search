@@ -59,8 +59,9 @@ object SearchInterface extends Logging with Configuration {
 
 
 
-  def getTrees() = {
-
+  def getTrees(collection: String = defaultCollection, keyWords: java.lang.String, cityId: java.lang.Integer, filters: java.util.Map[java.lang.String, java.lang.String]) = {
+    //attributeFilterSearch(collections, keywords, catagoryId, cityId, sorts, null, null, start, rows, categoryIds, isCameFromSearch)
+    attributeFilterSearch(collection, keyWords, null, null, null, null, null, 0, 0, null, true)
   }
 
 

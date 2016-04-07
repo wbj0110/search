@@ -4,6 +4,7 @@ import java.io.PrintWriter
 import java.util
 
 
+import com.alibaba.fastjson.JSON
 import org.apache.http.HttpResponse
 import org.apache.http.client.entity.UrlEncodedFormEntity
 import org.apache.http.client.methods.{HttpRequestBase, HttpEntityEnclosingRequestBase}
@@ -15,7 +16,7 @@ import org.bson.json.JsonParseException
 import org.codehaus.jackson.JsonNode
 import org.codehaus.jackson.map.ObjectMapper
 import search.solr.client.consume.Consumer._
-import search.solr.client.{SolrClientConf, SolrClient}
+import search.solr.client.{ObjectJson, SolrClientConf, SolrClient}
 import search.solr.client.config.Configuration
 import search.solr.client.entity.enumeration.HttpRequestMethodType
 import search.solr.client.http.{HttpClientUtil, HttpRequstUtil}
@@ -354,7 +355,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
     while (fields.hasNext()) {
       val it = fields.next()
       val key = it.getKey.trim
-      var value = it.getValue.toString.trim
+      var value = it.getValue.asText.trim
 
 
 
@@ -384,7 +385,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
                 val listMutivalued = new util.ArrayList[java.lang.String]()
                 vals.foreach { f =>
                   if (!f.equalsIgnoreCase("") && !f.equalsIgnoreCase("null") && !f.equalsIgnoreCase("\"\"")) {
-                    var fV: String = f.replaceAll("^\"([\\S|\\s]+)\"$", "$1")
+                    var fV: String = f.trim.replaceAll("^\"([\\S|\\s]+)\"$", "$1")
                     fV = fV.replaceAll("^\"([\\S|\\s]+)", "$1")
                     fV = fV.replaceAll("([\\S|\\s]+)\"$", "$1")
                     fV = fV.trim
@@ -499,9 +500,43 @@ object DefaultIndexManager extends Configuration {
 }
 
 
-object TestIndexManger {
+object TestIndexManger extends Logging {
   def main(args: Array[String]) {
-    forTest
+    // forTest
+    //testRegext
+    testJsonParser
+  }
+
+
+  def testJsonParser() = {
+    val om = new ObjectMapper()
+    val responseData = "{\"data\":[{\"brandEn\":\"Greatwall\",\"brandId\":6384,\"brandZh\":\"长城精工\",\"category1\":\"工具\",\"category2\":\"扳手/手动套筒\",\"category3\":\"扳手/手动套筒\",\"category4\":\"活动扳手\",\"categoryId\":2955,\"categoryId1\":5,\"categoryId2\":71,\"categoryId3\":16887,\"categoryId4\":3883,\"cityId\":\"\",\"createDate\":1447127123210,\"deliveryTime\":\"3\",\"id\":\"1444999\",\"isRestrictedArea\":0,\"keywords\":\"长城精工,豪华型带刻度活扳手,375mm(15\\\"),300635\",\"minOrder\":\"1\",\"original\":\"300635\",\"picUrl\":\"http://image.ehsy.com/uploadfile/T/SFC073.jpg|http://image.ehsy.com/uploadfile/T/SFC073_1.jpg\",\"price\":84.0000,\"salesUnit\":\"个\",\"sku\":\"SFC073\",\"title\":\"长城精工,豪华型带刻度活扳手,375mm(15\\\"),300635\",\"updateDate\":1459052860673}],\"mark\":\"0\",\"message\":\"SUCCESS\",\"totalCount\":259417}"
+    try {
+      val obj = om.readTree(responseData)
+      if (obj == null) logInfo(s"response null,size:0")
+      else {
+        if (obj.isInstanceOf[JsonNode]) {
+          //generate add index xml
+          val dataJsonNode = obj.asInstanceOf[JsonNode]
+          logInfo(s"response size:${dataJsonNode.get("data").size()}")
+        }
+      }
+
+      val jsonObject = JSON.parseObject(responseData)
+      println(jsonObject)
+
+
+      val value = ""
+      val v = new ObjectJson()
+      val vString = om.writeValueAsString(v)
+      println(vString)
+    }
+  }
+
+  def testRegext() = {
+    var fV: String = "8\\”".trim.replaceAll("^\"([\\S|\\s]+)\"$", "$1")
+    println(fV)
+    println("8\\\"")
   }
 
   def forTest() = {

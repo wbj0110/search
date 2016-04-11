@@ -3,8 +3,8 @@ package search.solr.client.listener
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Created by soledede on 2015/9/17.
- */
+  * Created by soledede on 2015/9/17.
+  */
 trait TraceListenerWaiter extends ListenerWaiter[TraceListener, TraceListenerEvent] {
 
 
@@ -22,16 +22,10 @@ trait TraceListenerWaiter extends ListenerWaiter[TraceListener, TraceListenerEve
   override def onPostEvent(listener: TraceListener, event: TraceListenerEvent): Unit = {
 
     event match {
-      case jobStarted: JobStarted =>
-        listener.onJobStart(jobStarted)
-      case jobTaskFailed: JobTaskFailed =>
-        listener.onJobTaskFailed(jobTaskFailed)
-      case jobTaskCompleted: JobTaskCompleted =>
-        listener.onJobTaskCompleted(jobTaskCompleted)
-      case jobTaskAdded: JobTaskAdded =>
-        listener.onJobTaskAdded(jobTaskAdded)
-      case keys: Keys =>
-        listener.onSearch(keys)
+      case addIndex: AddIndex =>
+        listener.onAddIndex(addIndex)
+      case delLastIndex: DelLastIndex =>
+        listener.onDelLastIndex()
     }
   }
 }

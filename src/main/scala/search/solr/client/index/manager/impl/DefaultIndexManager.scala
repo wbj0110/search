@@ -16,6 +16,7 @@ import org.bson.json.JsonParseException
 import org.codehaus.jackson.JsonNode
 import org.codehaus.jackson.map.ObjectMapper
 import search.solr.client.consume.Consumer._
+import search.solr.client.listener.{IndexTaskTraceListener, AddIndex, ManagerListenerWaiter}
 import search.solr.client.{ObjectJson, SolrClientConf, SolrClient}
 import search.solr.client.config.Configuration
 import search.solr.client.entity.enumeration.HttpRequestMethodType
@@ -272,6 +273,13 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
     }
   }
 
+
+  //post to event queue
+  private def postKV(key: String, value: String) = {
+    if (key != null && value != null && (key.equalsIgnoreCase("sku") || key.equalsIgnoreCase("delete")))
+      DefaultIndexManager.bus.post(AddIndex(value))
+  }
+
   override def geneXml(data: AnyRef, collection: String): AnyRef = {
     var listMap: java.util.List[java.util.Map[java.lang.String, Object]] = new java.util.ArrayList[java.util.Map[java.lang.String, Object]]()
     var delList: java.util.List[java.lang.String] = null
@@ -327,6 +335,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
           for (i <- 2 to deleteArray.length - 1) {
             //index 0 reoresent command DELETE
             xml.append("<id>")
+            postKV("delete", deleteArray(i).trim)
             xml.append(deleteArray(i).trim)
             xml.append("</id>")
             xml.append("\n")
@@ -396,6 +405,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
                     fV = fV.trim
                     if (!fV.equalsIgnoreCase("") && !fV.equalsIgnoreCase("\"") && !fV.equalsIgnoreCase("\\\"")) {
                       listMutivalued.add(fV)
+                      postKV(key, fV)
                       fieldAdd(xml, key, fV)
                     }
                   }
@@ -415,6 +425,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
             value = value.replaceAll("(\\[\\S|\\s]+)\"$", "$1")
             value = value.trim
             if (!value.equalsIgnoreCase("") && !value.equalsIgnoreCase("\"")) {
+              postKV(key, value)
               fieldAdd(xml, key, value)
               objMap.put(key, value)
             }
@@ -491,6 +502,10 @@ object DefaultIndexManager extends Configuration {
     if (indexManager == null) indexManager = new DefaultIndexManager()
     indexManager
   }
+
+  val bus = ManagerListenerWaiter()
+  bus.listeners.add(new IndexTaskTraceListener())
+  bus.start()
 
   val requestStartTime_key = "requestStartTime"
 

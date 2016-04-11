@@ -31,6 +31,8 @@ private[search] trait BlockQueue[T] {
 
   def remove(obj: T): Unit = {}
 
+  def poll():T = null.asInstanceOf[T]
+
 }
 
 private[search] object BlockQueue {

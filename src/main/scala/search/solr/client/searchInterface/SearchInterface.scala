@@ -1458,7 +1458,7 @@ object testSearchInterface {
     val csc = vs.replaceAll(s, re)
     // filters.put("da_1186_s", "1/2\\\"")
     //  filters.put("da_1186_s", csc)
-    filters.put("da_1186_s", vs)
+   filters.put("da_1186_s", "1/2\" -> 10\"")
 
     // filters.put("da_1186_s", "10\\\" <-> 12\\\"")
     var filterFieldsValues = new util.LinkedHashMap[java.lang.String, util.List[java.lang.String]]()

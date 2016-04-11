@@ -1,10 +1,14 @@
 package search.solr.client.view.control
 
+import java.util.concurrent.atomic.AtomicBoolean
 import javax.servlet.http.HttpServletRequest
 
 import org.json4s.JValue
 import search.solr.client.SolrClientConf
 import search.solr.client.index.manager.impl.DefaultIndexManager
+import search.solr.client.listener.{DelLastIndex, IndexTaskTraceListener}
+import search.solr.client.queue.BlockQueue
+import search.solr.client.redis.Redis
 import search.solr.client.searchInterface.SearchInterface
 import search.solr.client.util.{Util, Json4sHelp, Logging}
 import search.solr.client.view.{PageUtil, WebView, WebViewPage}
@@ -15,7 +19,7 @@ import search.solr.client.view.JettyUtil._
 
 
 /**
-  * Created by soledede on 2015/9/15.
+  * Created by soledede on 2016/4/8.
   */
 private[search] class ControlWebView(requestedPort: Int, conf: SolrClientConf) extends WebView(requestedPort, conf, name = "ControlWebView") with Logging {
 
@@ -25,6 +29,8 @@ private[search] class ControlWebView(requestedPort: Int, conf: SolrClientConf) e
     attachHandler(createStaticHandler(WEB_STATIC_RESOURCE_DIR, "static"))
     val controlPage = new ControlWebPage()
     attachPage(controlPage)
+    val listPage = new ListWebPage()
+    attachPage(listPage)
   }
 
   initialize()
@@ -47,8 +53,14 @@ private[search] class ControlWebPage extends WebViewPage("solr") with PageUtil w
   override def render(request: HttpServletRequest): Seq[Node] = {
 
     val currentActiveCount = DefaultIndexManager.consumerManageThreadPool.getActiveCount
+    val completeTaskCount = DefaultIndexManager.consumerManageThreadPool.getCompletedTaskCount
+    val runTaskCount = DefaultIndexManager.consumerManageThreadPool.getQueue.size()
+
+    if (currentActiveCount > 0 && completeTaskCount <= 0 && runTaskCount > 0) DefaultIndexManager.bus.post(DelLastIndex())
 
     val queryString = request.getQueryString
+
+    val cacheIndexDataQueue = ControlWebPage.currentIndexDatas
 
     try {
       if (queryString != null) {
@@ -74,20 +86,11 @@ private[search] class ControlWebPage extends WebViewPage("solr") with PageUtil w
       case e: Exception => log.error("switch faield", e)
     }
 
-    // println(isChoosenCollection)
-    /*
-           <img src="/image/log.png"/>{if currentActiveCount > 0) {
-           <h4 style="color:red">Index is Running...</h4>
-         }else{
-           <h4 style="color:red">Index Finished</h4>
-         }
-         }*/
-    //val allTaskNum = w.post(JobTaskAdded())
+
     val showPage = {
       <div>
         <img src="http://www.ehsy.com/images/logo.png"/>{if (currentActiveCount > 0) {
-        <h4 style="color:red">Index is Running...</h4>
-
+        <h4 style="color:red">Index is Running...请刷新浏览器！</h4>
       } else {
         <h4 style="color:green">Index Finished</h4>
       }}{if (SearchInterface.switchMg != null && !"null".equalsIgnoreCase(SearchInterface.switchMg)) {
@@ -98,40 +101,68 @@ private[search] class ControlWebPage extends WebViewPage("solr") with PageUtil w
         <h4 style="color:yellow">current attribute collection:
           {SearchInterface.switchSc}
         </h4>
-      }}
-
+      }}<br/>{if (currentActiveCount > 0 && cacheIndexDataQueue.size() > 0) {
+        <h3>正在索引或删除的sku/id.</h3>
+          <h4>
+            {cacheIndexDataQueue.poll()}
+          </h4>
+          <a href="list" target="_blank">查看本次索引历史列表.</a>
+      }}<br/>{if (currentActiveCount <= 0) {
+        <a href="list" target="_blank">点击查看上次索引更新列表.</a>
+      }}<br/>
       </div>
     }
     assemblePage(showPage, "solr task trace")
   }
 
   override def renderJson(request: HttpServletRequest): JValue = Json4sHelp.writeTest
-
-  def cTable(job: (String, mutable.HashMap[(String, String), Int])): Seq[Node] = {
-    <table class="bordered">
-      <thead>
-        <tr>
-          <th>JobId</th>
-          <th>JobName</th>
-          <th>Number</th>
-        </tr>
-      </thead>{job._2.map { s =>
-      <tr>
-        <td>
-          {s._1._1}
-        </td>
-        <td>
-          {s._1._2}
-        </td>
-        <td>
-          {s._2}
-        </td>
-      </tr>
-    }}
-    </table>
-  }
 }
 
 object ControlWebPage {
-  val jobInfoCache: scala.collection.mutable.Map[String, mutable.HashMap[(String, String), Int]] = new scala.collection.mutable.HashMap[String, mutable.HashMap[(String, String), Int]]()
+  val currentIndexDatas = BlockQueue[String](new SolrClientConf(), "indexing")
+  val isAlive = new AtomicBoolean(false)
+
+  private val listenerThread = new Thread("check activity for thread") {
+    setDaemon(true)
+
+    override def run(): Unit = {
+      while (true) {
+        val currentActiveCount = DefaultIndexManager.consumerManageThreadPool.getActiveCount
+        if (currentActiveCount > 0)
+          ControlWebPage.isAlive.compareAndSet(false, true)
+        else ControlWebPage.isAlive.compareAndSet(true, false)
+        Thread.sleep(30 * 1000)
+      }
+    }
+  }
+  // listenerThread.start()
 }
+
+
+private[search] class ListWebPage extends WebViewPage("solr/list") with PageUtil with Logging {
+  val redis = Redis()
+
+  override def render(request: HttpServletRequest): Seq[Node] = {
+
+    val listSkus = redis.getAllFromSetByKey[String](IndexTaskTraceListener.SET_KEY)
+
+    val showPage = {
+      <div>
+        <img src="http://www.ehsy.com/images/logo.png"/>
+        <h1 style="color:red">索引列表,总数：
+          {listSkus.size}
+          条记录!请刷新浏览器！</h1>{if (listSkus.size > 0) {
+        listSkus.map { s =>
+          <h6>
+            {s}
+          </h6>
+        }
+      }}
+      </div>
+    }
+    assemblePage(showPage, "solr list show")
+  }
+
+  override def renderJson(request: HttpServletRequest): JValue = Json4sHelp.writeTest
+}
+

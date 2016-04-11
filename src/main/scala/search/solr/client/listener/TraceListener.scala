@@ -7,13 +7,7 @@ import search.solr.client.util.Logging
  */
 trait TraceListener extends Logging{
 
-  def onJobStart(jobstart: JobStarted) = {}
+  def onAddIndex(content: AddIndex)
 
-  def onJobTaskFailed(jobTaskFailed: JobTaskFailed): Int = {-1}
-
-  def onJobTaskCompleted(jobTaskCompleted: JobTaskCompleted): Int = {-1}
-
-  def onJobTaskAdded(jobTaskAdded: JobTaskAdded): Int = {-1}
-
-  def onSearch(keys: Keys): Option[Seq[String]] = {null}
+  def onDelLastIndex()
 }

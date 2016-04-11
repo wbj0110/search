@@ -42,7 +42,11 @@ private[search] class SolrClientLinkedBlockQueueImpl[T: ClassTag] private(conf: 
   }
 
   override def toArray(): Array[AnyRef] = {
-    taskBlockingQueue.toArray
+    this.taskBlockingQueue.toArray
+  }
+
+  override def poll(): T = {
+   this.taskBlockingQueue.poll()
   }
 }
 

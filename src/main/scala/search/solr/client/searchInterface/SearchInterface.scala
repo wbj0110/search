@@ -47,7 +47,7 @@ object SearchInterface extends Logging with Configuration {
 
   val mongoSearchLog = SearchLog("mongo")
 
-  val filterSplitArray = Array("<->", "OR", "or", "->")
+  val filterSplitArray = Array("<->", "->")
 
   val logQueue = new LinkedBlockingQueue[java.util.Map[String, Object]]
 

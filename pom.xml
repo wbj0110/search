@@ -6,11 +6,11 @@
 
     <groupId>com.ehsy.search</groupId>
     <artifactId>seachclient</artifactId>
-    <!-- <version>1.2.9</version>-->
+    <!-- <version>1.3.0</version>-->
     <!--<version>2.1.0</version>--> <!--test-->
     <!-- <version>3.1.3</version>--> <!--staging-->
-    <!-- <version>4.0.8</version>--> <!--product-->
-    <version>5.0.0</version>
+     <version>4.0.10</version> <!--product-->
+   <!-- <version>5.0.0</version>-->
 
 
     <properties>
@@ -420,7 +420,7 @@
             </plugin>
 
             <!--package-->
-
+<!--
              <plugin>
                  <groupId>org.apache.maven.plugins</groupId>
                  <artifactId>maven-shade-plugin</artifactId>
@@ -457,7 +457,7 @@
 
                      </execution>
                  </executions>
-             </plugin>
+             </plugin>-->
 
             <!-- deploy -->
             <plugin>
@@ -573,7 +573,7 @@
          </repository>-->
 
 
-        <!-- <repository>
+       <!--  <repository>
              <id>releases</id>
              <url>http://192.168.0.249:8099/nexus/content/repositories/releases/</url>
          </repository>

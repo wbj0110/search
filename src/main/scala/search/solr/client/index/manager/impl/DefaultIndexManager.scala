@@ -168,6 +168,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
     HttpClientUtil.getInstance().execute(request, context, callback)
   }
 
+
   //have get data
   def callback(context: HttpContext, httpResp: HttpResponse) = {
     var obj: AnyRef = null
@@ -179,24 +180,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
     val collection = context.getAttribute("collection").toString
     val responseData = EntityUtils.toString(httpResp.getEntity)
 
-    if (responseData != null && !responseData.equalsIgnoreCase("")) {
-      val om = new ObjectMapper()
-      try {
-        obj = om.readTree(responseData)
-        if (obj == null) logInfo(s"response null,size:0")
-        else {
-          if (obj.isInstanceOf[JsonNode]) {
-            //generate add index xml
-            val dataJsonNode = obj.asInstanceOf[JsonNode]
-            logInfo(s"response size:${dataJsonNode.get("data").size()}")
-          }
-        }
-        indexOrDelteData(obj, collection)
-      } catch {
-        case ex: Exception =>
-          logError(s"json pase faield:data:${responseData}", ex)
-      }
-    }
+    startGeneralXmlAndIndex(collection, responseData)
 
 
   }
@@ -266,6 +250,27 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
     //HttpClientUtil.getInstance().execute(request, context, callback)
   }
 
+
+  def startGeneralXmlAndIndex(collection: String, responseData: String): Unit = {
+    if (responseData != null && !responseData.equalsIgnoreCase("")) {
+      val om = new ObjectMapper()
+      try {
+        val obj = om.readTree(responseData)
+        if (obj == null) logInfo(s"response null,size:0")
+        else {
+          if (obj.isInstanceOf[JsonNode]) {
+            //generate add index xml
+            val dataJsonNode = obj.asInstanceOf[JsonNode]
+            logInfo(s"response size:${dataJsonNode.get("data").size()}")
+          }
+        }
+        indexOrDelteData(obj, collection)
+      } catch {
+        case ex: Exception =>
+          logError(s"json pase faield:data:${responseData}", ex)
+      }
+    }
+  }
 
   override def geneXml(data: AnyRef, collection: String): AnyRef = {
     var listMap: java.util.List[java.util.Map[java.lang.String, Object]] = new java.util.ArrayList[java.util.Map[java.lang.String, Object]]()
@@ -504,9 +509,17 @@ object TestIndexManger extends Logging {
   def main(args: Array[String]) {
     // forTest
     //testRegext
-    testJsonParser
+    //testJsonParser
+    testStartGeneralXmlAndIndex
   }
 
+
+  def testStartGeneralXmlAndIndex() = {
+    val d = DefaultIndexManager()
+    val responseData = "{\"data\":[{\"brandEn\":\"Greatwall\",\"brandId\":6384,\"brandZh\":\"长城精工\",\"category1\":\"工具\",\"category2\":\"扳手/手动套筒\",\"category3\":\"扳手/手动套筒\",\"category4\":\"活动扳手\",\"categoryId\":2955,\"categoryId1\":5,\"categoryId2\":71,\"categoryId3\":16887,\"categoryId4\":3883,\"cityId\":\"\",\"createDate\":1447127123210,\"deliveryTime\":\"3\",\"id\":\"1444999\",\"isRestrictedArea\":0,\"keywords\":\"长城精工,豪华型带刻度活扳手,375mm(15\\\"),300635\",\"minOrder\":\"1\",\"original\":\"300635\",\"picUrl\":\"http://image.ehsy.com/uploadfile/T/SFC073.jpg|http://image.ehsy.com/uploadfile/T/SFC073_1.jpg\",\"price\":84.0000,\"salesUnit\":\"个\",\"sku\":\"SFC073\",\"title\":\"长城精工,豪华型带刻度活扳手,375mm(15\\\"),300635\",\"updateDate\":1459052860673}],\"mark\":\"0\",\"message\":\"SUCCESS\",\"totalCount\":259417}"
+    d.startGeneralXmlAndIndex("mergescloud", responseData)
+
+  }
 
   def testJsonParser() = {
     val om = new ObjectMapper()

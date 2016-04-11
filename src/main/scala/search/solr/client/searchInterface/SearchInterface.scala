@@ -30,6 +30,12 @@ object SearchInterface extends Logging with Configuration {
   @volatile var switchMg: String = null
   @volatile var switchSc: String = null
 
+  var arrayObj: Array[String] = null
+
+  if (filterChanges != null && !filterChanges.trim.equalsIgnoreCase("")) {
+    arrayObj = filterChanges.split("&")
+  }
+
 
   val web = new ControlWebView(monitorPort, new SolrClientConf())
   web.bind()
@@ -56,7 +62,6 @@ object SearchInterface extends Logging with Configuration {
 
   val keyWordsModelPinyin = s"(original:keyWord^50) OR (sku:keyWord^50) OR (brandZh_ps:keyWord^300) OR (brandEn_ps:keyWord^300) OR (brandZh:keyWord^200) OR (brandEn:keyWord^200) OR (sku:*keyWord*^11) OR (original:*keyWord*^10) OR (text:keyWord^2) OR (pinyin:keyWord^0.002)"
   val keyWordsModel = s"(original:keyWord^50) OR (sku:keyWord^50) OR (brandZh_ps:keyWord^300) OR (brandEn_ps:keyWord^300) OR (brandZh:keyWord^200) OR (brandEn:keyWord^200) OR (sku:*keyWord*^11) OR (original:*keyWord*^10) OR (text:keyWord^2)"
-
 
 
   def getTrees(collection: String = defaultCollection, keyWords: java.lang.String, cityId: java.lang.Integer, filters: java.util.Map[java.lang.String, java.lang.String]) = {
@@ -1247,6 +1252,14 @@ object SearchInterface extends Logging with Configuration {
     (collections, attrCollections)
   }
 
+  def replaceSense(valueString: String): String = {
+    var relpaseString = valueString
+    arrayObj.foreach { s =>
+      val sepaSense = s.split("=>")
+      relpaseString =  relpaseString.replaceAll(sepaSense(0).trim, sepaSense(1).trim)
+    }
+    relpaseString
+  }
 
   /**
     *
@@ -1258,7 +1271,7 @@ object SearchInterface extends Logging with Configuration {
     if (filters != null && filters.size() > 0) {
       filters.foreach { fV =>
         val field = fV._1
-        val value = fV._2
+        var value = fV._2
         if (value != null && !value.equalsIgnoreCase("")) {
           var valuesArray: Array[String] = null
           breakable {
@@ -1273,15 +1286,18 @@ object SearchInterface extends Logging with Configuration {
             fqString.append("(")
             //t89_s:(memmert+OR+Memmert+OR+honeywell+OR+Honeywell)
             valuesArray.foreach { filterValue =>
-              val value = filterValue.trim
+              var value = filterValue.trim
               //fq=t89_s:(memmert OR Memmert OR honeywell OR Honeywell)
               if (Util.regex(value, "^[A-Za-z]+$")) {
-                val v1 = value.charAt(0).toUpper + value.substring(1)
-                val v2 = value.charAt(0).toLower + value.substring(1)
+                var v1 = value.charAt(0).toUpper + value.substring(1)
+                var v2 = value.charAt(0).toLower + value.substring(1)
+                v1 = replaceSense(v1)
+                v2 = replaceSense(v2)
                 fqString.append(s"$v1 OR $v2 OR ")
                 // val fq = s"$field:($v1 OR $v2)"
                 //query.addFilterQuery(fq)
               } else {
+                value = replaceSense(value)
                 fqString.append(s"$value OR ")
                 // query.addFilterQuery(s"$field:$value")
               }
@@ -1291,11 +1307,14 @@ object SearchInterface extends Logging with Configuration {
           } else {
             //fq=t89_s:(memmert OR Memmert OR honeywell OR Honeywell)
             if (Util.regex(value, "^[A-Za-z]+$")) {
-              val v1 = value.charAt(0).toUpper + value.substring(1)
-              val v2 = value.charAt(0).toLower + value.substring(1)
+              var v1 = value.charAt(0).toUpper + value.substring(1)
+              var v2 = value.charAt(0).toLower + value.substring(1)
+              v1 = replaceSense(v1)
+              v2 = replaceSense(v2)
               val fq = s"$field:($v1 OR $v2)"
               query.addFilterQuery(fq)
             } else {
+              value = replaceSense(value)
               query.addFilterQuery(s"$field:$value")
             }
           }
@@ -1398,14 +1417,14 @@ object testSearchInterface {
   def main(args: Array[String]) {
 
     //searchByKeywords
-   //  testMoniSearchKeywords
+    //  testMoniSearchKeywords
 
     //testSearchFilterAttributeByCatagoryId
     //testAttributeFilterSearch
 
     //testSearchBrandsByCatoryId
 
-     testSuggestByKeyWords
+    //testSuggestByKeyWords
 
     //testRecordSearchLog
 
@@ -1420,13 +1439,60 @@ object testSearchInterface {
 
     //testSearchByCategoryId
 
+    testMoniSearchKeywordsFilters
+
+  }
+
+
+  def testMoniSearchKeywordsFilters() = {
+
+    val categoryResult = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "绝缘扳手", 4318, 321, null, null, null, 0, 10, true)
+
+    val filters = new java.util.HashMap[java.lang.String, java.lang.String]()
+    //filters.put("da_2955_s", "Memmert")
+    //filters.put("da_1186_s", "1/2\\\" <-> 12\\\"")
+    // filters.put("da_1186_s", "1/2\\\\\\\"")
+    val vs = "1/2\""
+    val s = "\""
+    val re = "\\\\\""
+    val csc = vs.replaceAll(s, re)
+    // filters.put("da_1186_s", "1/2\\\"")
+    //  filters.put("da_1186_s", csc)
+    filters.put("da_1186_s", vs)
+
+    // filters.put("da_1186_s", "10\\\" <-> 12\\\"")
+    var filterFieldsValues = new util.LinkedHashMap[java.lang.String, util.List[java.lang.String]]()
+    filterFieldsValues.put("da_89_s", null)
+    filterFieldsValues.put("da_1186_s", null)
+    filterFieldsValues.put("da_3095_s", null)
+    filterFieldsValues.put("da_528_s", null)
+    filterFieldsValues.put("da_25_s", null)
+
+
+    val categoryResultSortFilter = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "绝缘扳手", 4318, 321, null, filters, filterFieldsValues, 0, 10, false)
+
+    val categoryResult1 = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", null, 15905, 321, null, null, null, 0, 10, true)
+
+    val filters1 = new java.util.HashMap[java.lang.String, java.lang.String]()
+    //filters.put("da_2955_s", "Memmert")
+    filters1.put("da_89_s", "worksafe")
+
+    var filterFieldsValues1 = new util.LinkedHashMap[java.lang.String, util.List[java.lang.String]]()
+    filterFieldsValues1.put("da_89_s", null)
+    filterFieldsValues1.put("da_2955_s", null)
+    filterFieldsValues1.put("da_1430_s", null)
+    filterFieldsValues1.put("da_1025_s", null)
+    val categoryResultSortFilter1 = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", null, 15905, 321, null, filters1, filterFieldsValues1, 0, 10, false)
+
+    println(categoryResultSortFilter)
+
   }
 
 
   def testMoniSearchKeywords() = {
-   // val result = SearchInterface.searchByKeywords("mergescloud", "screencloud", "防毒面具", 363, null, null, 0, 10)
-   // val categoryResult = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "防毒面具", 2324, 321, null, null, null, 0, 10, true)
-   val result = SearchInterface.searchByKeywords("mergescloud", "screencloud", "实验室产品", 3, null, null, 0, 10)
+    // val result = SearchInterface.searchByKeywords("mergescloud", "screencloud", "防毒面具", 363, null, null, 0, 10)
+    // val categoryResult = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "防毒面具", 2324, 321, null, null, null, 0, 10, true)
+    val result = SearchInterface.searchByKeywords("mergescloud", "screencloud", "实验室产品", 3, null, null, 0, 10)
 
     val categoryResult = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "实验室产品", 903, 321, null, null, null, 0, 10, true)
 

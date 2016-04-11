@@ -33,6 +33,13 @@ trait Configuration {
   lazy val filedirScreenCloud = Try(config.getString("filedir.screenclouds")).getOrElse("")
 
   /**
+    * filter
+    *
+    */
+
+  lazy val filterChanges = Try(config.getString("filter.change")).getOrElse("")
+
+  /**
     * solr
     */
 

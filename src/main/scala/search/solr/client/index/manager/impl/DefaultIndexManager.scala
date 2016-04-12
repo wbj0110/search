@@ -181,8 +181,8 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
     val collection = context.getAttribute("collection").toString
     val responseData = EntityUtils.toString(httpResp.getEntity)
 
-    DefaultIndexManager.indexProcessThreadPool.execute(new IndexManageProcessrRunner(collection, responseData))
-    // startGeneralXmlAndIndex(collection, responseData)  //change to use thread pool
+    //DefaultIndexManager.indexProcessThreadPool.execute(new IndexManageProcessrRunner(collection, responseData))
+    startGeneralXmlAndIndex(collection, responseData)  //change to use thread pool
   }
 
   def indexOrDelteData(obj: AnyRef, collection: String): Unit = {

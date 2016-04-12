@@ -251,7 +251,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
   }
 
 
-  class IndexManageProcessrRunner(collection: String, responseData: String) extends Runnable with Logging {
+  class IndexManageProcessrRunner(collection: String, responseData: String) extends Runnable {
     override def run(): Unit = {
       startGeneralXmlAndIndex(collection, responseData)
 

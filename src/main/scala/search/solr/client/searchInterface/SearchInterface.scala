@@ -37,8 +37,8 @@ object SearchInterface extends Logging with Configuration {
   }
 
 
-  val web = new ControlWebView(monitorPort, new SolrClientConf())
-  web.bind()
+ /* val web = new ControlWebView(monitorPort, new SolrClientConf())
+  web.bind()*/
 
   val spellcheckSeparator = "_____"
 

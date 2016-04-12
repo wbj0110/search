@@ -181,9 +181,8 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
     val collection = context.getAttribute("collection").toString
     val responseData = EntityUtils.toString(httpResp.getEntity)
 
-    startGeneralXmlAndIndex(collection, responseData)
-
-
+    DefaultIndexManager.indexProcessThreadPool.execute(new IndexManageProcessrRunner(collection, responseData))
+    // startGeneralXmlAndIndex(collection, responseData)  //change to use thread pool
   }
 
   def indexOrDelteData(obj: AnyRef, collection: String): Unit = {
@@ -249,6 +248,14 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
     }
     DefaultIndexManager.consumerManageThreadPool.execute(new IndexManagerRunner(this, request, context, callback))
     //HttpClientUtil.getInstance().execute(request, context, callback)
+  }
+
+
+  class IndexManageProcessrRunner(collection: String, responseData: String) extends Runnable with Logging {
+    override def run(): Unit = {
+      startGeneralXmlAndIndex(collection, responseData)
+
+    }
   }
 
 
@@ -497,6 +504,10 @@ object DefaultIndexManager extends Configuration {
 
   if (consumerThreadsNum > 0) currentThreadsNum = consumerThreadsNum
   val consumerManageThreadPool = Util.newDaemonFixedThreadPool(currentThreadsNum, "consumer_index_manage_thread_excutor")
+
+
+  val indexProcessThreadPool = Util.newDaemonFixedThreadPool(currentThreadsNum, "index_process_thread_excutor")
+
 
   def apply(): DefaultIndexManager = {
     if (indexManager == null) indexManager = new DefaultIndexManager()

@@ -3,8 +3,8 @@ package search.solr.client.view
 import scala.xml.Node
 
 /**
- * Created by soledede on 2015/9/21.
- */
+  * Created by soledede on 2016/4/8.
+  */
 trait PageUtil {
 
   def assemblePage(insertPage: => Seq[Node], title: String): Seq[Node] = {
@@ -25,11 +25,11 @@ trait PageUtil {
 
   def commonHeaders: Seq[Node] = {
       <meta http-equiv="Content-type" content="text/html; charset=utf-8"/>
-        <link rel="stylesheet" href={prependBaseUri("/static/control_webview.css")} type="text/css"/>
-      <script src={prependBaseUri("/static/d3.min.js")}></script>
-      <script src={prependBaseUri("/static/dagre-d3.min.js")}></script>
-      <script src={prependBaseUri("/static/control_webview.js")}></script>
-        <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    /*  <link rel="stylesheet" href={prependBaseUri("/static/control_webview.css")} type="text/css"/>
+    <script src={prependBaseUri("/static/d3.min.js")}></script>
+    <script src={prependBaseUri("/static/dagre-d3.min.js")}></script>
+    <script src={prependBaseUri("/static/control_webview.js")}></script>
+      <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>*/
   }
 
   def prependBaseUri(basePath: String = "", resource: String = ""): String = {

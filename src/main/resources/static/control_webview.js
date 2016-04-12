@@ -1,4 +1,4 @@
-var width = 400;
+/*var width = 400;
 		var height = 400;
 		var dataset = [ 30 , 10 , 43 , 55 , 13 ];
 
@@ -44,7 +44,7 @@ var width = 400;
 			});
 
 		console.log(dataset);
-		console.log(piedata);
+		console.log(piedata);*/
 
 /*
 var dataset = [ 30 , 10 , 43 , 55 , 13 ];

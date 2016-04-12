@@ -3,14 +3,18 @@ package search.solr.client.util
 import org.apache.log4j.PropertyConfigurator
 import org.slf4j.impl.StaticLoggerBinder
 import org.slf4j.{LoggerFactory, Logger}
+import search.solr.client.config.Configuration
 
 
 /**
   * Created by soledede on 2015/11/23.
   */
-trait Logging {
+trait Logging extends Configuration {
   @transient private var log_ : Logger = null
-// @transient private var log_ : Logger = LoggerFactory.getLogger(logName)  //solve the problem of covered by this when somebody invoke this jar pacakge
+  if (!logShow)
+    log_ = LoggerFactory.getLogger(logName)
+
+  //solve the problem of covered by this when somebody invoke this jar pacakge
 
 
   protected def logName = {

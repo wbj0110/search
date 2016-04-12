@@ -88,4 +88,10 @@ trait Configuration {
   //web
   val WEB_STATIC_RESOURCE_DIR = "static"
 
+  /**
+    * log4j
+    */
+
+  lazy val logShow = Try(config.getBoolean("log.show")).getOrElse(true)
+
 }

@@ -51,15 +51,19 @@ private[search] class ControlWebPage extends WebViewPage("solr") with PageUtil w
 
 
   override def render(request: HttpServletRequest): Seq[Node] = {
-    val currentConsumerActiveCount = DefaultIndexManager.consumerManageThreadPool.getActiveCount
+
     val currentActiveCount = DefaultIndexManager.indexProcessThreadPool.getActiveCount
     val completeTaskCount = DefaultIndexManager.indexProcessThreadPool.getCompletedTaskCount
-    val runConsumerTaskCount = DefaultIndexManager.consumerManageThreadPool.getQueue.size()
     val runTaskCount = DefaultIndexManager.indexProcessThreadPool.getQueue.size()
+
+    val currentConsumerActiveCount = DefaultIndexManager.consumerManageThreadPool.getActiveCount
+    val completeConsumerTaskCount = DefaultIndexManager.consumerManageThreadPool.getCompletedTaskCount
+    val runConsumerTaskCount = DefaultIndexManager.consumerManageThreadPool.getQueue.size()
 
     //println("completeTaskCount:"+completeTaskCount+"\nrunTaskCount:"+runTaskCount+"\ncurrentActiveCount:"+currentActiveCount)
 
-    if ((currentConsumerActiveCount>0 || currentActiveCount > 0) && completeTaskCount <= 5 && ( runTaskCount > 0||runConsumerTaskCount>0) ) DefaultIndexManager.bus.post(DelLastIndex())
+    if (currentConsumerActiveCount > 0 && completeConsumerTaskCount <= 5 && runConsumerTaskCount > 0) DefaultIndexManager.bus.post(DelLastIndex())
+    else if (currentActiveCount > 0 && completeTaskCount <= 5 && runTaskCount > 0) DefaultIndexManager.bus.post(DelLastIndex())
 
 
     val queryString = request.getQueryString
@@ -154,24 +158,28 @@ private[search] class ListWebPage extends WebViewPage("solr/list") with PageUtil
 
   override def render(request: HttpServletRequest): Seq[Node] = {
 
-    val currentConsumerActiveCount = DefaultIndexManager.consumerManageThreadPool.getActiveCount
     val currentActiveCount = DefaultIndexManager.indexProcessThreadPool.getActiveCount
     val completeTaskCount = DefaultIndexManager.indexProcessThreadPool.getCompletedTaskCount
-    val runConsumerTaskCount = DefaultIndexManager.consumerManageThreadPool.getQueue.size()
     val runTaskCount = DefaultIndexManager.indexProcessThreadPool.getQueue.size()
+
+    val currentConsumerActiveCount = DefaultIndexManager.consumerManageThreadPool.getActiveCount
+    val completeConsumerTaskCount = DefaultIndexManager.consumerManageThreadPool.getCompletedTaskCount
+    val runConsumerTaskCount = DefaultIndexManager.consumerManageThreadPool.getQueue.size()
 
     //println("completeTaskCount:"+completeTaskCount+"\nrunTaskCount:"+runTaskCount+"\ncurrentActiveCount:"+currentActiveCount)
 
-    if ((currentConsumerActiveCount>0 || currentActiveCount > 0) && completeTaskCount <= 5 && ( runTaskCount > 0||runConsumerTaskCount>0) ) DefaultIndexManager.bus.post(DelLastIndex())
+    if (currentConsumerActiveCount > 0 && completeConsumerTaskCount <= 5 && runConsumerTaskCount > 0) DefaultIndexManager.bus.post(DelLastIndex())
+    else if (currentActiveCount > 0 && completeTaskCount <= 5 && runTaskCount > 0) DefaultIndexManager.bus.post(DelLastIndex())
 
     val listSkus = redis.getAllFromSetByKey[String](IndexTaskTraceListener.SET_KEY)
+    val count = if (listSkus == null) 0 else listSkus.size
 
     val showPage = {
       <div>
         <img src="http://www.ehsy.com/images/logo.png"/>
         <h1 style="color:red">索引列表,总数(大约)：
-          {listSkus.size}
-          条记录!请刷新浏览器！</h1>{if (listSkus.size > 0) {
+          {count}
+          条记录!请刷新浏览器！</h1>{if (count > 0) {
         listSkus.map { s =>
           <h6>
             {s}

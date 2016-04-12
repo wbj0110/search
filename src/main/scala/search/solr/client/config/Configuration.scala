@@ -81,8 +81,8 @@ trait Configuration {
 
   //monitoru host
   lazy val monitorConfigHost = Try(config.getString("monitor.host")).getOrElse(Util.localHostNameForURI())
-  var monitorHost = Util.localHostNameForURI()
-  if (monitorConfigHost != null && monitorConfigHost.equalsIgnoreCase("")) monitorHost = monitorConfigHost
+  var monitorHost = "127.0.0.1"
+  if (monitorConfigHost != null) monitorHost = monitorConfigHost
   lazy val monitorPort = Try(config.getInt("monitor.port")).getOrElse(9999)
 
   //web

@@ -37,8 +37,8 @@ object SearchInterface extends Logging with Configuration {
   }
 
 
- /* val web = new ControlWebView(monitorPort, new SolrClientConf())
-  web.bind()*/
+  /* val web = new ControlWebView(monitorPort, new SolrClientConf())
+   web.bind()*/
 
   val spellcheckSeparator = "_____"
 
@@ -1254,11 +1254,21 @@ object SearchInterface extends Logging with Configuration {
 
   def replaceSense(valueString: String): String = {
     var relpaseString = valueString
+    relpaseString = relpaseString.replaceAll("\\ ", "\\\\ ")
     arrayObj.foreach { s =>
       val sepaSense = s.split("=>")
-      relpaseString =  relpaseString.replaceAll(sepaSense(0).trim, sepaSense(1).trim)
+      relpaseString = relpaseString.replaceAll(sepaSense(0).trim, sepaSense(1).trim)
     }
     relpaseString
+  }
+
+
+  def replaceAndFUpper(value: String): (String, String) = {
+    var v1 = value.charAt(0).toUpper + value.substring(1)
+    var v2 = value.charAt(0).toLower + value.substring(1)
+    v1 = replaceSense(v1)
+    v2 = replaceSense(v2)
+    (v1, v2)
   }
 
   /**
@@ -1268,12 +1278,145 @@ object SearchInterface extends Logging with Configuration {
     * @param query
     */
   private def setFilters(filters: util.Map[String, String], query: SolrQuery): Unit = {
+
     if (filters != null && filters.size() > 0) {
+
       filters.foreach { fV =>
         val field = fV._1
         var value = fV._2
         if (value != null && !value.equalsIgnoreCase("")) {
           var valuesArray: Array[String] = null
+          //multiply select
+          breakable {
+            for (i <- 0 to filterSplitArray.length - 1) {
+              valuesArray = value.split(filterSplitArray(i).trim)
+              if (valuesArray.length > 1) break
+            }
+          }
+          var fqString = new StringBuilder()
+          if (valuesArray != null && valuesArray.length > 1) {
+            fqString.append("(")
+            //t89_s:(memmert+OR+Memmert+OR+honeywell+OR+Honeywell)
+            valuesArray.foreach { filterValue =>
+              var value = filterValue.trim
+              //fq=t89_s:(memmert OR Memmert OR honeywell OR Honeywell)
+              letterSpaceProcess(value,fqString)
+            }
+            val fq = fqString.substring(0, fqString.lastIndexOf("OR") - 1) + ")"
+            query.addFilterQuery(s"$field:$fq")
+          } else {
+
+            //fq=t89_s:(memmert OR Memmert OR honeywell OR Honeywell)
+            fqString.append("(")
+            letterSpaceProcess(value,fqString)
+            val fq = fqString.substring(0, fqString.lastIndexOf("OR") - 1) + ")"
+            query.addFilterQuery(s"$field:$fq")
+
+          }
+
+
+        }
+      }
+    }
+  }
+
+
+
+
+  private  def letterSpaceProcess(orginalVal: String,fqString: StringBuilder): Unit = {
+    var value = orginalVal
+    val vA = value.split(" ")
+    if (vA.length > 1) {
+      val vS = new StringBuilder()
+      val vS1 = new StringBuilder()
+      vA.foreach { s =>
+        if (Util.regex(s, "^[A-Za-z]+")) {
+          var v1 = s.charAt(0).toUpper + s.substring(1)
+          var v2 = s.charAt(0).toLower + s.substring(1)
+          vS.append(v1)
+          vS.append(" ")
+          vS1.append(v2)
+          vS1.append(" ")
+        } else {
+          vS.append(s)
+          vS.append(" ")
+          vS1.append(s)
+          vS1.append(" ")
+        }
+      }
+      if (!vS.isEmpty && !vS1.isEmpty) {
+        var v1 = vS.toString().trim
+        var v2 = vS1.toString().trim
+        if (v1.equals(v2)) {
+          v1 = replaceSense(v1)
+          fqString.append(s"$v1 OR ")
+        } else {
+          v1 = replaceSense(v1)
+          v2 = replaceSense(v2)
+          fqString.append(s"$v1 OR $v2 OR ")
+        }
+      }
+
+    } else {
+      if (Util.regex(value, "^[A-Za-z]+")) {
+
+        val (v1, v2) = replaceAndFUpper(value)
+
+        fqString.append(s"$v1 OR $v2 OR ")
+        // val fq = s"$field:($v1 OR $v2)"
+        //query.addFilterQuery(fq)
+      } else {
+        value = replaceSense(value)
+        fqString.append(s"$value OR ")
+        // query.addFilterQuery(s"$field:$value")
+      }
+    }
+  }
+
+  /**
+    *
+    * set filters
+    * @param filtersNoChange
+    * @param query
+    */
+  private def setFiltersBack(filtersNoChange: util.Map[String, String], query: SolrQuery): Unit = {
+
+    if (filtersNoChange != null && filtersNoChange.size() > 0) {
+
+      val filters = filtersNoChange.flatMap { case (k, v) =>
+        val vA = v.split(" ")
+        if (vA.length > 1) {
+          val vS = new StringBuilder()
+          val vS1 = new StringBuilder()
+          vA.foreach { s =>
+            if (Util.regex(s, "^[A-Za-z]+")) {
+              var v1 = s.charAt(0).toUpper + s.substring(1)
+              var v2 = s.charAt(0).toLower + s.substring(1)
+              vS.append(v1)
+              vS.append(" ")
+              vS1.append(v2)
+              vS1.append(" ")
+            } else {
+              vS.append(s)
+              vS.append(" ")
+              vS1.append(s)
+              vS1.append(" ")
+            }
+          }
+          Map(k -> vS.toString.trim, k -> vS1.toString.trim)
+        }
+        else Map(k -> v)
+      }
+
+
+
+
+      filters.foreach { fV =>
+        val field = fV._1
+        var value = fV._2
+        if (value != null && !value.equalsIgnoreCase("")) {
+          var valuesArray: Array[String] = null
+          //multiply select
           breakable {
             for (i <- 0 to filterSplitArray.length - 1) {
               valuesArray = value.split(filterSplitArray(i).trim)
@@ -1289,10 +1432,9 @@ object SearchInterface extends Logging with Configuration {
               var value = filterValue.trim
               //fq=t89_s:(memmert OR Memmert OR honeywell OR Honeywell)
               if (Util.regex(value, "^[A-Za-z]+$")) {
-                var v1 = value.charAt(0).toUpper + value.substring(1)
-                var v2 = value.charAt(0).toLower + value.substring(1)
-                v1 = replaceSense(v1)
-                v2 = replaceSense(v2)
+
+                val (v1, v2) = replaceAndFUpper(value)
+
                 fqString.append(s"$v1 OR $v2 OR ")
                 // val fq = s"$field:($v1 OR $v2)"
                 //query.addFilterQuery(fq)
@@ -1307,10 +1449,7 @@ object SearchInterface extends Logging with Configuration {
           } else {
             //fq=t89_s:(memmert OR Memmert OR honeywell OR Honeywell)
             if (Util.regex(value, "^[A-Za-z]+$")) {
-              var v1 = value.charAt(0).toUpper + value.substring(1)
-              var v2 = value.charAt(0).toLower + value.substring(1)
-              v1 = replaceSense(v1)
-              v2 = replaceSense(v2)
+              val (v1, v2) = replaceAndFUpper(value)
               val fq = s"$field:($v1 OR $v2)"
               query.addFilterQuery(fq)
             } else {
@@ -1431,22 +1570,23 @@ object testSearchInterface {
     //testCountKeywordInDocs
 
 
-    // testSplit
+    //testSplit
     //testRegex
+    // testReplace
     // testMaxInt
     //testSubString
 
 
     //testSearchByCategoryId
 
-    testMoniSearchKeywordsFilters
+     testMoniSearchKeywordsFilters
 
   }
 
 
   def testMoniSearchKeywordsFilters() = {
 
-    val categoryResult = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "绝缘扳手", 4318, 321, null, null, null, 0, 10, true)
+   val categoryResult = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "绝缘扳手", 4318, 321, null, null, null, 0, 10, true)
 
     val filters = new java.util.HashMap[java.lang.String, java.lang.String]()
     //filters.put("da_2955_s", "Memmert")
@@ -1458,7 +1598,7 @@ object testSearchInterface {
     val csc = vs.replaceAll(s, re)
     // filters.put("da_1186_s", "1/2\\\"")
     //  filters.put("da_1186_s", csc)
-   filters.put("da_1186_s", "1/2\" -> 10\"")
+    filters.put("da_1186_s", "1/2\" -> 10\"")
 
     // filters.put("da_1186_s", "10\\\" <-> 12\\\"")
     var filterFieldsValues = new util.LinkedHashMap[java.lang.String, util.List[java.lang.String]]()
@@ -1474,7 +1614,7 @@ object testSearchInterface {
     val categoryResult1 = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", null, 15905, 321, null, null, null, 0, 10, true)
 
     val filters1 = new java.util.HashMap[java.lang.String, java.lang.String]()
-    //filters.put("da_2955_s", "Memmert")
+   // filters1.put("da_2955_s", "Memmert")
     filters1.put("da_89_s", "worksafe")
 
     var filterFieldsValues1 = new util.LinkedHashMap[java.lang.String, util.List[java.lang.String]]()
@@ -1484,7 +1624,39 @@ object testSearchInterface {
     filterFieldsValues1.put("da_1025_s", null)
     val categoryResultSortFilter1 = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", null, 15905, 321, null, filters1, filterFieldsValues1, 0, 10, false)
 
-    println(categoryResultSortFilter)
+
+    val categoryResult2 = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", null, 15093, 321, null, null, null, 0, 10, true)
+
+    val filters2 = new java.util.HashMap[java.lang.String, java.lang.String]()
+    //filters.put("da_2955_s", "Memmert")
+    val daokan = "dow corning/道康宁"
+    val cDaoKan = daokan.replaceAll(" ", "\\ ")
+   // filters2.put("da_89_s", "Dow\\ Corning/道康宁")
+    filters2.put("da_89_s", cDaoKan)
+
+    var filterFieldsValues2 = new util.LinkedHashMap[java.lang.String, util.List[java.lang.String]]()
+    filterFieldsValues2.put("da_89_s", null)
+    filterFieldsValues2.put("da_1186_s", null)
+
+    val categoryResultSortFilter2 = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", null, 15093, 321, null, filters2, filterFieldsValues2, 0, 10, false)
+
+    println(categoryResultSortFilter2)
+
+
+    val categoryResult3 = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", null, 16559, 321, null, null, null, 0, 10, true)
+
+    val filters3 = new java.util.HashMap[java.lang.String, java.lang.String]()
+    //filters3.put("da_2955_s", "公制\\（metric\\)")
+    filters3.put("da_2955_s", "公制（metric)")
+
+    var filterFieldsValues3 = new util.LinkedHashMap[java.lang.String, util.List[java.lang.String]]()
+    filterFieldsValues3.put("da_2955_s", null)
+
+    val categoryResultSortFilter3 = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", null, 16559, 321, null, filters3, filterFieldsValues3, 0, 10, false)
+
+    println(categoryResultSortFilter3)
+
+
 
   }
 
@@ -1715,6 +1887,11 @@ object testSearchInterface {
     //  val array = testString.split(":")
     //  println(array)
 
+
+    val spac: String = "skdl"
+    val sp1 = spac.split(" ")
+    println(sp1)
+
     val test = "memmert<->Honeywell"
     val tesArray = test.split("<->")
     println(tesArray.toString)
@@ -1730,10 +1907,22 @@ object testSearchInterface {
 
   }
 
+
+  def testReplace() = {
+    var value = "dow corning/道康宁"
+    val value1 = value.split(" ")
+    println(value1)
+    if (Util.regex(value1(0), "^[A-Za-z]+")) println("true") else println("false")
+    if (Util.regex(value1(1), "^[A-Za-z]+")) println("true") else println("false")
+
+  }
+
   def testRegex() = {
     // val value = "中Mmemert"
     //val value = "[Mmemert"
-    var value = "mmemert"
+    // var value = "mmemert"
+    var value = "dow\\ corning/道康宁"
+
     if (Util.regex(value, "^[A-Za-z]+$")) println("true") else println("false")
 
     if (Util.regex(value, "^[A-Za-z]+$")) {

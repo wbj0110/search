@@ -181,8 +181,8 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
     val collection = context.getAttribute("collection").toString
     val responseData = EntityUtils.toString(httpResp.getEntity)
 
-    //DefaultIndexManager.indexProcessThreadPool.execute(new IndexManageProcessrRunner(collection, responseData))
-    startGeneralXmlAndIndex(collection, responseData)  //change to use thread pool
+    DefaultIndexManager.indexProcessThreadPool.execute(new IndexManageProcessrRunner(collection, responseData))
+    //startGeneralXmlAndIndex(collection, responseData)  //change to use thread pool
   }
 
   def indexOrDelteData(obj: AnyRef, collection: String): Unit = {
@@ -302,7 +302,9 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
         if (!dataJsonNode.isNull && dataJsonNode.size() > 0) {
 
           val rootJsonNode = dataJsonNode.get("data")
-          if (!rootJsonNode.isNull && rootJsonNode.size() > 0) {
+          val rootJsonNodeSize = rootJsonNode.size()
+          if (!rootJsonNode.isNull && rootJsonNodeSize > 0) {
+            logInfo(s"actual return result size:$rootJsonNodeSize")
 
             xml.append("<?xml version='1.0' encoding='UTF-8'?>")
             xml.append("\n")
@@ -353,11 +355,13 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
         }
       }
       if (!xml.isEmpty) {
-        val fileName = collection.trim + "_" + System.currentTimeMillis() + fileNamePreffix
-        var filePath = filedirMergeCloud + fileName
-        if (collection.contains("screencloud")) filePath = filedirScreenCloud + fileName
-        writeToDisk(xml.toString(), filePath)
-        logInfo(s"write file $filePath success,Total ${writeToFileCnt} documents！")
+        this.synchronized {
+          val fileName = collection.trim + "_" + System.currentTimeMillis() + fileNamePreffix
+          var filePath = filedirMergeCloud + fileName
+          if (collection.contains("screencloud")) filePath = filedirScreenCloud + fileName
+          writeToDisk(xml.toString(), filePath)
+          logInfo(s"write file $filePath success,Total ${writeToFileCnt} documents！")
+        }
       }
 
     }

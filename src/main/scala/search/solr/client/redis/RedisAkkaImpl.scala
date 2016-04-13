@@ -273,7 +273,7 @@ class RedisAkkaImpl private extends Redis with Logging {
       var r = null.asInstanceOf[Boolean]
       try {
         val result = redis.sadd(key, member)
-        Await.result(result, 10 seconds)
+        Await.result(result, 20 seconds)
         if (result.value.get.get == 1) r = true
         log.debug("sadd (" + key + " -> " + member + ")")
       } catch {
@@ -303,7 +303,7 @@ class RedisAkkaImpl private extends Redis with Logging {
     var r: Seq[T] = null
     try {
       val result = redis.smembers(key)
-      Await.result(result, 10 seconds)
+      Await.result(result, 30 seconds)
       r = result.value.get.get
       log.debug("get (" + key + " -> " + r + ")")
     } catch {

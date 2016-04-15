@@ -19,6 +19,7 @@ import scala.reflect.ClassTag
   */
 private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends SolrClient with Logging  {
   val server: CloudSolrClient = SolJSolrCloudClient.singleCloudInstance(conf)
+  val serverBackup: CloudSolrClient= SolJSolrCloudClient.singleCloudBackupInstance(conf)
 
   override def searchByQuery[T: ClassTag](query: T, collection: String = "searchcloud"): AnyRef = {
     var response: QueryResponse = null
@@ -169,6 +170,8 @@ object SolJSolrCloudClient extends Configuration{
 
   val lockSearch = new Object
   val lockKwSearch = new Object
+  val lockBackupSearch = new Object
+
 
   var solrJClient: SolJSolrCloudClient = null
 
@@ -179,6 +182,8 @@ object SolJSolrCloudClient extends Configuration{
 
   var server: CloudSolrClient = null
   var kwServer: CloudSolrClient = null
+  var serverBackup: CloudSolrClient = null
+
 
   def singleCloudInstance(conf: SolrClientConf): CloudSolrClient = {
     if (server == null) {
@@ -195,6 +200,24 @@ object SolJSolrCloudClient extends Configuration{
       }
     }
     server
+  }
+
+
+  def singleCloudBackupInstance(conf: SolrClientConf): CloudSolrClient ={
+    if ( serverBackup == null) {
+      lockBackupSearch.synchronized {
+        if (serverBackup == null) {
+          // val zkHostString: String = conf.get("solrj.zk", "solr1:3213,solr2:3213,solr3:3213/solr")
+          //server = new CloudSolrClient(zkHostString)
+          serverBackup = new CloudSolrClient(s"$zkBackUp/solr")
+          serverBackup.setDefaultCollection(conf.get("solrj.collection", "searchcloud"))
+          serverBackup.setZkConnectTimeout(conf.getInt("solrj.zkConnectTimeout", 60000))
+          serverBackup.setZkClientTimeout(conf.getInt("solrj.zkClientTimeout", 60000))
+          serverBackup.setRequestWriter(new BinaryRequestWriter())
+        }
+      }
+    }
+    serverBackup
   }
 
 

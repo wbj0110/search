@@ -26,6 +26,11 @@ trait Configuration {
   lazy val groupId = Try(config.getString("kafka.groupid")).getOrElse("group1")
 
   /**
+    * zk backup for search balance
+    */
+  lazy val zkBackUp = Try(config.getString("zkBackUp")).getOrElse("localhost:2181")
+
+  /**
     * generate xml
     */
   lazy val multiValuedString = Try(config.getString("field.multivalued")).getOrElse("")

@@ -187,9 +187,9 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
 
   def indexOrDelteData(obj: AnyRef, collection: String): Unit = {
     val xmlBool = geneXml(obj, collection)
-   /* if (xmlBool != null) {
+    if (xmlBool != null) {
       indexesData(collection, xmlBool)
-    }*/
+    }
   }
 
 

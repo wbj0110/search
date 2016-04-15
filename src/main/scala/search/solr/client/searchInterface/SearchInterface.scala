@@ -37,8 +37,8 @@ object SearchInterface extends Logging with Configuration {
   }
 
 
-   val web = new ControlWebView(monitorPort, new SolrClientConf())
-   web.bind()
+  val web = new ControlWebView(monitorPort, new SolrClientConf())
+  web.bind()
 
   val spellcheckSeparator = "_____"
 
@@ -93,7 +93,9 @@ object SearchInterface extends Logging with Configuration {
     * @return
     */
   def getCategoryIdsByKeyWords(collection: String, keyWords: java.lang.String, cityId: java.lang.Integer, field: String, filters: java.util.Map[java.lang.String, java.lang.String]): java.util.List[Integer] = {
-    getCategoryIds(collection, keyWords, cityId, field, filters)
+    var cList = getCategoryIds(false, collection, keyWords, cityId, field, filters)
+    if (cList == null || cList.size() <= 0) cList = getCategoryIds(false, collection, keyWords, cityId, field, filters)
+    cList
   }
 
   /**
@@ -128,7 +130,9 @@ object SearchInterface extends Logging with Configuration {
 
     var filterAttributeSearchResult: FilterAttributeSearchResult = null
     var field = "categoryId4"
-    var categoryIds: util.List[Integer] = getCategoryIds(collections, keyWords, cityId, field, filters)
+    var categoryIds: util.List[Integer] = getCategoryIds(false, collections, keyWords, cityId, field, filters)
+    if (categoryIds == null || categoryIds.size() <= 0)
+      categoryIds = getCategoryIds(true, collections, keyWords, cityId, field, filters)
     var categoryId = -1
     if (categoryIds != null && categoryIds.size() > 0) {
       categoryId = categoryIds.get(0)
@@ -383,7 +387,7 @@ object SearchInterface extends Logging with Configuration {
     query.setQuery(keyWordsModels)
     query.addFilterQuery(fqGeneral)
 
-    if (!isComeFromSearch && catagoryId!=null && catagoryId != -1) //whether is come from category filter
+    if (!isComeFromSearch && catagoryId != null && catagoryId != -1) //whether is come from category filter
       query.addFilterQuery(fqCataId)
 
 
@@ -726,9 +730,9 @@ object SearchInterface extends Logging with Configuration {
   }
 
 
-  private def groupBucket(collection: String, q: String, fq: String, json_facet: String, filters: java.util.Map[java.lang.String, java.lang.String]): java.util.List[SimpleOrderedMap[java.lang.Object]] = {
+  private def groupBucket(query: SolrQuery, collection: String, q: String, fq: String, json_facet: String, filters: java.util.Map[java.lang.String, java.lang.String]): java.util.List[SimpleOrderedMap[java.lang.Object]] = {
     if (json_facet == null) return null
-    val query: SolrQuery = new SolrQuery
+
     query.set("qt", "/select")
     if (q != null && !q.trim.equalsIgnoreCase("")) query.setQuery(q) else query.setQuery("*:*")
     if (fq != null && !fq.trim.equalsIgnoreCase(""))
@@ -767,7 +771,7 @@ object SearchInterface extends Logging with Configuration {
     * @param field
     * @return
     */
-  private def getCategoryIds(collection: String, keyWords: java.lang.String, cityId: java.lang.Integer, field: String, filters: java.util.Map[java.lang.String, java.lang.String]): util.List[Integer] = {
+  private def getCategoryIds(orOpen: Boolean, collection: String, keyWords: java.lang.String, cityId: java.lang.Integer, field: String, filters: java.util.Map[java.lang.String, java.lang.String]): util.List[Integer] = {
     var keyWordsModels = "*:*"
     if (keyWords != null) {
       val keyWord = keyWords.trim.toLowerCase
@@ -782,8 +786,9 @@ object SearchInterface extends Logging with Configuration {
 
     var jsonFacet = s"{categories:{type:terms,field:$field,limit:-1,sort:{count:desc}}}"
     jsonFacet = jsonFacet.replaceAll(":", "\\:")
-
-    val categoryResultMap = groupBucket(collection, keyWordsModels, fq, jsonFacet, filters)
+    val query: SolrQuery = new SolrQuery
+    if (orOpen) query.setParam("q.op", "OR")
+    val categoryResultMap = groupBucket(query, collection, keyWordsModels, fq, jsonFacet, filters)
     var categoryIds: util.List[Integer] = null
     if (categoryResultMap != null) {
       categoryIds = new util.ArrayList[Integer]()
@@ -1595,10 +1600,14 @@ object testSearchInterface {
 
   def testQDotOrSearch() = {
 
+    val result3 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "圆锯片", 363, null, null, 0, 10)
+
     val categoryResult = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "圆锯片", null, 321, null, null, null, 0, 10, true)
-    Thread.sleep(1000 * 60 * 1)
+  //  Thread.sleep(1000 * 60 * 1)
     val categoryResult1 = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "圆锯片", null, 321, null, null, null, 0, 10, true)
     println(categoryResult1)
+
+
 
   }
 

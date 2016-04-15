@@ -187,9 +187,9 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
 
   def indexOrDelteData(obj: AnyRef, collection: String): Unit = {
     val xmlBool = geneXml(obj, collection)
-    if (xmlBool != null) {
+   /* if (xmlBool != null) {
       indexesData(collection, xmlBool)
-    }
+    }*/
   }
 
 
@@ -355,13 +355,13 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
         }
       }
       if (!xml.isEmpty) {
-        this.synchronized {
+       // this.synchronized {
           val fileName = collection.trim + "_" + System.currentTimeMillis() + fileNamePreffix
           var filePath = filedirMergeCloud + fileName
           if (collection.contains("screencloud")) filePath = filedirScreenCloud + fileName
           writeToDisk(xml.toString(), filePath)
           logInfo(s"write file $filePath success,Total ${writeToFileCnt} documents！")
-        }
+        //}
       }
 
     }

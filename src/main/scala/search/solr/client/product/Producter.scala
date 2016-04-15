@@ -45,11 +45,11 @@ object Producter extends Logging with Configuration {
     * screencloud-null-null-25468
     * screencloud_test-null-null-27174
     * mergescloud_prod-null-null-258276
-    * screencloud_prod-null-null-8019
+    * screencloud_prod-null-null-8021
     * screencloud-null-null-8017
     *mergescloud-null-null-259252
     * mergescloud_prod-null-null-2
-    * mergescloud_prod-null-null-259274
+    * mergescloud_prod-null-null-259970
     *
     * bin/kafka-console-producer.sh --broker-list 121.40.54.54:9092 --topic indexManagesTest
     * @return

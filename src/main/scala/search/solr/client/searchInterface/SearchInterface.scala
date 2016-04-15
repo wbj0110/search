@@ -334,8 +334,18 @@ object SearchInterface extends Logging with Configuration {
     */
 
   def attributeFilterSearch(collection: String, keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.LinkedHashMap[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, categoryIds: java.util.List[Integer] = null, isComeFromSearch: Boolean = false): FilterAttributeSearchResult = {
-    //if (cityId != null) {
+    var result = searchCore(false, collection, keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows, categoryIds, isComeFromSearch)
+    val total = result.getSearchResult.getTotal
+    if (total == null || total == 0) result = searchCore(true, collection, keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows, categoryIds, isComeFromSearch)
+    result
+  }
 
+
+  /**
+    *
+    */
+  private def searchCore(orOpen: Boolean = false, collection: String, keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.LinkedHashMap[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, categoryIds: java.util.List[Integer] = null, isComeFromSearch: Boolean = false): FilterAttributeSearchResult = {
+    //if (cityId != null) {
     var (collections: String, attrCollections: String) = setSwitchCollection(collection, defaultAttrCollection)
 
     val filterAttributeSearchResult = new FilterAttributeSearchResult()
@@ -371,13 +381,13 @@ object SearchInterface extends Logging with Configuration {
     val query: SolrQuery = new SolrQuery
     query.set("qt", "/select")
     query.setQuery(keyWordsModels)
-
     query.addFilterQuery(fqGeneral)
 
-    if (!isComeFromSearch) //whether is come from category filter
+    if (!isComeFromSearch && catagoryId!=null && catagoryId != -1) //whether is come from category filter
       query.addFilterQuery(fqCataId)
 
 
+    if (orOpen) query.setParam("q.op", "OR")
 
     //set filters
     setFilters(filters, query)
@@ -1300,7 +1310,7 @@ object SearchInterface extends Logging with Configuration {
             valuesArray.foreach { filterValue =>
               var value = filterValue.trim
               //fq=t89_s:(memmert OR Memmert OR honeywell OR Honeywell)
-              letterSpaceProcess(value,fqString)
+              letterSpaceProcess(value, fqString)
             }
             val fq = fqString.substring(0, fqString.lastIndexOf("OR") - 1) + ")"
             query.addFilterQuery(s"$field:$fq")
@@ -1308,7 +1318,7 @@ object SearchInterface extends Logging with Configuration {
 
             //fq=t89_s:(memmert OR Memmert OR honeywell OR Honeywell)
             fqString.append("(")
-            letterSpaceProcess(value,fqString)
+            letterSpaceProcess(value, fqString)
             val fq = fqString.substring(0, fqString.lastIndexOf("OR") - 1) + ")"
             query.addFilterQuery(s"$field:$fq")
 
@@ -1321,9 +1331,7 @@ object SearchInterface extends Logging with Configuration {
   }
 
 
-
-
-  private  def letterSpaceProcess(orginalVal: String,fqString: StringBuilder): Unit = {
+  private def letterSpaceProcess(orginalVal: String, fqString: StringBuilder): Unit = {
     var value = orginalVal
     val vA = value.split(" ")
     if (vA.length > 1) {
@@ -1579,14 +1587,23 @@ object testSearchInterface {
 
     //testSearchByCategoryId
 
-     testMoniSearchKeywordsFilters
+    //testMoniSearchKeywordsFilters
 
+    testQDotOrSearch
   }
 
 
+  def testQDotOrSearch() = {
+
+    val categoryResult = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "圆锯片", null, 321, null, null, null, 0, 10, true)
+
+    println(categoryResult)
+
+  }
+
   def testMoniSearchKeywordsFilters() = {
 
-   val categoryResult = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "绝缘扳手", 4318, 321, null, null, null, 0, 10, true)
+    val categoryResult = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "绝缘扳手", 4318, 321, null, null, null, 0, 10, true)
 
     val filters = new java.util.HashMap[java.lang.String, java.lang.String]()
     //filters.put("da_2955_s", "Memmert")
@@ -1614,7 +1631,7 @@ object testSearchInterface {
     val categoryResult1 = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", null, 15905, 321, null, null, null, 0, 10, true)
 
     val filters1 = new java.util.HashMap[java.lang.String, java.lang.String]()
-   // filters1.put("da_2955_s", "Memmert")
+    // filters1.put("da_2955_s", "Memmert")
     filters1.put("da_89_s", "worksafe")
 
     var filterFieldsValues1 = new util.LinkedHashMap[java.lang.String, util.List[java.lang.String]]()
@@ -1631,7 +1648,7 @@ object testSearchInterface {
     //filters.put("da_2955_s", "Memmert")
     val daokan = "dow corning/道康宁"
     val cDaoKan = daokan.replaceAll(" ", "\\ ")
-   // filters2.put("da_89_s", "Dow\\ Corning/道康宁")
+    // filters2.put("da_89_s", "Dow\\ Corning/道康宁")
     filters2.put("da_89_s", cDaoKan)
 
     var filterFieldsValues2 = new util.LinkedHashMap[java.lang.String, util.List[java.lang.String]]()
@@ -1655,7 +1672,6 @@ object testSearchInterface {
     val categoryResultSortFilter3 = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", null, 16559, 321, null, filters3, filterFieldsValues3, 0, 10, false)
 
     println(categoryResultSortFilter3)
-
 
 
   }

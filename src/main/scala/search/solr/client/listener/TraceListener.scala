@@ -10,4 +10,8 @@ trait TraceListener extends Logging{
   def onAddIndex(content: AddIndex)
 
   def onDelLastIndex()
+
+  def onSolrCollectionTimeout()
+
+  def onNodeNoHealth()
 }

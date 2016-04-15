@@ -9,6 +9,10 @@ case class AddIndex(content: String) extends TraceListenerEvent
 
 case class DelLastIndex() extends TraceListenerEvent
 
+case class SolrCollectionTimeout() extends TraceListenerEvent
+
+case class SolrNoHelthNode() extends TraceListenerEvent
+
 
 
 

@@ -8,6 +8,7 @@ import org.apache.solr.client.solrj.impl.{BinaryRequestWriter, CloudSolrClient}
 import org.apache.solr.client.solrj.response.QueryResponse
 import org.apache.solr.common.SolrInputDocument
 import search.solr.client.config.Configuration
+import search.solr.client.listener.{SolrNoHelthNode, SolrCollectionTimeout, ManagerListenerWaiter}
 import search.solr.client.util.Logging
 import search.solr.client.{SolrClient, SolrClientConf}
 
@@ -17,9 +18,10 @@ import scala.reflect.ClassTag
 /**
   * Created by soledede on 2015/11/16.
   */
-private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends SolrClient with Logging  {
-  val server: CloudSolrClient = SolJSolrCloudClient.singleCloudInstance(conf)
-  val serverBackup: CloudSolrClient= SolJSolrCloudClient.singleCloudBackupInstance(conf)
+private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends SolrClient with Logging {
+  val managerListenerWaiter = ManagerListenerWaiter()
+
+  private var server: CloudSolrClient = SolJSolrCloudClient.singleCloudInstance(conf)
 
   override def searchByQuery[T: ClassTag](query: T, collection: String = "searchcloud"): AnyRef = {
     var response: QueryResponse = null
@@ -27,11 +29,14 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
       response = server.query(collection, query.asInstanceOf[SolrQuery])
     } catch {
       case et: java.net.ConnectException =>
-        logError("Connection timed out!",et)
-       // server.connect()
-      case se: org.apache.solr.common.SolrException => logError("Could not find a healthy node to handle the request!",se)
+        logError("Connection timed out!", et)
+        managerListenerWaiter.post(SolrCollectionTimeout())
+      // server.connect()
+      case se: org.apache.solr.common.SolrException =>
+        logError("Could not find a healthy node to handle the request!", se)
+        managerListenerWaiter.post(SolrNoHelthNode())
       case e: Exception =>
-        logError("search faield!",e)
+        logError("search faield!", e)
         e.printStackTrace()
       //server.close()
       //TODO Log
@@ -163,10 +168,13 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
     SolJSolrCloudClient.close()
   }
 
+  override def setSolrServer(server: CloudSolrClient): Unit = {
+    this.server = server
+  }
 }
 
 
-object SolJSolrCloudClient extends Configuration{
+object SolJSolrCloudClient extends Configuration {
 
   val lockSearch = new Object
   val lockKwSearch = new Object
@@ -189,7 +197,7 @@ object SolJSolrCloudClient extends Configuration{
     if (server == null) {
       lockSearch.synchronized {
         if (server == null) {
-         // val zkHostString: String = conf.get("solrj.zk", "solr1:3213,solr2:3213,solr3:3213/solr")
+          // val zkHostString: String = conf.get("solrj.zk", "solr1:3213,solr2:3213,solr3:3213/solr")
           //server = new CloudSolrClient(zkHostString)
           server = new CloudSolrClient(s"$zk/solr")
           server.setDefaultCollection(conf.get("solrj.collection", "searchcloud"))
@@ -203,8 +211,8 @@ object SolJSolrCloudClient extends Configuration{
   }
 
 
-  def singleCloudBackupInstance(conf: SolrClientConf): CloudSolrClient ={
-    if ( serverBackup == null) {
+  def singleCloudBackupInstance(conf: SolrClientConf): CloudSolrClient = {
+    if (serverBackup == null) {
       lockBackupSearch.synchronized {
         if (serverBackup == null) {
           // val zkHostString: String = conf.get("solrj.zk", "solr1:3213,solr2:3213,solr3:3213/solr")
@@ -223,7 +231,7 @@ object SolJSolrCloudClient extends Configuration{
 
   def connect() = {
     lockSearch.synchronized {
-        server.connect
+      server.connect
     }
   }
 

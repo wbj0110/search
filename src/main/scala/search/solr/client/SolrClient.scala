@@ -1,5 +1,6 @@
 package search.solr.client
 
+import org.apache.solr.client.solrj.impl.CloudSolrClient
 import search.solr.client.impl.SolJSolrCloudClient
 
 import scala.reflect.ClassTag
@@ -21,6 +22,9 @@ private[search] trait SolrClient {
   def close(): Unit = {}
 
   def closeKw(): Unit = {}
+
+  def setSolrServer(server: CloudSolrClient):Unit = {}
+
 }
 
 private[search] object SolrClient {

@@ -14,4 +14,6 @@ trait TraceListener extends Logging{
   def onSolrCollectionTimeout()
 
   def onNodeNoHealth()
+
+  def onSwitchSolrServer(server: String)
 }

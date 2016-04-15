@@ -35,6 +35,12 @@ class IndexTaskTraceListener() extends TraceListener {
     Thread.sleep(1000 * 60 * 10)
     solrClient.setSolrServer(SolJSolrCloudClient.singleCloudInstance(new SolrClientConf()))
   }
+
+  override def onSwitchSolrServer(server: String): Unit = {
+    if(server!=null && !server.trim.equalsIgnoreCase(""))
+    if(server.contains(SolJSolrCloudClient.BACUUP_SOLR_SERVER))  solrClient.setSolrServer(SolJSolrCloudClient.singleCloudBackupInstance(new SolrClientConf()))
+    else  solrClient.setSolrServer(SolJSolrCloudClient.singleCloudInstance(new SolrClientConf()))
+  }
 }
 
 object IndexTaskTraceListener {

@@ -170,6 +170,7 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
 
   override def setSolrServer(server: CloudSolrClient): Unit = {
     this.server = server
+    logInfo(s"switch solr 【${server.getZkHost}】 server sucsess")
   }
 }
 
@@ -179,6 +180,8 @@ object SolJSolrCloudClient extends Configuration {
   val lockSearch = new Object
   val lockKwSearch = new Object
   val lockBackupSearch = new Object
+
+  val BACUUP_SOLR_SERVER = "backup"
 
 
   var solrJClient: SolJSolrCloudClient = null

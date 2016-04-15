@@ -6,7 +6,7 @@ import javax.servlet.http.HttpServletRequest
 import org.json4s.JValue
 import search.solr.client.SolrClientConf
 import search.solr.client.index.manager.impl.DefaultIndexManager
-import search.solr.client.listener.{DelLastIndex, IndexTaskTraceListener}
+import search.solr.client.listener.{SwitchSolrServer, ManagerListenerWaiter, DelLastIndex, IndexTaskTraceListener}
 import search.solr.client.queue.BlockQueue
 import search.solr.client.redis.Redis
 import search.solr.client.searchInterface.SearchInterface
@@ -36,19 +36,9 @@ private[search] class ControlWebView(requestedPort: Int, conf: SolrClientConf) e
   initialize()
 }
 
-/*   <h1 style="color:red; text-align:center">welcome crawler!</h1>
-         <svg width="100%" height="100%">
-           <circle cx="500" cy="300" r="100" stroke="#ff0" stroke-width="5" fill="red"/>
-           <polygon points="50 160 55 180 70 180 60 190 65 205 50 195 35 205 40 190 30 180 45 180"
-                    stroke="green" fill="transparent" stroke-width="5"/>
-           <text x="500" y="500" font-size="60" text-anchor="middle" fill="red">SVG</text>
-           <svg width="5cm" height="4cm">
-             <image xlink:href="http://s1.95171.cn/b/img/logo/95_logo_r.v731222600.png" x="0" y="0" height="100px" width="100px"/>
-           </svg>
-         </svg>*/
 
 private[search] class ControlWebPage extends WebViewPage("solr") with PageUtil with Logging {
-
+  val managerListenerWaiter = ManagerListenerWaiter()
 
   override def render(request: HttpServletRequest): Seq[Node] = {
 
@@ -73,20 +63,25 @@ private[search] class ControlWebPage extends WebViewPage("solr") with PageUtil w
     try {
       if (queryString != null) {
         if (queryString.contains("switchCollection=")) {
-          val isChoosenCollection = Util.regexExtract(queryString, "switchCollection=([a-zA-Z0-9]+)&?", 1)
+          val isChoosenCollection = Util.regexExtract(queryString, "switchCollection=([a-zA-Z0-9]+)&*", 1)
           if (isChoosenCollection != null && !isChoosenCollection.toString.trim.equalsIgnoreCase(""))
             SearchInterface.switchCollection = isChoosenCollection.toString.toBoolean
         }
         if (SearchInterface.switchCollection) {
           if (queryString.contains("switchMg=")) {
-            val mergeClouds = Util.regexExtract(queryString, "switchMg=([a-zA-Z0-9]+)&?", 1)
+            val mergeClouds = Util.regexExtract(queryString, "switchMg=([a-zA-Z0-9]+)&*", 1)
             if (mergeClouds != null && !mergeClouds.toString.trim.equalsIgnoreCase(""))
               SearchInterface.switchMg = mergeClouds.toString.trim
           }
           if (queryString.contains("switchSc=")) {
-            val screenClouds = Util.regexExtract(queryString, "switchSc=([a-zA-Z0-9]+)&?", 1)
+            val screenClouds = Util.regexExtract(queryString, "switchSc=([a-zA-Z0-9]+)&*", 1)
             if (screenClouds != null && !screenClouds.toString.trim.equalsIgnoreCase(""))
               SearchInterface.switchSc = screenClouds.toString.trim
+          }
+          if (queryString.contains("switchSolrServer=")) {
+            val switchSolrServer = Util.regexExtract(queryString, "switchSolrServer=([a-zA-Z0-9]+)&*", 1)
+            if (switchSolrServer != null && !switchSolrServer.toString.trim.equalsIgnoreCase(""))
+              managerListenerWaiter.post(SwitchSolrServer(switchSolrServer.toString.trim))
           }
         }
       }

@@ -13,6 +13,8 @@ case class SolrCollectionTimeout() extends TraceListenerEvent
 
 case class SolrNoHelthNode() extends TraceListenerEvent
 
+case class SwitchSolrServer(server: String) extends TraceListenerEvent
+
 
 
 

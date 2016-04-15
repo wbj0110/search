@@ -38,7 +38,7 @@ private[search] class ControlWebView(requestedPort: Int, conf: SolrClientConf) e
 
 
 private[search] class ControlWebPage extends WebViewPage("solr") with PageUtil with Logging {
-  val managerListenerWaiter = ManagerListenerWaiter()
+
 
   override def render(request: HttpServletRequest): Seq[Node] = {
 
@@ -58,7 +58,9 @@ private[search] class ControlWebPage extends WebViewPage("solr") with PageUtil w
 
     val queryString = request.getQueryString
 
+
     val cacheIndexDataQueue = ControlWebPage.currentIndexDatas
+    var currentserver = "well"
 
     try {
       if (queryString != null) {
@@ -78,11 +80,12 @@ private[search] class ControlWebPage extends WebViewPage("solr") with PageUtil w
             if (screenClouds != null && !screenClouds.toString.trim.equalsIgnoreCase(""))
               SearchInterface.switchSc = screenClouds.toString.trim
           }
-          if (queryString.contains("switchSolrServer=")) {
-            val switchSolrServer = Util.regexExtract(queryString, "switchSolrServer=([a-zA-Z0-9]+)&*", 1)
-            if (switchSolrServer != null && !switchSolrServer.toString.trim.equalsIgnoreCase(""))
-              managerListenerWaiter.post(SwitchSolrServer(switchSolrServer.toString.trim))
-          }
+        }
+        if (queryString.contains("switchSolrServer=")) {
+          val switchSolrServer = Util.regexExtract(queryString, "switchSolrServer=([a-zA-Z0-9]+)&*", 1)
+          if (switchSolrServer != null && !switchSolrServer.toString.trim.equalsIgnoreCase(""))
+            currentserver = switchSolrServer.toString.trim
+          DefaultIndexManager.bus.post(SwitchSolrServer(currentserver))
         }
       }
     } catch {
@@ -113,6 +116,9 @@ private[search] class ControlWebPage extends WebViewPage("solr") with PageUtil w
       }}<br/>{if (currentActiveCount <= 0) {
         <a href="list" target="_blank">点击查看上次索引更新列表.</a>
       }}<br/>
+        <h3 style="color:red">current server status:
+          {currentserver}
+        </h3>
       </div>
     }
     assemblePage(showPage, "solr task trace")
@@ -124,6 +130,8 @@ private[search] class ControlWebPage extends WebViewPage("solr") with PageUtil w
 object ControlWebPage {
   val currentIndexDatas = BlockQueue[String](new SolrClientConf(), "indexing")
   val isAlive = new AtomicBoolean(false)
+
+
 
   private val listenerThread = new Thread("check activity for thread") {
     setDaemon(true)

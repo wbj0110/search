@@ -37,8 +37,8 @@ object SearchInterface extends Logging with Configuration {
   }
 
 
-  /* val web = new ControlWebView(monitorPort, new SolrClientConf())
-   web.bind()*/
+   val web = new ControlWebView(monitorPort, new SolrClientConf())
+   web.bind()
 
   val spellcheckSeparator = "_____"
 
@@ -1596,8 +1596,9 @@ object testSearchInterface {
   def testQDotOrSearch() = {
 
     val categoryResult = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "圆锯片", null, 321, null, null, null, 0, 10, true)
-
-    println(categoryResult)
+    Thread.sleep(1000 * 60 * 1)
+    val categoryResult1 = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "圆锯片", null, 321, null, null, null, 0, 10, true)
+    println(categoryResult1)
 
   }
 

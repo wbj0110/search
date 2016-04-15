@@ -26,7 +26,7 @@ trait TraceListenerWaiter extends ListenerWaiter[TraceListener, TraceListenerEve
         listener.onAddIndex(addIndex)
       case delLastIndex: DelLastIndex =>
         listener.onDelLastIndex()
-      case solrCollectionTimeout =>
+      case solrCollectionTimeout:SolrCollectionTimeout =>
         listener.onSolrCollectionTimeout()
       case nodeHelthy: SolrNoHelthNode =>
         listener.onNodeNoHealth()

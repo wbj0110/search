@@ -63,7 +63,8 @@ trait ListenerWaiter[L <: AnyRef, E] extends Logging {
     if (started.compareAndSet(false, true)) {
       listenerThread.start()
     } else {
-      throw new IllegalStateException(s"$name already started!")
+      //throw new IllegalStateException(s"$name already started!")
+      logInfo(s"$name already started!")
     }
   }
 

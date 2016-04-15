@@ -21,19 +21,13 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
   val server: CloudSolrClient = SolJSolrCloudClient.singleCloudInstance(conf)
 
   override def searchByQuery[T: ClassTag](query: T, collection: String = "searchcloud"): AnyRef = {
-    if (server == null) {
-      try {
-        server.connect()
-      } catch {
-        case e: Exception => logError("search connect faield!",e)
-      }
-    }
     var response: QueryResponse = null
     try {
       response = server.query(collection, query.asInstanceOf[SolrQuery])
     } catch {
       case et: java.net.ConnectException =>
         logError("Connection timed out!",et)
+       // server.connect()
       case se: org.apache.solr.common.SolrException => logError("Could not find a healthy node to handle the request!",se)
       case e: Exception =>
         logError("search faield!",e)
@@ -206,9 +200,7 @@ object SolJSolrCloudClient extends Configuration{
 
   def connect() = {
     lockSearch.synchronized {
-      if (server == null) {
         server.connect
-      }
     }
   }
 

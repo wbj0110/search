@@ -17,7 +17,7 @@ private[search] trait SolrClient {
 
   def addIndices[D: ClassTag](doc: D,collection:String = "searchcloud"): Unit = {}
 
-  def delete(list: java.util.ArrayList[java.lang.String],collection: String = "searchcloud"): Boolean
+  def delete(list: java.util.ArrayList[java.lang.String],collection: String = "searchcloud"): Boolean = false
 
   def close(): Unit = {}
 

@@ -4,9 +4,10 @@ import java.util
 
 import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.impl.HttpSolrClient.RemoteSolrException
-import org.apache.solr.client.solrj.impl.{BinaryRequestWriter, CloudSolrClient}
+import org.apache.solr.client.solrj.impl._
 import org.apache.solr.client.solrj.response.QueryResponse
 import org.apache.solr.common.SolrInputDocument
+import org.apache.solr.common.params.ModifiableSolrParams
 import search.solr.client.config.Configuration
 import search.solr.client.listener.{SolrNoHelthNode, SolrCollectionTimeout, ManagerListenerWaiter}
 import search.solr.client.util.Logging
@@ -26,18 +27,25 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
   override def searchByQuery[T: ClassTag](query: T, collection: String = "searchcloud"): AnyRef = {
     var response: QueryResponse = null
     try {
+      if (server == null) server = SolJSolrCloudClient.singleCloudInstance(conf)
       response = server.query(collection, query.asInstanceOf[SolrQuery])
     } catch {
       case et: java.net.ConnectException =>
         logError("Connection timed out!", et)
+        server.close()
+        server = null
         managerListenerWaiter.post(SolrCollectionTimeout())
       // server.connect()
       case se: org.apache.solr.common.SolrException =>
         logError("Could not find a healthy node to handle the request!", se)
+        server.close()
+        server = null
         managerListenerWaiter.post(SolrNoHelthNode())
       case e: Exception =>
         logError("search faield!", e)
-        e.printStackTrace()
+        server.close()
+        server = null
+      //e.printStackTrace()
       //server.close()
       //TODO Log
     }
@@ -175,7 +183,7 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
 }
 
 
-object SolJSolrCloudClient extends Configuration {
+object SolJSolrCloudClient extends Configuration with Logging {
 
   val lockSearch = new Object
   val lockKwSearch = new Object
@@ -197,38 +205,36 @@ object SolJSolrCloudClient extends Configuration {
 
 
   def singleCloudInstance(conf: SolrClientConf): CloudSolrClient = {
+    instanseSolrCloud(conf, zk)
+  }
+
+
+  def instanseSolrCloud(conf: SolrClientConf, zk: String): CloudSolrClient = {
     if (server == null) {
       lockSearch.synchronized {
         if (server == null) {
           // val zkHostString: String = conf.get("solrj.zk", "solr1:3213,solr2:3213,solr3:3213/solr")
           //server = new CloudSolrClient(zkHostString)
-          server = new CloudSolrClient(s"$zk/solr")
+          val params = new ModifiableSolrParams()
+          params.set(HttpClientUtil.PROP_MAX_CONNECTIONS, 1000) //10
+          params.set(HttpClientUtil.PROP_MAX_CONNECTIONS_PER_HOST, 500) //5
+          val client = HttpClientUtil.createClient(params)
+          val lbSolrClient = new LBHttpSolrClient(client)
+          server = new CloudSolrClient(s"$zk/solr", lbSolrClient)
           server.setDefaultCollection(conf.get("solrj.collection", "searchcloud"))
           server.setZkConnectTimeout(conf.getInt("solrj.zkConnectTimeout", 60000))
           server.setZkClientTimeout(conf.getInt("solrj.zkClientTimeout", 60000))
           server.setRequestWriter(new BinaryRequestWriter())
+          server.connect()
+          logInfo("connect solr cloud success!")
         }
       }
     }
     server
   }
 
-
   def singleCloudBackupInstance(conf: SolrClientConf): CloudSolrClient = {
-    if (serverBackup == null) {
-      lockBackupSearch.synchronized {
-        if (serverBackup == null) {
-          // val zkHostString: String = conf.get("solrj.zk", "solr1:3213,solr2:3213,solr3:3213/solr")
-          //server = new CloudSolrClient(zkHostString)
-          serverBackup = new CloudSolrClient(s"$zkBackUp/solr")
-          serverBackup.setDefaultCollection(conf.get("solrj.collection", "searchcloud"))
-          serverBackup.setZkConnectTimeout(conf.getInt("solrj.zkConnectTimeout", 60000))
-          serverBackup.setZkClientTimeout(conf.getInt("solrj.zkClientTimeout", 60000))
-          serverBackup.setRequestWriter(new BinaryRequestWriter())
-        }
-      }
-    }
-    serverBackup
+    instanseSolrCloud(conf, zkBackUp)
   }
 
 

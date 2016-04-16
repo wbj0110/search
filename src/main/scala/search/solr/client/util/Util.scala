@@ -1,5 +1,6 @@
 package search.solr.client.util
 
+import java.io.IOException
 import java.net.{Inet4Address, NetworkInterface, InetAddress}
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
@@ -15,6 +16,7 @@ import scala.collection.JavaConversions.asScalaSet
 import scala.collection.JavaConversions.enumerationAsScalaIterator
 import scala.collection.JavaConversions.propertiesAsScalaMap
 import scala.collection.mutable.ListBuffer
+import scala.util.control.NonFatal
 
 
 /**
@@ -39,12 +41,25 @@ object Util extends  Logging{
     date
   }
 
+  def tryOrIOException(block: => Unit) {
+    try {
+      block
+    } catch {
+      case e: IOException => throw e
+      case NonFatal(t) => throw new IOException(t)
+    }
+  }
+
+
   def stringTotimestamp(time: String): Long = {
     val format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")
     //val d = format.format(time)
     val date = format.parse(time)
     date.getTime
   }
+
+  def getContextClassLoader =
+    Option(Thread.currentThread().getContextClassLoader).getOrElse(getClass.getClassLoader)
 
   def namedThreadFactory(prefix: String): ThreadFactory = {
     daemonThreadFactoryBuilder.setNameFormat(prefix + "-%d").build()

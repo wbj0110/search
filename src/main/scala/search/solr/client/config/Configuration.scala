@@ -69,6 +69,10 @@ trait Configuration {
   //page
   lazy val pageSize = Try(config.getInt("pageSize")).getOrElse(10)
 
+
+  //cache time  second
+
+  lazy val cacheTime = Try(config.getInt("cache.time")).getOrElse(5)
   /**
     * threads pool
     */

@@ -8,16 +8,13 @@ import org.apache.solr.client.solrj.SolrQuery.ORDER
 import org.apache.solr.client.solrj.response.QueryResponse
 import org.apache.solr.common.util.SimpleOrderedMap
 import search.solr.client.config.Configuration
-import search.solr.client.consume.Consumer._
 import search.solr.client.entity.searchinterface._
 import search.solr.client.keyword.HotSearch
 import search.solr.client.log.SearchLog
 import search.solr.client.util.{Util, Logging}
 import search.solr.client.view.control.ControlWebView
 import search.solr.client.{SolrClientConf, SolrClient}
-import scala.StringBuilder
 import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
 import scala.util.control.Breaks._
 
 /**
@@ -35,6 +32,7 @@ object SearchInterface extends Logging with Configuration {
   if (filterChanges != null && !filterChanges.trim.equalsIgnoreCase("")) {
     arrayObj = filterChanges.split("&")
   }
+
 
 
   val web = new ControlWebView(monitorPort, new SolrClientConf())
@@ -1577,9 +1575,9 @@ object testSearchInterface {
 
     //testSearchBrandsByCatoryId
 
-    //testSuggestByKeyWords
+   // testSuggestByKeyWords
 
-    testRecordSearchLog
+    //testRecordSearchLog
 
     //testCountKeywordInDocs
 
@@ -1596,8 +1594,14 @@ object testSearchInterface {
     //testMoniSearchKeywordsFilters
 
     //testQDotOrSearch
+
+    testCatidsByKeywords()
   }
 
+ def testCatidsByKeywords() = {
+   val result = SearchInterface.getCategoryIdsByKeyWords("mergescloud", "圆锯片", 363, null)
+   println(result)
+  }
 
   def testQDotOrSearch() = {
 
@@ -1869,7 +1873,7 @@ object testSearchInterface {
     SearchInterface.suggestByKeyWords("mergescloud", "dai", 456)
     endTime = System.currentTimeMillis().toDouble
     println(s"cost time:${(endTime - startTime) / 1000}s")
-
+Thread.sleep(1000*2)
 
     startTime = System.currentTimeMillis().toDouble
     SearchInterface.suggestByKeyWords("mergescloud", "dai", 456)

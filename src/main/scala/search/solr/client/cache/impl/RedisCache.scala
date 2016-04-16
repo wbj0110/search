@@ -30,6 +30,7 @@ class RedisCache private extends KVCache with Logging {
   override def keys(preffixKey: String): Seq[String] = {
     redis.keys(preffixKey).getOrElse(null)
   }
+
 }
 
 object RedisCache {

@@ -2,6 +2,8 @@ package search.solr.client.redis
 
 import redis.{ByteStringDeserializer, ByteStringSerializer}
 
+import scala.reflect.ClassTag
+
 /**
   * Created by soledede on 2015/12/18.
   */
@@ -48,11 +50,15 @@ trait Redis {
 
   def keys(parttern: String): Option[Seq[String]] = null.asInstanceOf[Option[Seq[String]]]
 
+  def put[T: ClassTag](key: String, value: T,seconds:Int) = {}
+
+  def get[T: ClassTag](key: String): T = null.asInstanceOf[T]
+
   //general
-/*  def setValue[T: ClassTag](key: String, value: T, exSeconds: Long): Boolean = false
+  /*  def setValue[T: ClassTag](key: String, value: T, exSeconds: Long): Boolean = false
 
 
-  def getValue[T: ClassTag](key: String): T = null.asInstanceOf[T]*/
+    def getValue[T: ClassTag](key: String): T = null.asInstanceOf[T]*/
 
 }
 
@@ -65,6 +71,7 @@ object Redis {
   def createRedis(redisOpsType: String): Redis = {
     redisOpsType match {
       case "akka" => RedisAkkaImpl()
+      case "jredis"=>JRedisImpl()
       case _ => null
     }
   }

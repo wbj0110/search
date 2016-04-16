@@ -1,6 +1,7 @@
 package search.solr.client.impl
 
 import java.util
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 
 import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.impl.HttpSolrClient.RemoteSolrException
@@ -27,7 +28,7 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
   override def searchByQuery[T: ClassTag](query: T, collection: String = "searchcloud"): AnyRef = {
     var response: QueryResponse = null
     try {
-      if (server == null) server = SolJSolrCloudClient.singleCloudInstance(conf)
+      //if (server == null) server = SolJSolrCloudClient.singleCloudInstance(conf)
       server = SolrClient.switchClient(server, null).asInstanceOf[CloudSolrClient]
       response = server.query(collection, query.asInstanceOf[SolrQuery])
     } catch {
@@ -182,6 +183,7 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
 
   override def setSolrServer(server: CloudSolrClient): Unit = {
     this.server = server
+    SolJSolrCloudClient.switch.compareAndSet(true, false)
     logInfo(s"switch solr 【${server.getZkHost}】 server sucsess")
   }
 }
@@ -194,6 +196,8 @@ object SolJSolrCloudClient extends Configuration with Logging {
   val lockBackupSearch = new Object
 
   val BACUUP_SOLR_SERVER = "backup"
+
+  @volatile var switch = new AtomicBoolean(false)
 
 
   var solrJClient: SolJSolrCloudClient = null
@@ -213,10 +217,10 @@ object SolJSolrCloudClient extends Configuration with Logging {
   }
 
 
-  def instanseSolrCloud(conf: SolrClientConf, zk: String): CloudSolrClient = {
-    if (server == null) {
+  def instanseSolrCloud(conf: SolrClientConf, zks: String): CloudSolrClient = {
+    if (server == null ||  SolJSolrCloudClient.switch.get()) {
       lockSearch.synchronized {
-        if (server == null) {
+        if (server == null ||  SolJSolrCloudClient.switch.get()) {
           // val zkHostString: String = conf.get("solrj.zk", "solr1:3213,solr2:3213,solr3:3213/solr")
           //server = new CloudSolrClient(zkHostString)
           val params = new ModifiableSolrParams()
@@ -224,7 +228,7 @@ object SolJSolrCloudClient extends Configuration with Logging {
           params.set(HttpClientUtil.PROP_MAX_CONNECTIONS_PER_HOST, 500) //5
           val client = HttpClientUtil.createClient(params)
           val lbSolrClient = new LBHttpSolrClient(client)
-          server = new CloudSolrClient(s"$zk/solr", lbSolrClient)
+          server = new CloudSolrClient(s"$zks/solr", lbSolrClient)
           server.setDefaultCollection(conf.get("solrj.collection", "searchcloud"))
           server.setZkConnectTimeout(conf.getInt("solrj.zkConnectTimeout", 60000))
           server.setZkClientTimeout(conf.getInt("solrj.zkClientTimeout", 60000))

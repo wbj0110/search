@@ -74,7 +74,7 @@ object HttpSolrQuery extends Configuration {
       if (url != null && !url.equalsIgnoreCase(""))
         server.setBaseURL(url)
       //server.setMaxRetries(1); // defaults to 0.  > 1 not recommended.
-      server.setConnectionTimeout(60 * 1000) // 1 minute to establish TCP
+      server.setConnectionTimeout(6*60 * 1000) // 1 minute to establish TCP
       // Setting the XML response parser is only required for cross
       // version compatibility and only when one side is 1.4.1 or
       // earlier and the other side is 3.1 or later.
@@ -82,7 +82,7 @@ object HttpSolrQuery extends Configuration {
       // The following settings are provided here for completeness.
       // They will not normally be required, and should only be used
       // after consulting javadocs to know whether they are truly required.
-      server.setSoTimeout(4000) // socket read timeout
+      server.setSoTimeout(5*60*1000) // socket read timeout
       server.setDefaultMaxConnectionsPerHost(500)
       server.setMaxTotalConnections(1000)
       // server.setFollowRedirects(false); // defaults to false

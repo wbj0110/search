@@ -10,6 +10,7 @@ import java.util.regex.{Matcher, Pattern}
 import com.google.common.net.InetAddresses
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import org.apache.commons.lang3.SystemUtils
+import search.solr.client.searchInterface.SearchInterface._
 
 import scala.collection.JavaConversions.asScalaBuffer
 import scala.collection.JavaConversions.asScalaSet
@@ -50,6 +51,15 @@ object Util extends  Logging{
     }
   }
 
+
+  def caculateCostTime(block: => AnyRef): AnyRef ={
+    val startTime = System.currentTimeMillis()
+    val result  = block
+    val endTime = System.currentTimeMillis()
+    val costTime = endTime-startTime
+    logInfo(s"search engine cost ${costTime} ms convert to second: ${costTime/1000f} s")
+    result
+  }
 
   def stringTotimestamp(time: String): Long = {
     val format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS")

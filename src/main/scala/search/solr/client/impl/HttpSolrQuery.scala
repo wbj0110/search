@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.impl.HttpSolrClient
 import org.apache.solr.client.solrj.response.QueryResponse
-import search.solr.client.SolrClient
+import search.solr.client.{SolrClientConf, SolrClient}
 import search.solr.client.config.Configuration
 import search.solr.client.util.Logging
 
@@ -18,6 +18,8 @@ import scala.reflect.ClassTag
   * Created by soledede on 2015/12/16.
   */
 class HttpSolrQuery extends SolrClient with Configuration with Logging {
+
+  var server: HttpSolrClient = null
 
   override def searchByQuery[T: ClassTag](query: T, collection: String): AnyRef = {
     val urls = HttpSolrQuery.solrBaseUrlArray
@@ -33,9 +35,16 @@ class HttpSolrQuery extends SolrClient with Configuration with Logging {
   }
 
   private def searchByQuery[T: ClassTag](baseUrl: String, query: SolrQuery, collection: String): AnyRef = {
-
-    val server = HttpSolrQuery.singletonHttpSolrClient(baseUrl)
-    val response: QueryResponse = server.query(collection, query)
+    var response: QueryResponse = null
+    try {
+      if (server == null) server = HttpSolrQuery.singletonHttpSolrClient(baseUrl)
+      server = SolrClient.switchClient(server, baseUrl).asInstanceOf[HttpSolrClient]
+      response = server.query(collection, query)
+    } catch {
+      case e: Exception =>
+        SolrClient.countIncrement()
+        logError("solr query faield!", e)
+    }
     response
   }
 }
@@ -54,7 +63,7 @@ object HttpSolrQuery extends Configuration {
   if (solrBaseUrls != null)
     solrBaseUrlArray = solrBaseUrls.split(urlSepator)
 
-  def apply(): HttpSolrQuery = {
+  def apply(conf: SolrClientConf): HttpSolrQuery = {
     if (query == null) query = new HttpSolrQuery
     query
   }
@@ -87,17 +96,17 @@ object HttpSolrQuery extends Configuration {
 
 
   def main(args: Array[String]) {
-  //  val url = "http://121.40.241.26:10032/solr"
+    //  val url = "http://121.40.241.26:10032/solr"
     val query: SolrQuery = new SolrQuery()
     query.setRequestHandler("/select")
     query.setQuery("*:*")
     query.setStart(0)
     query.setRows(10)
     var r = HttpSolrQuery().searchByQuery(query, "mergescloud")
-     r = HttpSolrQuery().searchByQuery(query, "mergescloud")
-     r = HttpSolrQuery().searchByQuery(query, "mergescloud")
-     r = HttpSolrQuery().searchByQuery(query, "mergescloud")
-     r = HttpSolrQuery().searchByQuery(query, "mergescloud")
+    r = HttpSolrQuery().searchByQuery(query, "mergescloud")
+    r = HttpSolrQuery().searchByQuery(query, "mergescloud")
+    r = HttpSolrQuery().searchByQuery(query, "mergescloud")
+    r = HttpSolrQuery().searchByQuery(query, "mergescloud")
     println(r)
   }
 }

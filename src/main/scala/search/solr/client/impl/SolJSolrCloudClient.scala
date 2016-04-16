@@ -28,20 +28,24 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
     var response: QueryResponse = null
     try {
       if (server == null) server = SolJSolrCloudClient.singleCloudInstance(conf)
+      server = SolrClient.switchClient(server, null).asInstanceOf[CloudSolrClient]
       response = server.query(collection, query.asInstanceOf[SolrQuery])
     } catch {
       case et: java.net.ConnectException =>
+        SolrClient.countIncrement()
         logError("Connection timed out!", et)
         server.close()
         server = null
         managerListenerWaiter.post(SolrCollectionTimeout())
       // server.connect()
       case se: org.apache.solr.common.SolrException =>
+        SolrClient.countIncrement()
         logError("Could not find a healthy node to handle the request!", se)
         server.close()
         server = null
         managerListenerWaiter.post(SolrNoHelthNode())
       case e: Exception =>
+        SolrClient.countIncrement()
         logError("search faield!", e)
         server.close()
         server = null

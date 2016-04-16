@@ -93,7 +93,11 @@ object HttpSolrQuery extends Configuration {
     query.setQuery("*:*")
     query.setStart(0)
     query.setRows(10)
-    val r = HttpSolrQuery().searchByQuery(query, "mergescloud")
+    var r = HttpSolrQuery().searchByQuery(query, "mergescloud")
+     r = HttpSolrQuery().searchByQuery(query, "mergescloud")
+     r = HttpSolrQuery().searchByQuery(query, "mergescloud")
+     r = HttpSolrQuery().searchByQuery(query, "mergescloud")
+     r = HttpSolrQuery().searchByQuery(query, "mergescloud")
     println(r)
   }
 }

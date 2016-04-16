@@ -26,13 +26,13 @@ class IndexTaskTraceListener() extends TraceListener {
   }
 
   override def onSolrCollectionTimeout(): Unit = {
-    solrClient.setSolrServer(SolJSolrCloudClient.singleCloudInstance(new SolrClientConf()))
     Thread.sleep(1000 * 60 * 2)
+    solrClient.setSolrServer(SolJSolrCloudClient.singleCloudInstance(new SolrClientConf()))
   }
 
   override def onNodeNoHealth(): Unit = {
     solrClient.setSolrServer(SolJSolrCloudClient.singleCloudBackupInstance(new SolrClientConf()))
-    Thread.sleep(1000 * 60 * 20)
+    Thread.sleep(1000 * 60 * 5)
     solrClient.setSolrServer(SolJSolrCloudClient.singleCloudInstance(new SolrClientConf()))
   }
 

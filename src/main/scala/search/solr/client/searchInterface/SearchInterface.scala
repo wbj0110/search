@@ -43,7 +43,8 @@ object SearchInterface extends Logging with Configuration {
   val spellcheckSeparator = "_____"
 
 
-  val solrClient = SolrClient(new SolrClientConf())
+  //val solrClient = SolrClient(new SolrClientConf())
+  val solrClient = SolrClient(new SolrClientConf(),"httpUrl")
 
   val mongoSearchLog = SearchLog("mongo")
 
@@ -1578,7 +1579,7 @@ object testSearchInterface {
 
     //testSuggestByKeyWords
 
-    //testRecordSearchLog
+    testRecordSearchLog
 
     //testCountKeywordInDocs
 
@@ -1594,7 +1595,7 @@ object testSearchInterface {
 
     //testMoniSearchKeywordsFilters
 
-    testQDotOrSearch
+    //testQDotOrSearch
   }
 
 
@@ -1605,7 +1606,11 @@ object testSearchInterface {
     val categoryResult = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "圆锯片", null, 321, null, null, null, 0, 10, true)
   //  Thread.sleep(1000 * 60 * 1)
     val categoryResult1 = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "圆锯片", null, 321, null, null, null, 0, 10, true)
-    println(categoryResult1)
+
+    val categoryResult2 = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "圆锯片", null, 321, null, null, null, 0, 10, true)
+    //  Thread.sleep(1000 * 60 * 1)
+    val categoryResult3 = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "圆锯片", null, 321, null, null, null, 0, 10, true)
+    println(categoryResult3)
 
 
 
@@ -1965,7 +1970,7 @@ object testSearchInterface {
   }
 
   def testCountKeywordInDocs() = {
-    //  SearchInterface.countKeywordInDocs("3m", new SolrQuery(), 456)
+    //SearchInterface.countKeywordInDocs("3m", new SolrQuery(), 456)
   }
 
   def testMaxInt() = {

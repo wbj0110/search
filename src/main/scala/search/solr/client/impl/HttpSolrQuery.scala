@@ -102,11 +102,11 @@ object HttpSolrQuery extends Configuration {
     query.setQuery("*:*")
     query.setStart(0)
     query.setRows(10)
-    var r = HttpSolrQuery().searchByQuery(query, "mergescloud")
-    r = HttpSolrQuery().searchByQuery(query, "mergescloud")
-    r = HttpSolrQuery().searchByQuery(query, "mergescloud")
-    r = HttpSolrQuery().searchByQuery(query, "mergescloud")
-    r = HttpSolrQuery().searchByQuery(query, "mergescloud")
+    var r = HttpSolrQuery(new SolrClientConf()).searchByQuery(query, "mergescloud")
+    r = HttpSolrQuery(new SolrClientConf()).searchByQuery(query, "mergescloud")
+    r = HttpSolrQuery(new SolrClientConf()).searchByQuery(query, "mergescloud")
+    r = HttpSolrQuery(new SolrClientConf()).searchByQuery(query, "mergescloud")
+    r = HttpSolrQuery(new SolrClientConf()).searchByQuery(query, "mergescloud")
     println(r)
   }
 }

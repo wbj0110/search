@@ -1,12 +1,14 @@
 package search.solr.client.impl
 
 import java.util
+import java.util.concurrent.atomic.AtomicInteger
 
 import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.impl.HttpSolrClient
 import org.apache.solr.client.solrj.response.QueryResponse
 import search.solr.client.SolrClient
 import search.solr.client.config.Configuration
+import search.solr.client.util.Logging
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable
@@ -15,11 +17,22 @@ import scala.reflect.ClassTag
 /**
   * Created by soledede on 2015/12/16.
   */
-class HttpSolrQuery extends SolrClient with Configuration {
+class HttpSolrQuery extends SolrClient with Configuration with Logging {
 
-  override def searchByQuery[T: ClassTag](query: T, collection: String): AnyRef = searchByQuery(null, query.asInstanceOf[SolrQuery], collection)
+  override def searchByQuery[T: ClassTag](query: T, collection: String): AnyRef = {
+    val urls = HttpSolrQuery.solrBaseUrlArray
+    val aSize = urls.length
+    if (urls != null && aSize > 0) {
+      val point = HttpSolrQuery.urlPoint.getAndIncrement()
+      HttpSolrQuery.urlPoint.compareAndSet(aSize, 0)
+      searchByQuery(urls(point % aSize), query.asInstanceOf[SolrQuery], collection)
+    } else {
+      logError("solr urls is null,set solr urls please!")
+      null
+    }
+  }
 
-  def searchByQuery[T: ClassTag](baseUrl: String, query: SolrQuery, collection: String): AnyRef = {
+  private def searchByQuery[T: ClassTag](baseUrl: String, query: SolrQuery, collection: String): AnyRef = {
 
     val server = HttpSolrQuery.singletonHttpSolrClient(baseUrl)
     val response: QueryResponse = server.query(collection, query)
@@ -27,10 +40,19 @@ class HttpSolrQuery extends SolrClient with Configuration {
   }
 }
 
-object HttpSolrQuery {
+object HttpSolrQuery extends Configuration {
   var server: HttpSolrClient = null
   var serverMap: mutable.Map[String, HttpSolrClient] = new mutable.HashMap[String, HttpSolrClient]()
   var query: HttpSolrQuery = null
+
+  final val urlSepator = ","
+  var urlPoint = new AtomicInteger(0)
+
+
+  var solrBaseUrlArray: Array[String] = null
+
+  if (solrBaseUrls != null)
+    solrBaseUrlArray = solrBaseUrls.split(urlSepator)
 
   def apply(): HttpSolrQuery = {
     if (query == null) query = new HttpSolrQuery
@@ -65,13 +87,13 @@ object HttpSolrQuery {
 
 
   def main(args: Array[String]) {
-    val url = "http://121.40.241.26:10032/solr"
+  //  val url = "http://121.40.241.26:10032/solr"
     val query: SolrQuery = new SolrQuery()
     query.setRequestHandler("/select")
     query.setQuery("*:*")
     query.setStart(0)
     query.setRows(10)
-    val r = HttpSolrQuery().searchByQuery(url, query, "mergescloud")
+    val r = HttpSolrQuery().searchByQuery(query, "mergescloud")
     println(r)
   }
 }

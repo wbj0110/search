@@ -25,6 +25,8 @@ trait Configuration {
   lazy val zk = Try(config.getString("zk")).getOrElse("localhost:2181")
   lazy val groupId = Try(config.getString("kafka.groupid")).getOrElse("group1")
 
+  lazy val solrBaseUrls = Try(config.getString("solr.baseUrls")).getOrElse("localhost:9092")
+
   /**
     * zk backup for search balance
     */

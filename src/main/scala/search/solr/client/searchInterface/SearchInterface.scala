@@ -7,6 +7,7 @@ import org.apache.solr.client.solrj.SolrQuery
 import org.apache.solr.client.solrj.SolrQuery.ORDER
 import org.apache.solr.client.solrj.response.QueryResponse
 import org.apache.solr.common.util.SimpleOrderedMap
+import search.solr.client.cache.SearchCache
 import search.solr.client.config.Configuration
 import search.solr.client.entity.searchinterface._
 import search.solr.client.keyword.HotSearch
@@ -34,7 +35,6 @@ object SearchInterface extends Logging with Configuration {
   }
 
 
-
   val web = new ControlWebView(monitorPort, new SolrClientConf())
   web.bind()
 
@@ -42,7 +42,7 @@ object SearchInterface extends Logging with Configuration {
 
 
   //val solrClient = SolrClient(new SolrClientConf())
-  val solrClient = SolrClient(new SolrClientConf(),"httpUrl")
+  val solrClient = SolrClient(new SolrClientConf(), "httpUrl")
 
   val mongoSearchLog = SearchLog("mongo")
 
@@ -78,8 +78,15 @@ object SearchInterface extends Logging with Configuration {
     * @return
     */
   def getCategoryIdsByKeyWords(collection: String = defaultCollection, keyWords: java.lang.String, cityId: java.lang.Integer, filters: java.util.Map[java.lang.String, java.lang.String]): java.util.List[Integer] = {
-    var field = "categoryId4"
-    getCategoryIdsByKeyWords(collection, keyWords, cityId, field, filters)
+    val cache = SearchCache.getCategoryIdsByKeyWordsCache(keyWords, cityId, filters)
+    if (cache != null) cache
+    else {
+      var field = "categoryId4"
+      val result = getCategoryIdsByKeyWords(collection, keyWords, cityId, field, filters)
+      if (result != null && result.size() > 0)
+        SearchCache.putCategoryIdsByKeyWordsCache(keyWords, cityId, filters, result)
+      result
+    }
   }
 
   //get all categoryIds
@@ -1575,7 +1582,7 @@ object testSearchInterface {
 
     //testSearchBrandsByCatoryId
 
-   // testSuggestByKeyWords
+    // testSuggestByKeyWords
 
     //testRecordSearchLog
 
@@ -1598,9 +1605,11 @@ object testSearchInterface {
     testCatidsByKeywords()
   }
 
- def testCatidsByKeywords() = {
-   val result = SearchInterface.getCategoryIdsByKeyWords("mergescloud", "圆锯片", 363, null)
-   println(result)
+  def testCatidsByKeywords() = {
+    val result = SearchInterface.getCategoryIdsByKeyWords("mergescloud_prod", "博世", 321, null)
+    println(result)
+    val result1 = SearchInterface.getCategoryIdsByKeyWords("mergescloud_prod", "博世", 321, null)
+    println(result1)
   }
 
   def testQDotOrSearch() = {
@@ -1608,14 +1617,13 @@ object testSearchInterface {
     val result3 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "圆锯片", 363, null, null, 0, 10)
 
     val categoryResult = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "圆锯片", null, 321, null, null, null, 0, 10, true)
-  //  Thread.sleep(1000 * 60 * 1)
+    //  Thread.sleep(1000 * 60 * 1)
     val categoryResult1 = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "圆锯片", null, 321, null, null, null, 0, 10, true)
 
     val categoryResult2 = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "圆锯片", null, 321, null, null, null, 0, 10, true)
     //  Thread.sleep(1000 * 60 * 1)
     val categoryResult3 = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", "圆锯片", null, 321, null, null, null, 0, 10, true)
     println(categoryResult3)
-
 
 
   }
@@ -1873,7 +1881,7 @@ object testSearchInterface {
     SearchInterface.suggestByKeyWords("mergescloud", "dai", 456)
     endTime = System.currentTimeMillis().toDouble
     println(s"cost time:${(endTime - startTime) / 1000}s")
-Thread.sleep(1000*2)
+    Thread.sleep(1000 * 2)
 
     startTime = System.currentTimeMillis().toDouble
     SearchInterface.suggestByKeyWords("mergescloud", "dai", 456)

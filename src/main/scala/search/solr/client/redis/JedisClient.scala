@@ -47,7 +47,7 @@ private[search] object JedisClient extends Configuration {
   def poolInit() = {
     if (pool == null) {
       lockPool.synchronized {
-        createJedisPool
+        pool = createJedisPool()
       }
     }
   }

@@ -65,16 +65,13 @@ object HttpSolrQuery {
 
 
   def main(args: Array[String]) {
-    val url = "http://121.40.54.54:10032/solr/"
+    val url = "http://121.40.241.26:10032/solr"
     val query: SolrQuery = new SolrQuery()
     query.setRequestHandler("/select")
-    query.setFields("id")
+    query.setQuery("*:*")
     query.setStart(0)
     query.setRows(10)
-    query.setParam("accuracy", "0.98")
-    query.setParam("candidates", "97000")
-
-    HttpSolrQuery().searchByQuery(url, query, "mergescloud")
-
+    val r = HttpSolrQuery().searchByQuery(url, query, "mergescloud")
+    println(r)
   }
 }

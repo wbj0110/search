@@ -807,7 +807,6 @@ object SearchInterface extends Logging with Configuration {
         keyWordsModels = keyWordsModel.replaceAll("keyWord", keyWord)
     }
 
-
     val fq = s"isRestrictedArea:0 OR cityId:$cityId"
 
     var jsonFacet = s"{categories:{type:terms,field:$field,limit:-1,sort:{count:desc}}}"
@@ -1596,11 +1595,11 @@ object testSearchInterface {
 
   def main(args: Array[String]) {
 
-    //searchByKeywords
+    searchByKeywords
     //  testMoniSearchKeywords
 
     //testSearchFilterAttributeByCatagoryId
-    testAttributeFilterSearch
+    //testAttributeFilterSearch
 
     //testSearchBrandsByCatoryId
 
@@ -1876,10 +1875,12 @@ object testSearchInterface {
     //attributeFilterSearch(collection: String, keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.Map[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, categoryIds: java.util.List[Integer] = null, isComeFromSearch: Boolean = false)
 
 
-    val result5 = SearchInterface.attributeFilterSearch("mergescloud",  null, null, 321, null, null, null, 0, 3, null,true)
+    var result5 = SearchInterface.attributeFilterSearch("mergescloud",  null, null, 321, null, null, null, 0, 3, null,true)
+     result5 = SearchInterface.attributeFilterSearch("mergescloud",  null, null, 321, null, null, null, 0, 3, null,true)
 
 
-    val result6 = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", null, 1237, 321, null, null, null, 0, 12, true)
+    var result6 = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", null, 1237, 321, null, null, null, 0, 12, true)
+     result6 = SearchInterface.attributeFilterSearch("mergescloud", "screencloud", null, 1237, 321, null, null, null, 0, 12, true)
 
     filters1 = new java.util.HashMap[java.lang.String, java.lang.String]()
     //filters1.put("da_2955_s",null)

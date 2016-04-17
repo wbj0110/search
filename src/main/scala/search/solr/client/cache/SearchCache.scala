@@ -3,7 +3,6 @@ package search.solr.client.cache
 
 import search.solr.client.config.Configuration
 import search.solr.client.entity.searchinterface.{FilterAttributeSearchResult, Brand}
-import search.solr.client.searchInterface.SearchInterface._
 
 import scala.collection.JavaConversions._
 import scala.collection.mutable.StringBuilder
@@ -264,6 +263,7 @@ private[search] object SearchCache extends Configuration {
         }
       }
     }
+    if(isCategoryTouch!=null)
     stringBuilder.append(isCategoryTouch.toString).append(separator)
     stringBuilder
   }
@@ -341,6 +341,7 @@ private[search] object SearchCache extends Configuration {
     if (categoryIds != null && categoryIds.size()>0) {
       stringBuilder.append("null").append(separator)
     }
+    if(isComeFromSearch!=null)
     stringBuilder.append(isComeFromSearch.toString).append(separator)
     stringBuilder
   }

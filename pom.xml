@@ -6,7 +6,7 @@
 
     <groupId>com.ehsy.search</groupId>
     <artifactId>seachclient-test</artifactId>
-     <!-- <artifactId>seachclient</artifactId>-->
+    <!-- <artifactId>seachclient</artifactId>-->
     <!--<version>1.3.4</version>-->
     <!--<version>2.3.4</version>--> <!--test-->
     <!--<version>3.3.4</version>--> <!--staging-->
@@ -34,6 +34,15 @@
 
         <MaxPermSize>128m</MaxPermSize>
     </properties>
+
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>1.3.3.RELEASE</version>
+
+
+    </parent>
 
     <dependencies>
 
@@ -67,7 +76,25 @@
             <version>${scala.version}</version>
             <scope>compile</scope>
         </dependency>
+        <!--mongo-->
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>casbah_${scala.binary.version}</artifactId>
+            <version>2.8.1</version>
+            <type>pom</type>
+        </dependency>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongo-java-driver</artifactId>
+            <version>3.2.2</version>
+        </dependency>
 
+
+        <dependency>
+            <groupId>org.mongodb.morphia</groupId>
+            <artifactId>morphia</artifactId>
+            <version>1.0.1</version>
+        </dependency>
 
         <!--spary-->
         <dependency>
@@ -130,7 +157,6 @@
             <artifactId>commons-logging</artifactId>
             <version>1.2</version>
         </dependency>
-
 
 
         <!--guawa-->
@@ -203,20 +229,6 @@
             <version>1.9.13</version>
         </dependency>
 
-        <!--mongo-->
-        <dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>casbah_${scala.binary.version}</artifactId>
-            <version>2.8.1</version>
-            <type>pom</type>
-        </dependency>
-
-
-        <dependency>
-            <groupId>org.mongodb.morphia</groupId>
-            <artifactId>morphia</artifactId>
-            <version>1.0.1</version>
-        </dependency>
 
         <!--json-->
         <dependency>
@@ -254,13 +266,18 @@
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
-            <version>2.4.2</version>
+            <version>2.7.3</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-pool2</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
-
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-pool2</artifactId>
-            <version>2.0</version>
+            <version>2.4.2</version>
         </dependency>
 
         <!--jetty-->
@@ -349,11 +366,38 @@
             </exclusions>
         </dependency>
 
+        <!--spring boot-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+
+
+        <!-- <dependency>
+             <groupId>org.springframework.boot</groupId>
+             <artifactId>spring-boot-starter-log4j</artifactId>
+         </dependency>-->
+
     </dependencies>
 
     <build>
         <finalName>searchclient</finalName>
         <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
             <!--Scala 插件-->
             <!--<plugin>
                 <groupId>net.alchim31.maven</groupId>
@@ -573,9 +617,10 @@
        </repository>-->
 
         <repository>
-            <id>etaty</id>
-            <url>http://dl.bintray.com/etaty/maven</url>
+            <id>mvns</id>
+            <url>https://maven-repository.com</url>
         </repository>
+
 
         <repository>
             <id>terracotta-repository</id>
@@ -609,6 +654,10 @@
         <repository>
             <id>cloudera-repo-releases</id>
             <url>https://repository.cloudera.com/artifactory/repo/</url>
+        </repository>
+        <repository>
+            <id>etaty</id>
+            <url>http://dl.bintray.com/etaty/maven</url>
         </repository>
     </repositories>
 
@@ -655,14 +704,14 @@
         </snapshotRepository>
 
 
-       <!-- <repository>
-            <id>releases</id>
-            <url>http://112.124.32.129:8099/nexus/content/repositories/releases/</url>
-        </repository>
-        <snapshotRepository>
-            <id>snapshots</id>
-            <url>http://112.124.32.129:8099/nexus/content/repositories/snapshots/</url>
-        </snapshotRepository>-->
+        <!-- <repository>
+             <id>releases</id>
+             <url>http://112.124.32.129:8099/nexus/content/repositories/releases/</url>
+         </repository>
+         <snapshotRepository>
+             <id>snapshots</id>
+             <url>http://112.124.32.129:8099/nexus/content/repositories/snapshots/</url>
+         </snapshotRepository>-->
 
 
         <!-- <repository>

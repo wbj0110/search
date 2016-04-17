@@ -28,7 +28,7 @@ private[search] class SolJSolrCloudClient private(conf: SolrClientConf) extends 
   override def searchByQuery[T: ClassTag](query: T, collection: String = "searchcloud"): AnyRef = {
     var response: QueryResponse = null
     try {
-      //if (server == null) server = SolJSolrCloudClient.singleCloudInstance(conf)
+      if (server == null) server = SolJSolrCloudClient.singleCloudInstance(conf)
       server = SolrClient.switchClient(server, null).asInstanceOf[CloudSolrClient]
       response = server.query(collection, query.asInstanceOf[SolrQuery])
     } catch {

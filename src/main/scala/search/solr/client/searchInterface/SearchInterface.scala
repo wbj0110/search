@@ -368,7 +368,7 @@ object SearchInterface extends Logging with Configuration {
     *
     */
   private def searchCore(orOpen: Boolean = false, collection: String, keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.LinkedHashMap[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, categoryIds: java.util.List[Integer] = null, isComeFromSearch: Boolean = false): FilterAttributeSearchResult = {
-    //if (cityId != null) {
+    if (cityId != null) {
     var (collections: String, attrCollections: String) = setSwitchCollection(collection, defaultAttrCollection)
 
     val filterAttributeSearchResult = new FilterAttributeSearchResult()
@@ -397,6 +397,7 @@ object SearchInterface extends Logging with Configuration {
         keyWordsModels = keyWordsModelPinyin.replaceAll("keyWord", keyWord)
       } else
         keyWordsModels = keyWordsModel.replaceAll("keyWord", keyWord)
+
 
     val fqGeneral = s"(isRestrictedArea:0 OR cityId:$cityId)"
     val fqCataId = s"(categoryId1:$catagoryId OR categoryId2:$catagoryId OR categoryId3:$catagoryId OR categoryId4:$catagoryId)"
@@ -483,7 +484,7 @@ object SearchInterface extends Logging with Configuration {
 
     getFacetFieldAndFacetQueryToFilterAttributes(filterAttributeSearchResult, result)
     filterAttributeSearchResult
-    //} else null
+    } else null
   }
 
 
@@ -1591,7 +1592,7 @@ object testSearchInterface {
 
   def main(args: Array[String]) {
 
-    //searchByKeywords
+    searchByKeywords
     //  testMoniSearchKeywords
 
     //testSearchFilterAttributeByCatagoryId

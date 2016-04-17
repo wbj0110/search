@@ -15,8 +15,7 @@ public class SearchInterfaceTest {
 
 
     public static void testSearchByKeywords() {
-        FilterAttributeSearchResult re =   SearchInterface.searchByKeywords("mergescloud", "screencloud", "博世", 363, null, null, 0, 10);
-        re =   SearchInterface.searchByKeywords("mergescloud", "screencloud", "螺丝刀", null, null, null, 0, 10);
+        FilterAttributeSearchResult re =   SearchInterface.searchByKeywords("mergescloud", "screencloud", "圆筒", 363, null, null, 0, 10);
         System.out.println(re);
     }
 

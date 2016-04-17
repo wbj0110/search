@@ -69,8 +69,6 @@ class RestRecommendServiceActor extends Actor with RestService {
   implicit def actorRefFactory = context
 
   def receive = if (openRecommend) runRoute(rest) else null.asInstanceOf[Actor.Receive]
-
-  //def receive = runRoute(restRout)
 }
 
 /**

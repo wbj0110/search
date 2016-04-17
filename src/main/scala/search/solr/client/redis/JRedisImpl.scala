@@ -20,8 +20,8 @@ private[search] class JRedisImpl extends Redis with Logging {
     try {
       val objSerializeByte = Serializer("java", new SolrClientConf()).newInstance().serializeArray[T](value)
       val k = JavaUtils.toJavaByte(key.getBytes)
-      jedis.set(k, JavaUtils.toJavaByte(objSerializeByte))
-      jedis.expire(k, seconds)
+      jedis.set(k, JavaUtils.toJavaByte(objSerializeByte),"NX".getBytes,"EX".getBytes,seconds.toLong)
+      //val l = jedis.expire(k, seconds)
     } catch {
       case e: Exception => logError("save object to redids faield!", e)
     }

@@ -1772,7 +1772,7 @@ object testSearchInterface {
     var starTime = System.currentTimeMillis()
     // val result1 = SearchInterface.searchByKeywords("西格玛", 363, null, 0, 10)
     //val result2 = SearchInterface.searchByKeywords("LAA001", 363, null, 0, 10)
-    val result3 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "博世", 363, null, sorts, 0, 10)
+    val result3 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "圆筒", 363, null, sorts, 0, 10)
     sorts = new java.util.HashMap[java.lang.String, java.lang.String]
     sorts.put("price", "asc")
     val result4 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "西格玛", 363, null, null, 0, 10)

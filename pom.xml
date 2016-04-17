@@ -5,15 +5,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.ehsy.search</groupId>
-    <!--<artifactId>seachclient-test</artifactId>-->
-    <artifactId>seachclient</artifactId>
+    <artifactId>seachclient-test</artifactId>
+    <!--  <artifactId>seachclient</artifactId>-->
     <!--<version>1.3.4</version>-->
     <!--<version>2.3.4</version>--> <!--test-->
     <!--<version>3.3.4</version>--> <!--staging-->
     <!-- <version>4.3.4</version>--> <!--product-->
-    <!-- <version>5.3.4</version>-->
+    <!--  <version>5.3.4</version>-->
 
-    <version>1.3.6</version>  <!--seaerch-->
+    <version>1.3.8</version>  <!--seaerch-->
     <!--<version>0.0.0</version> --> <!--index-->
 
 
@@ -30,7 +30,9 @@
         <log4j.version>1.2.15</log4j.version>
         <jetty.version>8.1.14.v20131031</jetty.version>
         <kryo.version>2.21</kryo.version>
+        <io.spray.version>1.3.3</io.spray.version>
         <chill.version>0.5.0</chill.version>
+
         <MaxPermSize>128m</MaxPermSize>
     </properties>
 
@@ -65,6 +67,29 @@
             <artifactId>scalap</artifactId>
             <version>${scala.version}</version>
             <scope>compile</scope>
+        </dependency>
+
+
+        <!--spary-->
+        <dependency>
+            <groupId>io.spray</groupId>
+            <artifactId>spray-can_${scala.binary.version}</artifactId>
+            <version>${io.spray.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.spray</groupId>
+            <artifactId>spray-http_${scala.binary.version}</artifactId>
+            <version>${io.spray.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.spray</groupId>
+            <artifactId>spray-routing_${scala.binary.version}</artifactId>
+            <version>${io.spray.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.spray</groupId>
+            <artifactId>spray-json_${scala.binary.version}</artifactId>
+            <version>1.3.2</version>
         </dependency>
 
 
@@ -106,6 +131,7 @@
             <artifactId>commons-logging</artifactId>
             <version>1.2</version>
         </dependency>
+
 
 
         <!--guawa-->
@@ -463,7 +489,7 @@
             </plugin>
 
             <!--package-->
-            <plugin>
+            <!--<plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <executions>
@@ -499,7 +525,7 @@
 
                     </execution>
                 </executions>
-            </plugin>
+            </plugin>-->
 
             <!-- deploy -->
             <plugin>
@@ -615,24 +641,24 @@
          </repository>-->
 
 
-        <!--  <repository>
-              <id>releases</id>
-              <url>http://192.168.0.249:8099/nexus/content/repositories/releases/</url>
-          </repository>
-          <snapshotRepository>
-              <id>snapshots</id>
-              <url>http://192.168.0.249:8099/nexus/content/repositories/snapshots/</url>
-          </snapshotRepository>-->
-
-
         <repository>
+            <id>releases</id>
+            <url>http://192.168.0.249:8099/nexus/content/repositories/releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <url>http://192.168.0.249:8099/nexus/content/repositories/snapshots/</url>
+        </snapshotRepository>
+
+
+        <!--<repository>
             <id>releases</id>
             <url>http://112.124.32.129:8099/nexus/content/repositories/releases/</url>
         </repository>
         <snapshotRepository>
             <id>snapshots</id>
             <url>http://112.124.32.129:8099/nexus/content/repositories/snapshots/</url>
-        </snapshotRepository>
+        </snapshotRepository>-->
 
 
         <!-- <repository>

@@ -12,9 +12,9 @@ import org.apache.http.client.protocol.HttpClientContext
 import org.apache.http.message.BasicNameValuePair
 import org.apache.http.protocol.{BasicHttpContext, HttpContext}
 import org.apache.http.util.EntityUtils
-import org.bson.json.JsonParseException
 import org.codehaus.jackson.JsonNode
 import org.codehaus.jackson.map.ObjectMapper
+import org.codehaus.jackson.map.ObjectMapper._
 import search.solr.client.consume.Consumer._
 import search.solr.client.listener.{IndexTaskTraceListener, AddIndex, ManagerListenerWaiter}
 import search.solr.client.{ObjectJson, SolrClientConf, SolrClient}
@@ -28,7 +28,6 @@ import scala.collection.mutable
 import scala.util.control.Breaks._
 import scala.collection.JavaConversions._
 
-import scala.StringBuilder
 
 /**
   * Created by soledede on 2016/2/15.
@@ -380,7 +379,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
     while (fields.hasNext()) {
       val it = fields.next()
       val key = it.getKey.trim
-      var value = it.getValue.asText.trim
+      var value = it.getValue.toString.trim
 
 
 

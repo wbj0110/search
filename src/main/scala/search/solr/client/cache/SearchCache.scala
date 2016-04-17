@@ -268,4 +268,98 @@ private[search] object SearchCache extends Configuration {
     stringBuilder
   }
 
+
+
+
+  //fulter attrribute search
+  //search attributers  and search result from catagory, isCategoryTouch=true first catagory, isCategoryTouch=false  catagory filter search
+
+  def cacheAttributeFilterSearch(keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.LinkedHashMap[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, categoryIds: java.util.List[Integer] = null, isComeFromSearch: Boolean = false, block: => FilterAttributeSearchResult): FilterAttributeSearchResult = {
+    val cache = getAttributeFilterSearchCache(keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows, isComeFromSearch)
+    if (cache != null) cache
+    else {
+      val result = block
+      if (result != null)
+        putAttributeFilterSearchCache(keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows, isComeFromSearch,result)
+      result
+    }
+  }
+
+  private def putAttributeFilterSearchCache(keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.LinkedHashMap[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer,categoryIds: java.util.List[Integer] = null, isComeFromSearch: Boolean = false, filterAttributeSearchResult: FilterAttributeSearchResult): Unit = {
+    val stringBuilder = attributeFilterSearchCache(keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows, isComeFromSearch)
+    if (stringBuilder != null && !stringBuilder.isEmpty && filterAttributeSearchResult != null)
+      cache.put(stringBuilder.toString.trim, filterAttributeSearchResult, cacheTime)
+  }
+
+  private def getAttributeFilterSearchCache(keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.LinkedHashMap[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer,categoryIds: java.util.List[Integer] = null, isComeFromSearch: Boolean = false): FilterAttributeSearchResult = {
+    val stringBuilder = attributeFilterSearchCache(keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows, isComeFromSearch)
+    if (stringBuilder != null && !stringBuilder.isEmpty)
+      cache.getObj[FilterAttributeSearchResult](stringBuilder.toString())
+    else null
+  }
+
+  private def attributeFilterSearchCache(keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.LinkedHashMap[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer,categoryIds: java.util.List[Integer] = null, isComeFromSearch: Boolean = false): StringBuilder = {
+    val stringBuilder = new StringBuilder
+
+    if (catagoryId != null && catagoryId >= 0)
+      stringBuilder.append(catagoryId).append(separator)
+
+    if (keyWords != null && !keyWords.trim.equalsIgnoreCase(""))
+      stringBuilder.append(keyWords.trim).append(separator)
+    if (cityId != null && cityId > 0)
+      stringBuilder.append(cityId).append(separator)
+    if (filters != null && filters.size() > 0) {
+      filters.foreach { case (k, v) =>
+        stringBuilder.append(k.trim).append(separator)
+        stringBuilder.append(v.trim).append(separator)
+      }
+    }
+
+    if (sorts != null && sorts.size() > 0) {
+      sorts.foreach { case (k, v) =>
+        stringBuilder.append(k.trim).append(separator)
+        stringBuilder.append(v.trim).append(separator)
+      }
+    }
+
+    if (start != null && start >= 0 && rows != null && rows >= 0) {
+      stringBuilder.append(start).append(separator)
+      stringBuilder.append(rows).append(separator)
+    }
+
+    if (filterFieldsValues != null && filterFieldsValues.size() > 0) {
+      filterFieldsValues.foreach { case (k, v) =>
+        stringBuilder.append(k.trim).append(separator)
+        if (v != null && v.size() > 0) {
+          v.foreach { filterV =>
+            if (filterV != null && filterV.trim.equalsIgnoreCase(""))
+              stringBuilder.append(k.trim).append(separator)
+          }
+        }
+      }
+    }
+    if (categoryIds != null && categoryIds.size()>0) {
+      stringBuilder.append("null").append(separator)
+    }
+    stringBuilder.append(isComeFromSearch.toString).append(separator)
+    stringBuilder
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }

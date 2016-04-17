@@ -379,7 +379,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
     while (fields.hasNext()) {
       val it = fields.next()
       val key = it.getKey.trim
-      var value = it.getValue.toString.trim
+      var value = it.getValue.asText().trim
 
 
 

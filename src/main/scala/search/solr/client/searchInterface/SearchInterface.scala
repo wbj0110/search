@@ -76,15 +76,17 @@ object SearchInterface extends Logging with Configuration {
     * @param keyWords
     * @param cityId
     * @return
+    * for NiNi
+    * actural java.util.List[Integer]
     */
-  def getCategoryIdsByKeyWords(collection: String = defaultCollection, keyWords: java.lang.String, cityId: java.lang.Integer, filters: java.util.Map[java.lang.String, java.lang.String]): java.util.List[Integer] = {
+  def getCategoryIdsByKeyWords(collection: String = defaultCollection, keyWords: java.lang.String, cityId: java.lang.Integer, filters: java.util.Map[java.lang.String, java.lang.String]): NiNi = {
 
     Util.caculateCostTime {
       SearchCache.cacheCategoryIdsByKeyWords(keyWords, cityId, filters, {
         var field = "categoryId4"
         getCategoryIdsByKeyWords(collection, keyWords, cityId, field, filters)
       })
-    }.asInstanceOf[java.util.List[Integer]]
+    }
   }
 
 
@@ -96,8 +98,10 @@ object SearchInterface extends Logging with Configuration {
     * @param start
     * @param rows
     * @return
+    * for NiNi
+    * actural FilterAttributeSearchResult
     */
-  def searchByKeywords(keyWords: java.lang.String, cityId: java.lang.Integer, filters: java.util.LinkedHashMap[java.lang.String, java.lang.String], sorts: java.util.LinkedHashMap[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer): FilterAttributeSearchResult = {
+  def searchByKeywords(keyWords: java.lang.String, cityId: java.lang.Integer, filters: java.util.LinkedHashMap[java.lang.String, java.lang.String], sorts: java.util.LinkedHashMap[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer): NiNi = {
     searchByKeywords(defaultCollection, defaultAttrCollection, keyWords, cityId, filters, sorts, start, rows)
   }
 
@@ -110,9 +114,12 @@ object SearchInterface extends Logging with Configuration {
     * @param sorts    eg:Map(price->desc,sales->desc,score->desc)
     * @param start    eg:0
     * @param rows     eg:10
-    * @return SearchResult
+    * @return
+    * for NiNi
+    * actural FilterAttributeSearchResult
+    *
     */
-  def searchByKeywords(collection: String = defaultCollection, attrCollection: String = defaultAttrCollection, keyWords: java.lang.String, cityId: java.lang.Integer, filters: java.util.Map[java.lang.String, java.lang.String], sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer): FilterAttributeSearchResult = {
+  def searchByKeywords(collection: String = defaultCollection, attrCollection: String = defaultAttrCollection, keyWords: java.lang.String, cityId: java.lang.Integer, filters: java.util.Map[java.lang.String, java.lang.String], sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer): NiNi = {
     Util.caculateCostTime {
       SearchCache.cacheSearchByKeywords(keyWords, cityId, filters, sorts, start, rows, {
         logInfo(s"search by keywords:$keyWords")
@@ -137,7 +144,7 @@ object SearchInterface extends Logging with Configuration {
 
         filterAttributeSearchResult
       })
-    }.asInstanceOf[FilterAttributeSearchResult]
+    }
   }
 
 
@@ -146,15 +153,20 @@ object SearchInterface extends Logging with Configuration {
     * search by popularity
     *
     * @return
+    * for NiNi
+    * actural  java.util.List[String]
+    *
     */
-  def popularityKeyWords(): java.util.List[String] = {
-    val keywords = HotSearch.hotKeywords
-    if (keywords == null || keywords.size() == 0) {
-      val list = new util.ArrayList[String]()
-      list.add("3m")
-      list.add("工具箱")
-      list
-    } else keywords
+  def popularityKeyWords(): NiNi = {
+    Util.caculateCostTime {
+      val keywords = HotSearch.hotKeywords
+      if (keywords == null || keywords.size() == 0) {
+        val list = new util.ArrayList[String]()
+        list.add("3m")
+        list.add("工具箱")
+        list
+      } else keywords
+    }
   }
 
 
@@ -205,7 +217,16 @@ object SearchInterface extends Logging with Configuration {
   thread.start()
 
 
-  def suggestByKeyWords(keyWords: java.lang.String, cityId: java.lang.Integer): java.util.Map[java.lang.String, java.lang.Integer] = {
+  /**
+    *
+    * @param keyWords
+    * @param cityId
+    * @return
+    *
+    * for NiNi
+    * actural  java.util.Map[java.lang.String, java.lang.Integer]
+    */
+  def suggestByKeyWords(keyWords: java.lang.String, cityId: java.lang.Integer): NiNi = {
     suggestByKeyWords(defaultCollection, keyWords, cityId)
   }
 
@@ -216,8 +237,11 @@ object SearchInterface extends Logging with Configuration {
     * @param keyWords search keyword
     * @param cityId
     * @return java.util.Map[java.lang.String,java.lang.Integer]   eg:Map("soledede"=>10004)  represent counts of document  the keywords  side in
+    *
+    *         for NiNi
+    *         actural  java.util.Map[java.lang.String, java.lang.Integer]
     */
-  def suggestByKeyWords(collection: String = defaultCollection, keyWords: java.lang.String, cityId: java.lang.Integer): java.util.Map[java.lang.String, java.lang.Integer] = {
+  def suggestByKeyWords(collection: String = defaultCollection, keyWords: java.lang.String, cityId: java.lang.Integer): NiNi = {
     Util.caculateCostTime {
       SearchCache.cacheSuggestByKeyWords(keyWords, cityId, {
         var (collections: String, attrCollections: String) = setSwitchCollection(collection, defaultAttrCollection)
@@ -263,11 +287,19 @@ object SearchInterface extends Logging with Configuration {
         }
         else null
       })
-    }.asInstanceOf[java.util.Map[java.lang.String, java.lang.Integer]]
+    }
   }
 
 
-  def searchBrandsByCatoryId(catagoryId: java.lang.Integer, cityId: java.lang.Integer): java.util.List[Brand] = {
+  /**
+    *
+    * @param catagoryId
+    * @param cityId
+    * @return
+    * for NiNi
+    * actural  java.util.List[Brand]
+    */
+  def searchBrandsByCatoryId(catagoryId: java.lang.Integer, cityId: java.lang.Integer): NiNi = {
     searchBrandsByCatoryId(defaultCollection, catagoryId, cityId, null, 0, java.lang.Integer.MAX_VALUE)
   }
 
@@ -278,8 +310,10 @@ object SearchInterface extends Logging with Configuration {
     * @param catagoryId
     * @param cityId
     * @return
+    * for NiNi
+    * actural  java.util.List[Brand]
     */
-  def searchBrandsByCatoryId(collection: String = defaultCollection, catagoryId: java.lang.Integer, cityId: java.lang.Integer): java.util.List[Brand] = {
+  def searchBrandsByCatoryId(collection: String = defaultCollection, catagoryId: java.lang.Integer, cityId: java.lang.Integer): NiNi = {
     searchBrandsByCatoryId(collection, catagoryId, cityId, null, 0, java.lang.Integer.MAX_VALUE)
   }
 
@@ -299,20 +333,38 @@ object SearchInterface extends Logging with Configuration {
     * @param rows
     * @param isCategoryTouch whether come from category
     * @return FilterAttributeSearchResult
+    *         for NiNi
+    *         actural  FilterAttributeSearchResult
     */
-  def attributeFilterSearch(collection: String, attrCollection: String, keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.LinkedHashMap[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, isCategoryTouch: java.lang.Boolean): FilterAttributeSearchResult = {
+  def attributeFilterSearch(collection: String, attrCollection: String, keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.LinkedHashMap[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, isCategoryTouch: java.lang.Boolean): NiNi = {
     Util.caculateCostTime {
       SearchCache.cacheAttributeFilterSearch(keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows, isCategoryTouch, {
         if (isCategoryTouch) {
           // searchFilterAttributeAndResultByCatagoryId(collection,attrCollection,catagoryId, cityId)
           searchFilterAttributeAndResulAndSearchResulttByCatagoryIdAndKeywords(collection, attrCollection, catagoryId, cityId, keyWords, filters, null, start, rows, null, false)
-        } else attributeFilterSearch(collection, keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows, null, false)
+        } else attributeFilterSearch(collection, keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows, null, false).getData.asInstanceOf[FilterAttributeSearchResult]
       })
-    }.asInstanceOf[FilterAttributeSearchResult]
+    }
   }
 
 
-  def attributeFilterSearch(keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.LinkedHashMap[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, categoryIds: java.util.List[Integer], isComeFromSearch: Boolean): FilterAttributeSearchResult = {
+  /**
+    *
+    * @param keyWords
+    * @param catagoryId
+    * @param cityId
+    * @param sorts
+    * @param filters
+    * @param filterFieldsValues
+    * @param start
+    * @param rows
+    * @param categoryIds
+    * @param isComeFromSearch
+    * @return
+    * for NiNi
+    * actural  FilterAttributeSearchResult
+    */
+  def attributeFilterSearch(keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.LinkedHashMap[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, categoryIds: java.util.List[Integer], isComeFromSearch: Boolean): NiNi = {
     attributeFilterSearch(defaultCollection, keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows, categoryIds, isComeFromSearch)
   }
 
@@ -333,9 +385,11 @@ object SearchInterface extends Logging with Configuration {
     * @param start              eg:0
     * @param rows               eg:10
     * @return FilterAttributeSearchResult
+    *         for NiNi
+    *         actural  FilterAttributeSearchResult
     */
 
-  def attributeFilterSearch(collection: String, keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.LinkedHashMap[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, categoryIds: java.util.List[Integer] = null, isComeFromSearch: Boolean = false): FilterAttributeSearchResult = {
+  def attributeFilterSearch(collection: String, keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.LinkedHashMap[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, categoryIds: java.util.List[Integer] = null, isComeFromSearch: Boolean = false): NiNi = {
     Util.caculateCostTime {
       SearchCache.cacheAttributeFilterSearch(keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows, categoryIds, isComeFromSearch, {
         var result = searchCore(false, collection, keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows, categoryIds, isComeFromSearch)
@@ -343,14 +397,14 @@ object SearchInterface extends Logging with Configuration {
         if (total == null || total == 0) result = searchCore(true, collection, keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows, categoryIds, isComeFromSearch)
         result
       })
-    }.asInstanceOf[FilterAttributeSearchResult]
+    }
   }
 
 
-  private def attributeFilterSearch(keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.LinkedHashMap[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, isCategoryTouch: java.lang.Boolean): FilterAttributeSearchResult = {
+  /*private def attributeFilterSearch(keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.LinkedHashMap[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, isCategoryTouch: java.lang.Boolean): FilterAttributeSearchResult = {
     if (isCategoryTouch) searchFilterAttributeAndResultByCatagoryId(defaultCollection, defaultAttrCollection, catagoryId, cityId)
     else attributeFilterSearch(defaultCollection, keyWords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows, null, false)
-  }
+  }*/
 
   //get all categoryIds
   /**
@@ -593,8 +647,10 @@ object SearchInterface extends Logging with Configuration {
     * @param start eg:0
     * @param rows  eg:10
     * @return java.util.List[Brand]
+    *         for NiNi
+    *         actural  java.util.List[Brand]
     */
-  private def searchBrandsByCatoryId(collection: String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer): java.util.List[Brand] = {
+  private def searchBrandsByCatoryId(collection: String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer): NiNi = {
     Util.caculateCostTime {
       SearchCache.cacheSearchBrandsByCatoryId(catagoryId, cityId, sorts, start, rows, {
         if (catagoryId != null) {
@@ -657,7 +713,7 @@ object SearchInterface extends Logging with Configuration {
           } else null
         } else null
       })
-    }.asInstanceOf[java.util.List[Brand]]
+    }
   }
 
   /**
@@ -1105,7 +1161,7 @@ object SearchInterface extends Logging with Configuration {
           }
         }
 
-        filterAttributeSearchResult = attributeFilterSearch(defaultCollection, null, catagoryId, cityId, null, null, filterFieldsValues, null, null)
+        filterAttributeSearchResult = attributeFilterSearch(defaultCollection, null, catagoryId, cityId, null, null, filterFieldsValues, null, null).getData.asInstanceOf[FilterAttributeSearchResult]
       }
 
       if (filterAttributeSearchResult == null) return null
@@ -1188,7 +1244,7 @@ object SearchInterface extends Logging with Configuration {
           }
         }
 
-        filterAttributeSearchResult = attributeFilterSearch(collections, null, catagoryId, cityId, null, null, filterFieldsValues, null, null, null, false)
+        filterAttributeSearchResult = attributeFilterSearch(collections, null, catagoryId, cityId, null, null, filterFieldsValues, null, null, null, false).getData.asInstanceOf[FilterAttributeSearchResult]
       }
 
       if (filterAttributeSearchResult == null) return null
@@ -1269,13 +1325,13 @@ object SearchInterface extends Logging with Configuration {
           }
         }
 
-        filterAttributeSearchResult = attributeFilterSearch(collections, keywords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows, categoryIds, isCameFromSearch)
+        filterAttributeSearchResult = attributeFilterSearch(collections, keywords, catagoryId, cityId, sorts, filters, filterFieldsValues, start, rows, categoryIds, isCameFromSearch).getData.asInstanceOf[FilterAttributeSearchResult]
       }
 
       filterAttributeSearchResult
 
     } else {
-      filterAttributeSearchResult = attributeFilterSearch(collections, keywords, catagoryId, cityId, sorts, null, null, start, rows, categoryIds, isCameFromSearch)
+      filterAttributeSearchResult = attributeFilterSearch(collections, keywords, catagoryId, cityId, sorts, null, null, start, rows, categoryIds, isCameFromSearch).getData.asInstanceOf[FilterAttributeSearchResult]
       filterAttributeSearchResult
     }
   }
@@ -1595,7 +1651,7 @@ object testSearchInterface {
 
   def main(args: Array[String]) {
 
-    searchByKeywords
+    //searchByKeywords
     //  testMoniSearchKeywords
 
     //testSearchFilterAttributeByCatagoryId
@@ -1624,6 +1680,13 @@ object testSearchInterface {
     //testQDotOrSearch
 
     //testCatidsByKeywords()
+
+
+    testNullConvert()
+  }
+
+  def testNullConvert()={
+    println(null.asInstanceOf[FilterAttributeSearchResult])
   }
 
   def testCatidsByKeywords() = {

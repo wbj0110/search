@@ -10,6 +10,7 @@ import java.util.regex.{Matcher, Pattern}
 import com.google.common.net.InetAddresses
 import com.google.common.util.concurrent.ThreadFactoryBuilder
 import org.apache.commons.lang3.SystemUtils
+import search.solr.client.entity.searchinterface.NiNi
 import search.solr.client.searchInterface.SearchInterface._
 
 import scala.collection.JavaConversions.asScalaBuffer
@@ -23,7 +24,7 @@ import scala.util.control.NonFatal
 /**
   * Created by soledede on 2015/11/25.
   */
-object Util extends  Logging{
+object Util extends Logging {
   private var customHostname: Option[String] = None
   val isWindows = SystemUtils.IS_OS_WINDOWS
 
@@ -52,13 +53,15 @@ object Util extends  Logging{
   }
 
 
-  def caculateCostTime(block: => AnyRef): AnyRef ={
+  def caculateCostTime(block: => AnyRef): NiNi = {
     val startTime = System.currentTimeMillis()
-    val result  = block
+    val result = block
     val endTime = System.currentTimeMillis()
-    val costTime = endTime-startTime
-    logInfo(s"search engine cost ${costTime} ms convert to second: ${costTime/1000f} s")
-    result
+    val costTime = (endTime - startTime).toFloat
+    val costSecondTime = costTime / 1000f
+    logInfo(s"search engine cost ${costTime} ms convert to second: ${costSecondTime} s")
+    val nini = new NiNi(costTime, costSecondTime, result)
+    nini
   }
 
   def stringTotimestamp(time: String): Long = {
@@ -100,7 +103,6 @@ object Util extends  Logging{
   def localHostNameForURI(): String = {
     customHostname.getOrElse(InetAddresses.toUriString(localIpAddressNew))
   }
-
 
 
   private def findLocalInetAddress(): InetAddress = {
@@ -149,7 +151,6 @@ object Util extends  Logging{
 
 
   def getClassLoader: ClassLoader = getClass.getClassLoader
-
 
 
   def regexExtract(input: String, regex: String): AnyRef = regexExtract(input, regex, -2)
@@ -204,14 +205,14 @@ object Util extends  Logging{
   }
 }
 
-object testUtil{
+object testUtil {
   def main(args: Array[String]) {
     testTime
   }
 
   def testTime = {
     //println( Util.stringTotimestamp("2016-03-07 01:41:39.000"))
-   // println(Util.timestampToDate(1457477786924L))
+    // println(Util.timestampToDate(1457477786924L))
     println(Util.timestampToDate(1457759504865L))
   }
 }

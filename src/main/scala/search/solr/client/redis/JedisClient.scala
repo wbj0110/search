@@ -1,7 +1,7 @@
 package search.solr.client.redis
 
 import org.apache.commons.lang3.StringUtils
-//import redis.clients.jedis.{JedisPool, JedisPoolConfig, Jedis}
+import redis.clients.jedis.{JedisPool, JedisPoolConfig, Jedis}
 import redis.clients.jedis.Jedis
 import search.solr.client.config.Configuration
 
@@ -12,7 +12,7 @@ private[search] object JedisClient extends Configuration {
 
   val lockPool = new Object()
 
-  //var pool: JedisPool = null
+  var pool: JedisPool = null
 
   var jSInRedis: Jedis = null
 
@@ -35,7 +35,7 @@ private[search] object JedisClient extends Configuration {
   }
 
 
- /* def createJedisPool(): JedisPool = {
+  def createJedisPool(): JedisPool = {
     //collection pool config
     val config = new JedisPoolConfig()
     //setup maxmum collection number
@@ -45,18 +45,18 @@ private[search] object JedisClient extends Configuration {
     config.setMaxIdle(10)
     val jedis = new JedisPool(config, redisHost, redisPort)
     jedis
-  }*/
+  }
 
 
- /* def poolInit() = {
+  def poolInit() = {
     if (this.pool == null) {
       this.lockPool.synchronized {
         this.pool = createJedisPool()
       }
     }
-  }*/
+  }
 
-/*  def getRedisFromPool(): Jedis = {
+  def getRedisFromPool(): Jedis = {
     if (this.pool == null)
       this.poolInit()
     this.pool.getResource
@@ -64,5 +64,5 @@ private[search] object JedisClient extends Configuration {
 
   def returnRedis(redis: Jedis) = {
     this.pool.returnResource(redis)
-  }*/
+  }
 }

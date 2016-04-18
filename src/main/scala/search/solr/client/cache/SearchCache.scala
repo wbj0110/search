@@ -41,6 +41,7 @@ private[search] object SearchCache extends Configuration {
 
   private def categoryIdsByKeyWordsCache(keyWords: java.lang.String, cityId: java.lang.Integer, filters: java.util.Map[java.lang.String, java.lang.String]): StringBuilder = {
     val stringBuilder = new StringBuilder
+    stringBuilder.append("categoryIdsByKeyWordsCache").append(separator)
     if (keyWords != null && !keyWords.trim.equalsIgnoreCase(""))
       stringBuilder.append(keyWords.trim).append(separator)
     if (cityId != null && cityId > 0)
@@ -85,6 +86,7 @@ private[search] object SearchCache extends Configuration {
 
   private def searchByKeywordsCache(keyWords: java.lang.String, cityId: java.lang.Integer, filters: java.util.Map[java.lang.String, java.lang.String], sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer): StringBuilder = {
     val stringBuilder = new StringBuilder
+    stringBuilder.append("searchByKeywordsCache").append(separator)
     if (keyWords != null && !keyWords.trim.equalsIgnoreCase(""))
       stringBuilder.append(keyWords.trim).append(separator)
     if (cityId != null && cityId > 0)
@@ -142,6 +144,7 @@ private[search] object SearchCache extends Configuration {
 
   private def suggestByKeyWordsCache(keyWords: java.lang.String, cityId: java.lang.Integer): StringBuilder = {
     val stringBuilder = new StringBuilder
+    stringBuilder.append("suggestByKeyWordsCache").append(separator)
     if (keyWords != null && !keyWords.trim.equalsIgnoreCase(""))
       stringBuilder.append(keyWords.trim).append(separator)
     if (cityId != null && cityId > 0)
@@ -178,6 +181,7 @@ private[search] object SearchCache extends Configuration {
 
   private def searchBrandsByCatoryIdCache(catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], start: java.lang.Integer, rows: java.lang.Integer): StringBuilder = {
     val stringBuilder = new StringBuilder
+    stringBuilder.append("searchBrandsByCatoryIdCache").append(separator)
     if (catagoryId != null && catagoryId >= 0)
       stringBuilder.append(catagoryId).append(separator)
     if (cityId != null && cityId > 0)
@@ -225,7 +229,7 @@ private[search] object SearchCache extends Configuration {
 
   private def attributeFilterSearchCache(keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.LinkedHashMap[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer, isCategoryTouch: java.lang.Boolean): StringBuilder = {
     val stringBuilder = new StringBuilder
-
+    stringBuilder.append("attributeFilterSearchCache").append(separator)
     if (catagoryId != null && catagoryId >= 0)
       stringBuilder.append(catagoryId).append(separator)
 
@@ -300,7 +304,7 @@ private[search] object SearchCache extends Configuration {
 
   private def attributeFilterSearchCache(keyWords: java.lang.String, catagoryId: java.lang.Integer, cityId: java.lang.Integer, sorts: java.util.Map[java.lang.String, java.lang.String], filters: java.util.Map[java.lang.String, java.lang.String], filterFieldsValues: java.util.LinkedHashMap[java.lang.String, java.util.List[java.lang.String]], start: java.lang.Integer, rows: java.lang.Integer,categoryIds: java.util.List[Integer] = null, isComeFromSearch: Boolean = false): StringBuilder = {
     val stringBuilder = new StringBuilder
-
+    stringBuilder.append("attributeFilterSearchCache1").append(separator)
     if (catagoryId != null && catagoryId >= 0)
       stringBuilder.append(catagoryId).append(separator)
 

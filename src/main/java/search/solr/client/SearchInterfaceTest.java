@@ -14,7 +14,6 @@ public class SearchInterfaceTest {
     }
 
 
-
     public static void testSearchByKeywords() {
         NiNi re =   SearchInterface.searchByKeywords("mergescloud", "screencloud", "圆筒", 363, null, null, 0, 10);
         System.out.println(re);

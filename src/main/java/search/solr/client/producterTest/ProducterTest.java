@@ -21,13 +21,13 @@ public class ProducterTest {
 
 
     public static void testAddProduct() {
-        System.out.println("测试增量更新生产者通过kafka发送通知给消费者单条更新" + Producter.send(System.currentTimeMillis(), 68));
+       // System.out.println("测试增量更新生产者通过kafka发送通知给消费者单条更新" + Producter.send(System.currentTimeMillis(), 68));
         try {
             Thread.sleep(5000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        System.out.println("测试增量更新生产者通过kafka发送通知给消费者，批量更新，传入更新时间段" + Producter.send(System.currentTimeMillis(), System.currentTimeMillis(), 167));
+       // System.out.println("测试增量更新生产者通过kafka发送通知给消费者，批量更新，传入更新时间段" + Producter.send(System.currentTimeMillis(), System.currentTimeMillis(), 167));
     }
 
     public static void testDeleteProduct(){
@@ -49,15 +49,15 @@ public class ProducterTest {
     }
 
     public static void testDeleteCollectionProduct(){
-        Producter.delete("test","234252342");
+       // Producter.delete("test","234252342");
         List<String> list = new ArrayList<String>();
         list.add("23343");
         list.add("324234245");
-        Producter.delete("test",list);
+       // Producter.delete("test",list);
     }
 
     public static void testCustomMessage(){
-        Producter.sendMsg("catagoryCloud-23432542-234324-4");
+        //Producter.sendMsg("catagoryCloud-23432542-234324-4");
     }
 
 }

@@ -13,8 +13,8 @@ import scala.reflect.ClassTag
   * Created by soledede on 2016/4/8.
   */
 private[search] class JRedisImpl extends Redis with Logging {
-  //val jedis = JedisClient.getRedisFromPool()
-  val jedis = JedisClient.createJredis()
+  val jedis = JedisClient.getRedisFromPool()
+ // val jedis = JedisClient.createJredis()
 
   override def put[T: ClassTag](key: String, value: T, seconds: Int): Unit = {
     try {

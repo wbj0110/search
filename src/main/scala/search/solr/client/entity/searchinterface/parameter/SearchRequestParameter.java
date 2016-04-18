@@ -1,25 +1,31 @@
 package search.solr.client.entity.searchinterface.parameter;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Created by soledede on 2016/4/18.
  */
-public class SearchByKeyWordsParam {
+public class SearchRequestParameter {
     private String collection;
     private String attrCollection;
-    private String keyWords = "*:*";
+    private String keyWords;
     private Integer cityId;
     private java.util.Map<java.lang.String, java.lang.String> filters;
     private java.util.LinkedHashMap<java.lang.String, java.lang.String> sorts;
-    private Integer start = 0;
-    private Integer rows = 10;
+    private Integer start;
+    private Integer rows;
+    private Integer catagoryId;
+    private java.util.LinkedHashMap<java.lang.String, java.util.List<java.lang.String>> filterFieldsValues;
+    private Boolean isCategoryTouch;
+    private Boolean isComeFromSearch=true;
 
-    public SearchByKeyWordsParam() {
+    public SearchRequestParameter() {
     }
 
-    public SearchByKeyWordsParam(String collection, String attrCollection, String keyWords, Integer cityId, Map<String, String> filters, LinkedHashMap<String, String> sorts, Integer start, Integer rows) {
+
+    public SearchRequestParameter(String collection, String attrCollection, String keyWords, Integer cityId, Map<String, String> filters, LinkedHashMap<String, String> sorts, Integer start, Integer rows, Integer catagoryId, LinkedHashMap<String, List<String>> filterFieldsValues, Boolean isCategoryTouch, Boolean isComeFromSearch) {
         this.collection = collection;
         this.attrCollection = attrCollection;
         this.keyWords = keyWords;
@@ -28,6 +34,10 @@ public class SearchByKeyWordsParam {
         this.sorts = sorts;
         this.start = start;
         this.rows = rows;
+        this.catagoryId = catagoryId;
+        this.filterFieldsValues = filterFieldsValues;
+        this.isCategoryTouch = isCategoryTouch;
+        this.isComeFromSearch = isComeFromSearch;
     }
 
     public String getCollection() {
@@ -92,5 +102,37 @@ public class SearchByKeyWordsParam {
 
     public void setRows(Integer rows) {
         this.rows = rows;
+    }
+
+    public Integer getCatagoryId() {
+        return catagoryId;
+    }
+
+    public void setCatagoryId(Integer catagoryId) {
+        this.catagoryId = catagoryId;
+    }
+
+    public LinkedHashMap<String, List<String>> getFilterFieldsValues() {
+        return filterFieldsValues;
+    }
+
+    public void setFilterFieldsValues(LinkedHashMap<String, List<String>> filterFieldsValues) {
+        this.filterFieldsValues = filterFieldsValues;
+    }
+
+    public Boolean getCategoryTouch() {
+        return isCategoryTouch;
+    }
+
+    public void setCategoryTouch(Boolean categoryTouch) {
+        isCategoryTouch = categoryTouch;
+    }
+
+    public Boolean getComeFromSearch() {
+        return isComeFromSearch;
+    }
+
+    public void setComeFromSearch(Boolean comeFromSearch) {
+        isComeFromSearch = comeFromSearch;
     }
 }

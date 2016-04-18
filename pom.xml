@@ -537,7 +537,7 @@
             </plugin>
 
             <!--package-->
-            <plugin>
+           <!-- <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <executions>
@@ -573,7 +573,7 @@
 
                     </execution>
                 </executions>
-            </plugin>
+            </plugin>-->
 
             <!-- deploy -->
             <plugin>

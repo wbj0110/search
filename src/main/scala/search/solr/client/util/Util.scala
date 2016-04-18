@@ -53,7 +53,7 @@ object Util extends Logging {
   }
 
 
-  def caculateCostTime(block: => AnyRef): NiNi = {
+  def caculateCostTime(block: => Any): NiNi = {
     val startTime = System.currentTimeMillis()
     val result = block
     val endTime = System.currentTimeMillis()

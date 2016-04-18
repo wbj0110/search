@@ -1682,7 +1682,7 @@ object testSearchInterface {
     //testCatidsByKeywords()
 
 
-    testNullConvert()
+    //testNullConvert()
   }
 
   def testNullConvert()={

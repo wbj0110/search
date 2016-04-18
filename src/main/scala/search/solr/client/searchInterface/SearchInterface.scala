@@ -1823,9 +1823,9 @@ object testSearchInterface {
   }
 
 
-  def searchByKeywords = {
+  def testSearchByKeywords = {
 
-    var sorts = new java.util.HashMap[java.lang.String, java.lang.String]
+    var sorts = new java.util.LinkedHashMap[java.lang.String, java.lang.String]
     //sorts.put("price", "desc")
     sorts.put("price", "asc")
     //sorts.put("score", "desc")
@@ -1836,7 +1836,7 @@ object testSearchInterface {
     // val result1 = SearchInterface.searchByKeywords("西格玛", 363, null, 0, 10)
     //val result2 = SearchInterface.searchByKeywords("LAA001", 363, null, 0, 10)
     val result3 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "圆筒", 363, null, sorts, 0, 10)
-    sorts = new java.util.HashMap[java.lang.String, java.lang.String]
+    sorts = new java.util.LinkedHashMap[java.lang.String, java.lang.String]
     sorts.put("price", "asc")
     val result4 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "西格玛", 363, null, null, 0, 10)
     val result4_1 = SearchInterface.searchByKeywords("mergescloud", "screencloud", "xigema", 363, null, null, 0, 10)

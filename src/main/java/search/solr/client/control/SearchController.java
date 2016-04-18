@@ -18,12 +18,22 @@ public class SearchController {
         return SearchInterface.searchByKeywords("mergescloud", "screencloud", "圆筒", 363, null, null, 0, 10);
     }*/
 
-    @RequestMapping(value ="/keywords",method = RequestMethod.POST)
+    @RequestMapping(value = "/keywords", method = RequestMethod.POST)
     public NiNi searchByKeywords(@RequestBody final SearchByKeyWordsParam searchByKeywords) {
-        return SearchInterface.searchByKeywords("mergescloud", "screencloud", "圆筒", 363, null, null, 0, 10);
+        String collection = searchByKeywords.getCollection();
+        String attrCollection = searchByKeywords.getAttrCollection();
+        Integer cityId = searchByKeywords.getCityId();
+        if (collection == null || attrCollection == null || cityId == null) {
+            NiNi nini = new NiNi();
+            nini.setCode(-1);
+            nini.setMsg("failed");
+            return nini;
+        } else
+            return SearchInterface.searchByKeywords(collection, attrCollection, searchByKeywords.getKeyWords(), cityId, searchByKeywords.getFilters(), searchByKeywords.getSorts(), 0, 10);
+
     }
 
-    @RequestMapping(value ="/test",method = RequestMethod.POST)
+    @RequestMapping(value = "/test", method = RequestMethod.POST)
     public NiNi test(@RequestBody final TestSimple testSimple) {
         return SearchInterface.searchByKeywords("mergescloud", "screencloud", "圆筒", 363, null, null, 0, 10);
     }

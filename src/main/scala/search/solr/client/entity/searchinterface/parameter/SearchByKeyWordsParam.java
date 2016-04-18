@@ -1,5 +1,6 @@
 package search.solr.client.entity.searchinterface.parameter;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -11,14 +12,14 @@ public class SearchByKeyWordsParam {
     private String keyWords = "*:*";
     private Integer cityId;
     private java.util.Map<java.lang.String, java.lang.String> filters;
-    private java.util.Map<java.lang.String, java.lang.String> sorts;
+    private java.util.LinkedHashMap<java.lang.String, java.lang.String> sorts;
     private Integer start = 0;
     private Integer rows = 10;
 
     public SearchByKeyWordsParam() {
     }
 
-    public SearchByKeyWordsParam(String collection, String attrCollection, String keyWords, Integer cityId, Map<String, String> filters, Map<String, String> sorts, Integer start, Integer rows) {
+    public SearchByKeyWordsParam(String collection, String attrCollection, String keyWords, Integer cityId, Map<String, String> filters, LinkedHashMap<String, String> sorts, Integer start, Integer rows) {
         this.collection = collection;
         this.attrCollection = attrCollection;
         this.keyWords = keyWords;
@@ -69,11 +70,11 @@ public class SearchByKeyWordsParam {
         this.filters = filters;
     }
 
-    public Map<String, String> getSorts() {
+    public LinkedHashMap<String, String> getSorts() {
         return sorts;
     }
 
-    public void setSorts(Map<String, String> sorts) {
+    public void setSorts(LinkedHashMap<String, String> sorts) {
         this.sorts = sorts;
     }
 

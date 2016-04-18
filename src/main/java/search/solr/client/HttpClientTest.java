@@ -15,6 +15,7 @@ import search.solr.client.http.HttpClientUtil;
 import search.solr.client.searchInterface.SearchInterface;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -36,10 +37,15 @@ public class HttpClientTest {
         obj.setAttrCollection("screencloud");
         obj.setKeyWords("圆筒");
         obj.setCityId(321);
-       // obj.setSorts(null);
-       // obj.setFilters(null);
+        LinkedHashMap sorts = new java.util.LinkedHashMap<java.lang.String, java.lang.String>();
+        sorts.put("price", "asc");
+        obj.setSorts(sorts);
+        Map filters = new java.util.HashMap<java.lang.String, java.lang.String>();
+        filters.put("da_661_s", "36×20 -> 35×33");
+       // filters.put("t87_tf", "[0 TO *}");
+        obj.setFilters(filters);
         obj.setStart(0);
-        obj.setRows(10);
+        obj.setRows(3);
 
 
         Map headers = new java.util.HashMap<String, String>();

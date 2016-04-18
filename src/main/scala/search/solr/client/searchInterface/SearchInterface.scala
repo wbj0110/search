@@ -1661,7 +1661,7 @@ object testSearchInterface {
 
     //testSuggestByKeyWords
 
-    //testRecordSearchLog
+    testRecordSearchLog
 
     //testCountKeywordInDocs
 

@@ -12,7 +12,7 @@ import scala.reflect.ClassTag
 trait KVCache {
 
   //save one week
-  def incrby(key: String, step: Int = 1, expiredTime: Long = 60 * 60 * 24 * 30): Int
+  def incrby(key: String, step: Int = 1, expiredTime: Long = 60 * 60 * 24 *5): Int
 
   def get(key: String): Int = -1
 

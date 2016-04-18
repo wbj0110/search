@@ -6,8 +6,6 @@
 
     <groupId>com.ehsy.search</groupId>
     <artifactId>seachclient-test</artifactId>
-    <name>searchclient</name>
-    <packaging>jar</packaging>
     <!-- <artifactId>seachclient</artifactId>-->
     <!--<version>1.3.4</version>-->
     <!--<version>2.3.4</version>--> <!--test-->
@@ -618,12 +616,11 @@
            </snapshots>
        </repository>-->
 
-<!--
         <repository>
             <id>mvns</id>
             <url>https://maven-repository.com</url>
         </repository>
--->
+
 
         <repository>
             <id>terracotta-repository</id>
@@ -685,7 +682,6 @@
             </snapshots>
         </pluginRepository>
 
-<!--
         <pluginRepository>
             <id>nexus1</id>
             <url>http://121.40.241.26:8081/nexus/content/groups/public</url>
@@ -696,7 +692,6 @@
                 <enabled>true</enabled>
             </snapshots>
         </pluginRepository>
--->
         <pluginRepository>
             <id>spring-snapshots</id>
             <url>http://repo.spring.io/snapshot</url>

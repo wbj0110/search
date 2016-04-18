@@ -4,6 +4,7 @@ package search.solr.client.control;
 import org.springframework.web.bind.annotation.*;
 import search.solr.client.entity.searchinterface.NiNi;
 import search.solr.client.entity.searchinterface.parameter.IndexParameter;
+import search.solr.client.entity.searchinterface.parameter.RecordLogParameter;
 import search.solr.client.entity.searchinterface.parameter.SearchRequestParameter;
 import search.solr.client.entity.searchinterface.parameter.TestSimple;
 import search.solr.client.product.Producter;
@@ -114,6 +115,17 @@ public class SearchController {
                     attributeFilter.getFilters(), attributeFilter.getFilterFieldsValues(), attributeFilter.getStart(), attributeFilter.getRows(),
                     null, isComeFromSearch);
     }
+
+    //record log
+    @RequestMapping(value = "/record", method = RequestMethod.POST)
+    public NiNi attributeFilterSearch(@RequestBody final RecordLogParameter logEntity) {
+        SearchInterface.recordSearchLog(logEntity.getKeyWords(), logEntity.getAppKey(), logEntity.getClientIp(), logEntity.getUserAgent(), logEntity.getSourceType(), logEntity.getCookies(), logEntity.getUserId());
+        NiNi nini = new NiNi();
+        nini.setCode(0);
+        nini.setMsg("success!");
+        return nini;
+    }
+
 
     //***************************************************//index
     @RequestMapping(value = "/index", method = RequestMethod.POST)

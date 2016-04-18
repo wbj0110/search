@@ -13,7 +13,7 @@ class RedisCache private extends KVCache with Logging {
   val redis = Redis()
 
   //save one week
-  override def incrby(key: String, step: Int, expiredTime: Long): Int = {
+  override def incrby(key: String, step: Int, expiredTime: Long = 60 * 60 * 24 *5): Int = {
     redis.incrBy(key, step)
   }
 
@@ -30,7 +30,6 @@ class RedisCache private extends KVCache with Logging {
   override def keys(preffixKey: String): Seq[String] = {
     redis.keys(preffixKey).getOrElse(null)
   }
-
 }
 
 object RedisCache {

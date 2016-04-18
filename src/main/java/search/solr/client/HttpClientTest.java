@@ -5,6 +5,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.util.EntityUtils;
 import search.solr.client.entity.searchinterface.parameter.IndexParameter;
+import search.solr.client.entity.searchinterface.parameter.RecordLogParameter;
 import search.solr.client.entity.searchinterface.parameter.SearchRequestParameter;
 import search.solr.client.http.HttpClientUtil;
 import search.solr.client.searchInterface.SearchInterface;
@@ -29,9 +30,34 @@ public class HttpClientTest {
         //testAttributeFilterSearchCatId(true);
         //testAttributeFilterSearchCatId(false);
         //testAttributeFilterSearch();
+
         //index();
-        deleteIds();
+       // deleteIds();
+        testRecordLogs();
     }
+
+
+    public static void testRecordLogs() {
+        String url = "http://192.168.51.118:8999/search/record";
+
+        RecordLogParameter obj = new RecordLogParameter("工具","sd","0.0.0","sdf","haha","sdjkl","userId");
+
+        Map headers = new java.util.HashMap<String, String>();
+        headers.put("Content-Type", "application/json");
+        CloseableHttpResponse httpResp =  HttpClientUtil.requestHttpSyn(url, "post", obj, headers);
+        httpResp =  HttpClientUtil.requestHttpSyn(url, "post", obj, headers);
+        try {
+            HttpEntity entity =  httpResp.getEntity();
+            String sResponse = EntityUtils.toString(entity);
+            System.out.println(sResponse);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            HttpClientUtils.closeQuietly(httpResp);
+        }
+    }
+
+
 
     public static void deleteIds() {
         String url = "http://192.168.51.118:8999/search/delete/ids";

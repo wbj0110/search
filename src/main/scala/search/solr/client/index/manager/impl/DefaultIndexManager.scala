@@ -41,7 +41,7 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
   val MERGECLOUD_URL: String = mergesCloudsUrl
   val SCREEN_URL: String = screenCloudsUrl
 
-  val needSenseCharcter = Array("|") //if you need use new sense charcter in application.conf ,you need add it to array
+  val needSenseCharcter = Array("|") //if you need use new sense charcter  ,you need add it to array
 
   var arrayObj: Array[String] = null
 

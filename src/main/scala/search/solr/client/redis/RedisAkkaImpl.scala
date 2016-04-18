@@ -334,7 +334,7 @@ class RedisAkkaImpl private extends Redis with Logging {
     try {
       val result = redis.keys(parttern)
      // Await.result(result, 20 seconds)
-      Await.result(result, 3 seconds)
+      Await.result(result, 120 seconds)
       r = result.value.get.toOption
     } catch {
       case e: Exception => log.error("get counter by step value failed！" + e.getMessage(), e)

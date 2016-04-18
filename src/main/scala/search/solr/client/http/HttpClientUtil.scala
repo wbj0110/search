@@ -88,16 +88,26 @@ object HttpClientUtil {
   def closeHttpClient = HttpClientUtils.closeQuietly(httpClient);
 
 
-  def requestHttpSyn(url: String, requestType: String, paremeters: java.util.Map[String, Object], headers: java.util.Map[String, String]): CloseableHttpResponse = {
+  def requestHttpSyn(url: String, requestType: String, obj: Object, headers: java.util.Map[String, String]): CloseableHttpResponse = {
     var rType = HttpRequestMethodType.GET
     requestType match {
       case "post" => rType = HttpRequestMethodType.POST
       case _ => null
     }
-    requestHttpSyn(url, rType, paremeters, headers, null)
+    if (obj.isInstanceOf[java.util.Map[String, Object]])
+      requestHttpSyn(url, rType, obj.asInstanceOf[java.util.Map[String, Object]], headers, null)
+    else requestHttpSyn(url, rType, obj, headers, null)
   }
 
   def requestHttpSyn(url: String, requestType: HttpRequestMethodType.Type, paremeters: java.util.Map[String, Object], headers: java.util.Map[String, String], contexts: java.util.Map[String, String]): CloseableHttpResponse = {
+    requestHttpSyn(url, requestType, paremeters, null, headers, contexts)
+  }
+
+  def requestHttpSyn(url: String, requestType: HttpRequestMethodType.Type, obj: Object, headers: java.util.Map[String, String], contexts: java.util.Map[String, String]): CloseableHttpResponse = {
+    requestHttpSyn(url, requestType, null, obj, headers, contexts)
+  }
+
+  def requestHttpSyn(url: String, requestType: HttpRequestMethodType.Type, paremeters: java.util.Map[String, Object], obj: Object, headers: java.util.Map[String, String], contexts: java.util.Map[String, String]): CloseableHttpResponse = {
     val request = HttpRequstUtil.createRequest(requestType, url)
     var isJson = false
     if (headers != null && !headers.isEmpty) {
@@ -117,22 +127,33 @@ object HttpClientUtil {
       }
     }
 
-    if (paremeters != null && !paremeters.isEmpty) {
-      val formparams: java.util.List[BasicNameValuePair] = new java.util.ArrayList[BasicNameValuePair]()
-      paremeters.foreach { p =>
-        formparams.add(new BasicNameValuePair(p._1, p._2.toString))
+    var formparams: java.util.List[BasicNameValuePair] = null
+    if (!isJson) {
+      if (paremeters != null && !paremeters.isEmpty) {
+        formparams = new java.util.ArrayList[BasicNameValuePair]()
+        paremeters.foreach { p =>
+          formparams.add(new BasicNameValuePair(p._1, p._2.toString))
+        }
       }
-
-      var entity: StringEntity = null
-      if (isJson) {
-        val mapper = new ObjectMapper()
-        val jStirng = mapper.writeValueAsString(paremeters)
-        println("string json:" + jStirng)
-        entity = new StringEntity(jStirng, "utf-8");
-      } else entity = new UrlEncodedFormEntity(formparams, "utf-8");
-
-      request.asInstanceOf[HttpEntityEnclosingRequestBase].setEntity(entity)
     }
+
+    var entity: StringEntity = null
+    if (isJson) {
+      val mapper = new ObjectMapper()
+      var jStirng: String = null
+      if (paremeters != null && !paremeters.isEmpty) {
+        jStirng = mapper.writeValueAsString(paremeters)
+      } else if (obj != null) {
+        jStirng = mapper.writeValueAsString(obj)
+      }
+      println("string json:" + jStirng)
+      if (jStirng != null)
+        entity = new StringEntity(jStirng, "utf-8")
+    } else {
+      if (formparams != null && !formparams.isEmpty)
+        entity = new UrlEncodedFormEntity(formparams, "utf-8")
+    }
+    request.asInstanceOf[HttpEntityEnclosingRequestBase].setEntity(entity)
     HttpClientUtil.getInstance().executeSyn(request, context)
 
   }
@@ -203,7 +224,7 @@ object TestHttpClientUtil {
     // parametersMap.put("userId", "58438")
     //parametersMap.put("catagoryId", "null")
     //parametersMap.put("brandId", "1421")
-   // parametersMap.put("docId", "614547")
+    // parametersMap.put("docId", "614547")
     parametersMap.put("docId", "MCA839")
     parametersMap.put("number", Integer.valueOf(70))
     val headers = new java.util.HashMap[String, String]()

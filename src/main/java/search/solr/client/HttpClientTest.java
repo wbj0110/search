@@ -31,9 +31,9 @@ public class HttpClientTest {
         //testAttributeFilterSearchCatId(false);
         //testAttributeFilterSearch();
 
-        //index();
+        index();
        // deleteIds();
-        testRecordLogs();
+       // testRecordLogs();
     }
 
 
@@ -89,9 +89,11 @@ public class HttpClientTest {
 
         IndexParameter obj = new IndexParameter();
         obj.setCollection("mergescloud");
-        obj.setStartUpdateTime(1900990435L);
-        obj.setEndUpdataTime(2343242L);
-        obj.setTotalNum(4);
+       // obj.setStartUpdateTime(1900990435L);
+       // obj.setEndUpdataTime(2343242L);
+        obj.setStartUpdateTime(-1L);
+        obj.setEndUpdataTime(-1L);
+        obj.setTotalNum(1);
 
         Map headers = new java.util.HashMap<String, String>();
         headers.put("Content-Type", "application/json");

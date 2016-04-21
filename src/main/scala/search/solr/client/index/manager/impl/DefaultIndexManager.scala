@@ -32,7 +32,7 @@ import scala.collection.JavaConversions._
 /**
   * Created by soledede on 2016/2/15.
   */
-class DefaultIndexManager private extends IndexManager with Logging with Configuration {
+class DefaultIndexManager extends IndexManager with Logging with Configuration {
   val C_OR_UPDATE_XML = "_c_u.xml"
   val DELETE_XML = "_d.xml"
 
@@ -180,14 +180,15 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
     val collection = context.getAttribute("collection").toString
     val responseData = EntityUtils.toString(httpResp.getEntity)
 
-    DefaultIndexManager.indexProcessThreadPool.execute(new IndexManageProcessrRunner(collection, responseData))
+    DefaultIndexManager.genXmlProcessThreadPool.execute(new GeneXmlrocessrRunner(collection, responseData))
     //startGeneralXmlAndIndex(collection, responseData)  //change to use thread pool
   }
 
   def indexOrDelteData(obj: AnyRef, collection: String): Unit = {
     val xmlBool = geneXml(obj, collection)
     if (xmlBool != null) {
-      indexesData(collection, xmlBool)
+      /*indexesData(collection, xmlBool)*/
+      DefaultIndexManager.indexProcessThreadPool.execute(new IndexManageProcessrRunner(collection,xmlBool))
     }
   }
 
@@ -250,12 +251,21 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
   }
 
 
-  class IndexManageProcessrRunner(collection: String, responseData: String) extends Runnable {
+  class GeneXmlrocessrRunner(collection: String, responseData: String) extends Runnable {
     override def run(): Unit = {
-      startGeneralXmlAndIndex(collection, responseData)
+      val defaultIndexManager = new DefaultIndexManager()
+      defaultIndexManager.startGeneralXmlAndIndex(collection, responseData)
 
     }
   }
+  class IndexManageProcessrRunner(collection: java.lang.String, xmlBool: AnyRef) extends Runnable {
+    override def run(): Unit = {
+      indexData(xmlBool,collection)
+    }
+  }
+
+
+
 
 
   def startGeneralXmlAndIndex(collection: String, responseData: String): Unit = {
@@ -354,12 +364,12 @@ class DefaultIndexManager private extends IndexManager with Logging with Configu
         }
       }
       if (!xml.isEmpty) {
-       // this.synchronized {
-          val fileName = collection.trim + "_" + System.currentTimeMillis() + fileNamePreffix
-          var filePath = filedirMergeCloud + fileName
-          if (collection.contains("screencloud")) filePath = filedirScreenCloud + fileName
-          writeToDisk(xml.toString(), filePath)
-          logInfo(s"write file $filePath success,Total ${writeToFileCnt} documents！")
+        // this.synchronized {
+        val fileName = collection.trim + "_" + System.currentTimeMillis() + fileNamePreffix
+        var filePath = filedirMergeCloud + fileName
+        if (collection.contains("screencloud")) filePath = filedirScreenCloud + fileName
+        writeToDisk(xml.toString(), filePath)
+        logInfo(s"write file $filePath success,Total ${writeToFileCnt} documents！")
         //}
       }
 
@@ -508,6 +518,8 @@ object DefaultIndexManager extends Configuration {
   if (consumerThreadsNum > 0) currentThreadsNum = consumerThreadsNum
   val consumerManageThreadPool = Util.newDaemonFixedThreadPool(currentThreadsNum, "consumer_index_manage_thread_excutor")
 
+
+  val genXmlProcessThreadPool = Util.newDaemonFixedThreadPool(currentThreadsNum, "genXml_process_thread_excutor")
 
   val indexProcessThreadPool = Util.newDaemonFixedThreadPool(currentThreadsNum, "index_process_thread_excutor")
 
